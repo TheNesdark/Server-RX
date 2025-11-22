@@ -1,0 +1,37 @@
+---
+import Sidebar from "../components/Sidebar.astro";
+---
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+	</head>
+	<body>
+		<Sidebar />
+		<main>
+			<slot />
+		</main>
+	</body>
+</html>
+<style>
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+	display: flex;
+	min-height: 100vh;
+	background-color: #f0f2f5;
+}
+
+main {
+	flex: 1;
+	padding: 24px;
+}
+</style>

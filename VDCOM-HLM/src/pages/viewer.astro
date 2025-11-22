@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id='dwv'><div id='layerGroup0'></div></div>
+</body>
+<script type="module">
+import {App, AppOptions, ViewConfig} from '//esm.sh/dwv';
+// create the dwv app
+const app = new App();
+// initialise
+const viewConfig0 = new ViewConfig('layerGroup0');
+const viewConfigs = {'*': [viewConfig0]};
+const options = new AppOptions(viewConfigs);
+app.init(options);
+// load dicom data
+app.loadURLs([
+  'http://localhost:3001/files/CT000001.dcm',
+]);
+</script>
+</html>

@@ -1,0 +1,28 @@
+---
+
+const { study } = Astro.props;
+---
+<div class="study-item">
+  <h4>{study.title}</h4>
+  <p>Paciente: <strong>{study.patient}</strong></p>
+  <p>Fecha: <strong>{study.date}</strong></p>
+  <p>Modalidad: <strong>{study.modality}</strong></p>
+</div>
+
+<style>
+  .study-item {
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .study-item h4 {
+    margin: 0 0 12px 0;
+    color: #2c3e50;
+  }
+  .study-item p {
+    margin: 6px 0;
+  }
+</style>

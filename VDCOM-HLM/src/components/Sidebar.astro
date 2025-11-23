@@ -8,13 +8,23 @@
                 >
             </li>
             <li>
-                <label for="dicom-file-input" style="cursor:pointer; display:flex; align-items:center;">
+                <label
+                    for="dicom-file-input"
+                    style="cursor:pointer; display:flex; align-items:center;"
+                >
                     <span class="icon">👥</span> Cargar
                 </label>
-                <input id="dicom-file-input" type="file" accept=".dcm,application/dicom" style="display:none" />
+                <input
+                    id="dicom-file-input"
+                    type="file"
+                    accept=".dcm,application/dicom"
+                    style="display:none"
+                />
             </li>
             <li>
-                <a href="#" data-page="settings"><span class="icon">⚙️</span> Configuración</a>
+                <a href="#" data-page="settings"
+                    ><span class="icon">⚙️</span> Configuración</a
+                >
             </li>
         </ul>
     </nav>
@@ -24,36 +34,41 @@
 </aside>
 
 <style>
+    :root {
+        --bg-dark: #0f1115;
+        --bg-panel: #181b21;
+        --bg-hover: #232730;
+        --accent-color: #3b82f6;
+        --text-main: #e2e8f0;
+        --text-muted: #94a3b8;
+        --border-color: #2d3748;
+    }
+
     aside {
         width: 280px;
-        background: linear-gradient(
-            180deg,
-            #ffffff 0%,
-            #f8f9fa 50%,
-            #e9ecef 100%
-        );
+        background: var(--bg-panel);
         padding: 0;
-        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
         display: flex;
         flex-direction: column;
-        border-right: 1px solid #e0e6ed;
+        border-right: 1px solid var(--border-color);
         overflow: hidden;
     }
 
     aside h2 {
         padding: 24px 24px 16px;
-        color: #1a1a1a;
-        font-size: 20px;
-        font-weight: 700;
+        color: var(--text-main);
+        font-size: 18px;
+        font-weight: 600;
         text-align: left;
-        border-bottom: 1px solid #e9ecef;
+        border-bottom: 1px solid var(--border-color);
         margin: 0;
-        background: rgba(255, 255, 255, 0.8);
+        background: var(--bg-panel);
     }
 
     .nav-menu {
         flex: 1;
-        padding: 8px 0;
+        padding: 12px 0;
     }
 
     aside ul {
@@ -63,48 +78,49 @@
     }
 
     aside li {
-        margin: 0;
+        margin: 4px 12px;
     }
 
-    aside a {
+    aside a,
+    aside label {
         display: flex;
         align-items: center;
-        padding: 16px 24px;
-        color: #495057;
+        padding: 12px 16px;
+        color: var(--text-muted);
         text-decoration: none;
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 500;
         transition: all 0.2s ease;
-        border-left: 4px solid transparent;
+        border-radius: 8px;
+        cursor: pointer;
     }
 
-    aside a:hover {
-        background: #e3f2fd;
-        color: #1976d2;
-        border-left-color: #2196f3;
+    aside a:hover,
+    aside label:hover {
+        background: var(--bg-hover);
+        color: var(--text-main);
     }
 
     aside a.active {
-        background: #e3f2fd;
-        color: #1976d2;
-        border-left-color: #2196f3;
-        font-weight: 600;
+        background: rgba(59, 130, 246, 0.15);
+        color: var(--accent-color);
     }
 
     aside .icon {
         margin-right: 12px;
-        font-size: 20px;
+        font-size: 18px;
+        opacity: 0.8;
     }
 
-    aside-footer {
+    .sidebar-footer {
         padding: 16px 24px;
-        border-top: 1px solid #e9ecef;
-        background: rgba(248, 249, 250, 0.8);
+        border-top: 1px solid var(--border-color);
+        background: var(--bg-panel);
     }
 
     .logout {
         display: block;
-        color: #dc3545;
+        color: #ef4444;
         text-decoration: none;
         font-size: 14px;
         padding: 8px 0;
@@ -112,7 +128,7 @@
     }
 
     .logout:hover {
-        color: #c82333;
-        text-decoration: underline;
+        color: #f87171;
+        text-decoration: none;
     }
 </style>

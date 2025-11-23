@@ -2,7 +2,9 @@ import { App, AppOptions, ViewConfig, ToolConfig, toolList } from "https://esm.s
 
 let layerGroup;
 const DICOMURL = [
-    "https://raw.githubusercontent.com/ivmartel/dwv/master/tests/data/bbmri-53323851.dcm"
+     'https://raw.githubusercontent.com/ivmartel/dwv/master/tests/data/bbmri-53323851.dcm',
+  'https://raw.githubusercontent.com/ivmartel/dwv/master/tests/data/bbmri-53323707.dcm',
+  'https://raw.githubusercontent.com/ivmartel/dwv/master/tests/data/bbmri-53323563.dcm'
 ];
 
 class NoneTool {
@@ -28,7 +30,6 @@ options.tools = {
     Scroll: new ToolConfig(),
     WindowLevel: new ToolConfig(),
     ZoomAndPan: new ToolConfig(),
-    Opacity: new ToolConfig(),
     Draw: {
         options: [
             "Arrow",
@@ -40,14 +41,6 @@ options.tools = {
             "Roi",
         ],
     },
-    Filter: {
-        options: [
-            "Threshold",
-            "Sobel", 
-            "Sharpen"
-        ]
-    },
-    Brush: new ToolConfig(),
     Floodfill: new ToolConfig(),
     Livewire: new ToolConfig()
 };
@@ -77,11 +70,6 @@ const drawBtn = document.querySelector(".draw-btn");
 const drawMenu = document.querySelector(".draw-shapes-menu");
 const drawContainer = document.querySelector(".draw-tool-container");
 
-// Filter tool elements
-const filterBtn = document.querySelector(".filter-btn");
-const filterMenu = document.querySelector(".filter-options-menu");
-const filterContainer = document.querySelector(".filter-tool-container");
-
 // Helper function to clear active state from all buttons
 function clearActiveButtons() {
     document
@@ -102,12 +90,6 @@ document.querySelectorAll(".tool-btn").forEach((btn) => {
             this.classList.add("active");
         } else if (title === "Stack Scroll") {
             app.setTool("Scroll");
-            this.classList.add("active");
-        } else if (title === "Opacity") {
-            app.setTool("Opacity");
-            this.classList.add("active");
-        } else if (title === "Brush") {
-            app.setTool("Brush");
             this.classList.add("active");
         } else if (title === "Floodfill") {
             app.setTool("Floodfill");
@@ -137,26 +119,23 @@ drawBtn?.addEventListener("click", (e) => {
     drawMenu.classList.toggle("show");
 });
 
-// Toggle dropdown menu for filter tool
-filterBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    filterMenu.classList.toggle("show");
-});
-
 // Close dropdowns when clicking outside
 document.addEventListener("click", (e) => {
     if (!drawContainer?.contains(e.target)) {
         drawMenu?.classList.remove("show");
     }
-    if (!filterContainer?.contains(e.target)) {
-        filterMenu?.classList.remove("show");
-    }
 });
 
 // Helper function to clear all annotations
 function clearAllAnnotations() {
+    if (!layerGroup) return;
+    
     const drawLayer = layerGroup.getActiveDrawLayer();
+    if (!drawLayer) return;
+    
     const drawController = drawLayer.getDrawController();
+    if (!drawController) return;
+    
     const allShapes = [
         "Arrow",
         "Ruler",
@@ -207,29 +186,6 @@ document.querySelectorAll(".shape-option").forEach((option) => {
     });
 });
 
-// Handle filter selection
-document.querySelectorAll(".filter-option").forEach((option) => {
-    option.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const filterName = option.getAttribute("data-filter");
-        const btnText = filterBtn.querySelector("span");
-
-        // Activate filter tool
-        app.setTool("Filter");
-        app.setToolFeatures({ filterName: filterName });
-
-        // Update UI
-        clearActiveButtons();
-        filterBtn.classList.add("active");
-
-        // Update button text to show selected filter
-        btnText.textContent = `Filter: ${filterName}`;
-
-        // Close menu
-        filterMenu.classList.remove("show");
-    });
-});
-
 // Reset button - Al final para tener acceso a todas las variables
 document
     .querySelector(".tool-btn[title='Reset']")
@@ -240,15 +196,13 @@ document
         // Limpiar anotaciones
         clearAllAnnotations();
 
-        // Resetear el display y volver a NoneTool
+        // Resetear el display completo: zoom, pan, opacidad y niveles de ventana
         app.resetLayout();
+        app.resetZoomPan();
         app.setTool("None");
+
 
         // Resetear el texto del botón Draw
         const drawBtnText = drawBtn?.querySelector("span");
         drawBtnText.textContent = "Draw";
-
-        // Resetear el texto del botón Filter
-        const filterBtnText = filterBtn?.querySelector("span");
-        filterBtnText.textContent = "Filter";
     });

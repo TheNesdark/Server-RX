@@ -1,6 +1,7 @@
 ---
 import Sidebar from "../components/Sidebar.astro";
 ---
+
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
@@ -17,21 +18,33 @@ import Sidebar from "../components/Sidebar.astro";
 	</body>
 </html>
 <style>
-* {
-	box-sizing: border-box;
-	margin: 0;
-	padding: 0;
-	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
+	@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
-body {
-	display: flex;
-	min-height: 100vh;
-	background-color: #f0f2f5;
-}
+	* {
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0;
+	}
 
-main {
-	flex: 1;
-	padding: 24px;
-}
+	body {
+		font-family:
+			"Inter",
+			-apple-system,
+			BlinkMacSystemFont,
+			"Segoe UI",
+			Roboto,
+			Helvetica,
+			Arial,
+			sans-serif;
+		display: flex;
+		min-height: 100vh;
+		background-color: #0f1115; /* Dark background */
+		color: #e2e8f0; /* Light text */
+	}
+
+	main {
+		flex: 1;
+		padding: 32px;
+		overflow-y: auto;
+	}
 </style>

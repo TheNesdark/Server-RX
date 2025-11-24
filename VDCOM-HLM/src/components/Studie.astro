@@ -2,14 +2,14 @@
 const { study } = Astro.props;
 ---
 
-<a href="/viewer" class="study-item">
+<a href={`/viewer?study=${study.id}`} class="study-item">
   <div class="study-header">
-    <h4>{study.title}</h4>
-    <span class="modality-badge">{study.modality}</span>
+    <span class="modality-badge">{study.studyType}</span>
   </div>
   <div class="study-info">
-    <p>Paciente: <strong>{study.patient}</strong></p>
-    <p>Fecha: <strong>{study.date}</strong></p>
+    <p>ID: <strong>{study.id}</strong></p>
+    <p>Paciente: <strong>{study.patientName}</strong></p>
+    <p>Fecha: <strong>{study.studyDate}</strong></p>
   </div>
 </a>
 

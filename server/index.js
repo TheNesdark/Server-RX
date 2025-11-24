@@ -13,7 +13,40 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Mockup de datos de estudios médicos
+const mockStudies = [
+  {
+    id: 1,
+    patientName: "Juan Pérez",
+    studyDate: "2025-11-01",
+    studyType: "Tomografía Computarizada",
+    dicomFile: "1.dcm"
+  },
+  {
+    id: 2,
+    patientName: "María García",
+    studyDate: "2025-11-05",
+    studyType: "Resonancia Magnética",
+    dicomFile: "2.dcm"
+  }
+];
 
+// Endpoint para obtener la lista de estudios
+app.get('/studies', (req, res) => {
+  res.json(mockStudies);
+});
+
+// Endpoint para obtener un estudio específico por ID
+app.get('/studies/:id', (req, res) => {
+  const studyId = parseInt(req.params.id);
+  const study = mockStudies.find(s => s.id === studyId);
+  
+  if (!study) {
+    return res.status(404).json({ error: 'Estudio no encontrado' });
+  }
+  
+  res.json(study);
+});
 
 app.get('/files/:name', (req, res) => {
   const name = path.basename(req.params.name);

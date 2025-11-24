@@ -245,6 +245,21 @@
         </button>
       </div>
       <div class="toolbar-right">
+        <button class="tool-btn help-btn" title="Ayuda">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <span>Ayuda</span>
+        </button>
         <button class="tool-btn close-btn" title="Close">
           <svg
             width="20"
@@ -302,8 +317,8 @@
         </div>
 
         <div class="patient-info top-left">
-          <div id="patient-name">DICOM Viewer</div>
-          <div id="study-date">Ready</div>
+          <div id="patient-name"></div>
+          <div id="study-date"></div>
         </div>
 
         <div class="patient-info top-right">
@@ -313,7 +328,101 @@
       </div>
     </div>
 
-    <script type="module" src="/viewer.js"></script>
+    <!-- Modal de Ayuda -->
+    <div id="help-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Guía de Herramientas del Visor DICOM</h2>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="help-section">
+            <h3>🔍 Herramientas de Visualización</h3>
+            <div class="help-item">
+              <strong>Levels (Ventana/Nivel):</strong>
+              <p>
+                Ajusta el brillo y contraste de la imagen. Haz clic y arrastra
+                para modificar los niveles de ventana.
+              </p>
+            </div>
+            <div class="help-item">
+              <strong>Zoom & Pan:</strong>
+              <p>
+                Amplía o reduce la imagen y muévela por el visor. Usa la rueda
+                del ratón para zoom y arrastra para mover.
+              </p>
+            </div>
+            <div class="help-item">
+              <strong>Stack Scroll:</strong>
+              <p>
+                Navega entre las diferentes capas de un estudio multi-corte.
+                Arrastra verticalmente para cambiar de capa.
+              </p>
+            </div>
+          </div>
+
+          <div class="help-section">
+            <h3>✏️ Herramientas de Anotación</h3>
+            <div class="help-item">
+              <strong>Draw (Dibujar):</strong>
+              <p>Despliega un menú con diferentes formas para anotar:</p>
+              <ul>
+                <li>
+                  <strong>Arrow:</strong> Dibuja flechas para señalar áreas
+                </li>
+                <li><strong>Ruler:</strong> Mide distancias en la imagen</li>
+                <li><strong>Circle/Ellipse:</strong> Marca áreas circulares</li>
+                <li><strong>Rectangle:</strong> Marca áreas rectangulares</li>
+                <li><strong>Protractor:</strong> Mide ángulos</li>
+                <li><strong>ROI:</strong> Define región de interés</li>
+              </ul>
+            </div>
+            <div class="help-item">
+              <strong>Limpiar todo:</strong>
+              <p>Elimina todas las anotaciones de la imagen actual.</p>
+            </div>
+          </div>
+
+          <div class="help-section">
+            <h3>🎨 Herramientas Avanzadas</h3>
+            <div class="help-item">
+              <strong>Floodfill:</strong>
+              <p>
+                Rellena áreas similares con un color. Útil para segmentación
+                básica.
+              </p>
+            </div>
+            <div class="help-item">
+              <strong>Livewire:</strong>
+              <p>
+                Herramienta de segmentación inteligente que detecta bordes
+                automáticamente.
+              </p>
+            </div>
+          </div>
+
+          <div class="help-section">
+            <h3>🔄 Otras Funciones</h3>
+            <div class="help-item">
+              <strong>Reset:</strong>
+              <p>
+                Restaura la vista original: elimina zoom, pan, y todas las
+                anotaciones.
+              </p>
+            </div>
+          </div>
+
+          <div class="help-tip">
+            <strong>💡 Consejo:</strong> Puedes desactivar cualquier herramienta
+            haciendo clic nuevamente en su botón.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      import "../scripts/viewer.ts";
+    </script>
 
     <style>
       * {
@@ -327,7 +436,7 @@
           "Roboto",
           -apple-system,
           sans-serif;
-        background: #000;
+        background: #0f0f0f;
         color: #fff;
         overflow: hidden;
         height: 100vh;
@@ -336,49 +445,67 @@
       }
 
       .toolbar {
-        background: #1a1a1a;
-        border-bottom: 1px solid #333;
-        padding: 8px 12px;
+        background: linear-gradient(180deg, #1a1a1a 0%, #121212 100%);
+        border-bottom: 1px solid #2a2a2a;
+        padding: 12px 16px;
         display: flex;
         justify-content: space-between;
-        gap: 8px;
+        gap: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
       }
 
       .toolbar-left,
       .toolbar-right {
         display: flex;
-        gap: 4px;
+        gap: 8px;
+        align-items: center;
       }
 
       .tool-btn {
-        background: transparent;
-        border: 1px solid #444;
-        color: #aaa;
-        padding: 6px 10px;
-        border-radius: 4px;
+        background: rgba(40, 40, 40, 0.7);
+        border: 1px solid #333;
+        color: #ccc;
+        padding: 8px 12px;
+        border-radius: 6px;
         cursor: pointer;
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 12px;
-        transition: all 0.2s;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       }
 
       .tool-btn:hover {
-        background: #2a2a2a;
-        border-color: #666;
+        background: linear-gradient(180deg, #2a2a2a 0%, #1f1f1f 100%);
+        border-color: #555;
         color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
       }
 
       .tool-btn.active {
-        background: #0d6efd;
-        border-color: #0d6efd;
+        background: linear-gradient(180deg, #0d6efd 0%, #0b5ed7 100%);
+        border-color: #0b5ed7;
         color: #fff;
+        box-shadow: 0 2px 6px rgba(13, 110, 253, 0.4);
+      }
+
+      .tool-btn.active:hover {
+        background: linear-gradient(180deg, #0b5ed7 0%, #094db0 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.5);
       }
 
       .tool-btn svg {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
+        transition: transform 0.2s ease;
+      }
+
+      .tool-btn:hover svg {
+        transform: scale(1.1);
       }
 
       .draw-tool-container {
@@ -387,102 +514,65 @@
 
       .draw-btn {
         position: relative;
+        min-width: 90px;
       }
 
       .dropdown-arrow {
-        width: 12px !important;
-        height: 12px !important;
-        margin-left: 4px;
-        transition: transform 0.2s;
+        width: 14px !important;
+        height: 14px !important;
+        margin-left: 6px;
+        transition: transform 0.3s ease;
       }
 
-      .draw-btn:hover .dropdown-arrow {
-        transform: translateY(2px);
+      .draw-btn.active .dropdown-arrow {
+        transform: rotate(180deg);
       }
 
       .draw-shapes-menu {
         position: absolute;
-        top: calc(100% + 4px);
+        top: calc(100% + 6px);
         left: 0;
-        background: #1a1a1a;
-        border: 1px solid #444;
-        border-radius: 6px;
-        padding: 4px;
-        min-width: 160px;
+        background: #1e1e1e;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 6px;
+        min-width: 180px;
         display: none;
         flex-direction: column;
-        gap: 2px;
+        gap: 4px;
         z-index: 1000;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        transform-origin: top center;
+        animation: fadeIn 0.2s ease forwards;
       }
 
       .draw-shapes-menu.show {
         display: flex;
       }
 
-      .filter-tool-container {
-        position: relative;
-      }
-
-      .filter-options-menu {
-        position: absolute;
-        top: calc(100% + 4px);
-        left: 0;
-        background: #1a1a1a;
-        border: 1px solid #444;
-        border-radius: 6px;
-        padding: 4px;
-        min-width: 160px;
-        display: none;
-        flex-direction: column;
-        gap: 2px;
-        z-index: 1000;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-      }
-
-      .filter-options-menu.show {
-        display: flex;
-      }
-
-      .filter-option {
-        background: transparent;
-        border: none;
-        color: #aaa;
-        padding: 8px 12px;
-        border-radius: 4px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 12px;
-        transition: all 0.2s;
-        text-align: left;
-        width: 100%;
-      }
-
-      .filter-option:hover {
-        background: #2a2a2a;
-        color: #fff;
-      }
-
-      .filter-option svg {
-        width: 16px;
-        height: 16px;
-        flex-shrink: 0;
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
       }
 
       .shape-option {
         background: transparent;
         border: none;
-        color: #aaa;
-        padding: 8px 12px;
-        border-radius: 4px;
+        color: #ccc;
+        padding: 10px 14px;
+        border-radius: 6px;
         cursor: pointer;
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-size: 12px;
-        transition: all 0.2s;
+        gap: 10px;
+        font-size: 13px;
+        transition: all 0.2s ease;
         text-align: left;
         width: 100%;
       }
@@ -490,24 +580,31 @@
       .shape-option:hover {
         background: #2a2a2a;
         color: #fff;
+        transform: translateX(3px);
       }
 
       .shape-option svg {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         flex-shrink: 0;
       }
 
       .menu-separator {
         height: 1px;
-        background: #444;
-        margin: 4px 0;
+        background: #333;
+        margin: 6px 0;
       }
 
       .close-btn {
-        background: #dc3545;
-        border-color: #dc3545;
+        background: linear-gradient(180deg, #dc3545 0%, #c82333 100%);
+        border-color: #c82333;
         color: #fff;
+        box-shadow: 0 2px 6px rgba(220, 53, 69, 0.4);
+      }
+
+      .close-btn:hover {
+        background: linear-gradient(180deg, #c82333 0%, #bd2130 100%);
+        box-shadow: 0 4px 10px rgba(220, 53, 69, 0.5);
       }
 
       .viewer-container {
@@ -517,16 +614,17 @@
       }
 
       .thumbnails-sidebar {
-        width: 160px;
-        background: #0a0a0a;
-        border-right: 1px solid #222;
+        width: 180px;
+        background: #121212;
+        border-right: 1px solid #2a2a2a;
         display: flex;
         flex-direction: column;
-        transition: width 0.3s;
+        transition: all 0.3s ease;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
       }
 
       .thumbnails-sidebar.collapsed {
-        width: 48px;
+        width: 52px;
       }
 
       .thumbnails-sidebar.collapsed .thumbnails-list {
@@ -534,56 +632,70 @@
       }
 
       .sidebar-header {
-        padding: 12px;
-        border-bottom: 1px solid #222;
+        padding: 14px;
+        border-bottom: 1px solid #2a2a2a;
         display: flex;
         justify-content: center;
       }
 
       .sidebar-toggle {
-        background: transparent;
-        border: 1px solid #444;
-        color: #aaa;
-        padding: 8px;
-        border-radius: 4px;
+        background: rgba(40, 40, 40, 0.7);
+        border: 1px solid #333;
+        color: #ccc;
+        padding: 10px;
+        border-radius: 6px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       }
 
       .sidebar-toggle:hover {
         background: #2a2a2a;
-        border-color: #666;
+        border-color: #555;
         color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
       }
 
       .thumbnails-list {
         flex: 1;
         overflow-y: auto;
-        padding: 8px;
+        padding: 10px;
       }
 
       .thumbnail-item {
         background: #1a1a1a;
         border: 2px solid #333;
-        border-radius: 6px;
-        padding: 8px;
-        margin-bottom: 8px;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 10px;
         cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+
+      .thumbnail-item:hover {
+        border-color: #444;
+        background: #1f1f1f;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
       }
 
       .thumbnail-item.active {
         border-color: #0d6efd;
-        background: #1e3a5f;
+        background: linear-gradient(180deg, #1e3a5f 0%, #1a3452 100%);
+        box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
       }
 
       .thumbnail-preview {
         width: 100%;
         aspect-ratio: 1;
         background: #0a0a0a;
-        border-radius: 4px;
-        margin-bottom: 8px;
+        border-radius: 6px;
+        margin-bottom: 10px;
         overflow: hidden;
         position: relative;
       }
@@ -613,13 +725,13 @@
       }
 
       .thumbnail-info {
-        font-size: 11px;
+        font-size: 12px;
       }
 
       .thumbnail-title {
         color: #fff;
         font-weight: 500;
-        margin-bottom: 2px;
+        margin-bottom: 4px;
       }
 
       .thumbnail-description {
@@ -670,20 +782,485 @@
 
       .patient-info {
         position: absolute;
-        background: rgba(0, 0, 0, 0.7);
-        padding: 12px 16px;
-        font-size: 13px;
+        background: rgba(15, 15, 15, 0.85);
+        padding: 14px 18px;
+        font-size: 14px;
         z-index: 10;
+        border-radius: 8px;
+        backdrop-filter: blur(4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       }
 
       .patient-info.top-left {
-        top: 16px;
-        left: 16px;
+        top: 20px;
+        left: 20px;
       }
 
       .patient-info.top-right {
-        top: 16px;
-        right: 16px;
+        top: 20px;
+        right: 20px;
+      }
+
+      /* Botón de Ayuda */
+      .help-btn {
+        background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+        border-color: #059669;
+        color: #fff;
+        box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+      }
+
+      .help-btn:hover {
+        background: linear-gradient(180deg, #059669 0%, #047857 100%);
+        box-shadow: 0 4px 10px rgba(16, 185, 129, 0.5);
+      }
+
+      /* Modal */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        animation: fadeIn 0.3s ease;
+      }
+
+      .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-content {
+        background: #1a1a1a;
+        border-radius: 12px;
+        max-width: 700px;
+        width: 90%;
+        max-height: 85vh;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        animation: slideIn 0.3s ease;
+        border: 1px solid #2a2a2a;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .modal-header {
+        background: linear-gradient(180deg, #2a2a2a 0%, #1f1f1f 100%);
+        padding: 20px 24px;
+        border-bottom: 1px solid #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .modal-header h2 {
+        margin: 0;
+        color: #fff;
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .modal-close {
+        background: transparent;
+        border: none;
+        color: #ccc;
+        font-size: 32px;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+      }
+
+      .modal-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+      }
+
+      .modal-body {
+        padding: 24px;
+        overflow-y: auto;
+        max-height: calc(85vh - 80px);
+      }
+
+      .help-section {
+        margin-bottom: 28px;
+      }
+
+      .help-section h3 {
+        color: #fff;
+        font-size: 18px;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #333;
+      }
+
+      .help-item {
+        margin-bottom: 16px;
+        padding: 12px;
+        background: rgba(40, 40, 40, 0.5);
+        border-radius: 6px;
+        border-left: 3px solid #0d6efd;
+      }
+
+      .help-item strong {
+        color: #3b82f6;
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+      }
+
+      .help-item p {
+        color: #ccc;
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .help-item ul {
+        margin: 8px 0 0 0;
+        padding-left: 20px;
+        color: #ccc;
+        font-size: 13px;
+      }
+
+      .help-item li {
+        margin-bottom: 6px;
+        line-height: 1.5;
+      }
+
+      .help-tip {
+        background: linear-gradient(
+          135deg,
+          rgba(16, 185, 129, 0.1) 0%,
+          rgba(5, 150, 105, 0.1) 100%
+        );
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 20px;
+      }
+
+      .help-tip strong {
+        color: #10b981;
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .help-tip {
+        color: #d1d5db;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      /* ============================================ */
+      /* RESPONSIVE DESIGN - Media Queries */
+      /* ============================================ */
+
+      /* Tablets y pantallas medianas (≤ 1024px) */
+      @media (max-width: 1024px) {
+        .toolbar {
+          padding: 10px 12px;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .tool-btn {
+          padding: 6px 10px;
+          font-size: 12px;
+        }
+
+        .tool-btn svg {
+          width: 16px;
+          height: 16px;
+        }
+
+        .tool-btn span {
+          display: none;
+        }
+
+        .thumbnails-sidebar {
+          width: 120px;
+        }
+
+        .thumbnails-sidebar.collapsed {
+          width: 48px;
+        }
+
+        .patient-info {
+          padding: 10px 14px;
+          font-size: 12px;
+        }
+
+        .modal-content {
+          max-width: 90%;
+          width: 90%;
+        }
+      }
+
+      /* Tablets pequeñas (≤ 768px) */
+      @media (max-width: 768px) {
+        body {
+          overflow-x: hidden;
+        }
+
+        .toolbar {
+          padding: 8px;
+          gap: 6px;
+        }
+
+        .toolbar-left,
+        .toolbar-right {
+          gap: 6px;
+        }
+
+        .tool-btn {
+          padding: 8px;
+          min-width: auto;
+        }
+
+        .tool-btn span {
+          display: none !important;
+        }
+
+        .draw-btn {
+          min-width: auto;
+        }
+
+        .dropdown-arrow {
+          margin-left: 0;
+        }
+
+        /* Ocultar sidebar de thumbnails en móviles */
+        .thumbnails-sidebar {
+          position: absolute;
+          left: -200px;
+          transition: left 0.3s ease;
+          z-index: 100;
+          height: calc(100vh - 60px);
+        }
+
+        .thumbnails-sidebar.show-mobile {
+          left: 0;
+        }
+
+        .viewer-container {
+          flex-direction: column;
+        }
+
+        .main-viewer {
+          width: 100%;
+          height: calc(100vh - 60px);
+        }
+
+        /* Información del paciente más compacta */
+        .patient-info {
+          padding: 8px 12px;
+          font-size: 11px;
+          max-width: 45%;
+        }
+
+        .patient-info.top-left {
+          top: 10px;
+          left: 10px;
+        }
+
+        .patient-info.top-right {
+          top: 10px;
+          right: 10px;
+        }
+
+        /* Modal más pequeño */
+        .modal-content {
+          max-width: 95%;
+          width: 95%;
+          max-height: 90vh;
+        }
+
+        .modal-header {
+          padding: 16px;
+        }
+
+        .modal-header h2 {
+          font-size: 18px;
+        }
+
+        .modal-body {
+          padding: 16px;
+          max-height: calc(90vh - 70px);
+        }
+
+        .help-section h3 {
+          font-size: 16px;
+        }
+
+        .help-item {
+          padding: 10px;
+        }
+      }
+
+      /* Móviles (≤ 480px) */
+      @media (max-width: 480px) {
+        .toolbar {
+          padding: 6px;
+          gap: 4px;
+        }
+
+        .tool-btn {
+          padding: 6px;
+        }
+
+        .tool-btn svg {
+          width: 18px;
+          height: 18px;
+        }
+
+        /* Hacer el menú de draw más compacto */
+        .draw-shapes-menu {
+          min-width: 150px;
+          left: auto;
+          right: 0;
+        }
+
+        .shape-option {
+          padding: 8px 10px;
+          font-size: 12px;
+        }
+
+        .shape-option svg {
+          width: 16px;
+          height: 16px;
+        }
+
+        /* Información del paciente aún más compacta */
+        .patient-info {
+          padding: 6px 10px;
+          font-size: 10px;
+          max-width: 48%;
+          line-height: 1.3;
+        }
+
+        .patient-info div {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        /* Modal en pantalla completa en móviles */
+        .modal-content {
+          max-width: 100%;
+          width: 100%;
+          max-height: 100vh;
+          border-radius: 0;
+        }
+
+        .modal-header {
+          padding: 12px;
+        }
+
+        .modal-header h2 {
+          font-size: 16px;
+        }
+
+        .modal-body {
+          padding: 12px;
+          max-height: calc(100vh - 60px);
+        }
+
+        .help-section {
+          margin-bottom: 20px;
+        }
+
+        .help-section h3 {
+          font-size: 15px;
+          margin-bottom: 12px;
+        }
+
+        .help-item {
+          padding: 8px;
+          margin-bottom: 12px;
+        }
+
+        .help-item strong {
+          font-size: 13px;
+        }
+
+        .help-item p,
+        .help-item ul {
+          font-size: 12px;
+        }
+
+        .help-tip {
+          padding: 12px;
+          font-size: 12px;
+        }
+      }
+
+      /* Landscape en móviles */
+      @media (max-width: 768px) and (orientation: landscape) {
+        .toolbar {
+          padding: 4px 8px;
+        }
+
+        .tool-btn {
+          padding: 4px 6px;
+        }
+
+        .patient-info {
+          padding: 4px 8px;
+          font-size: 9px;
+        }
+
+        .main-viewer {
+          height: calc(100vh - 45px);
+        }
+      }
+
+      /* Muy pequeño (≤ 360px) */
+      @media (max-width: 360px) {
+        .toolbar-left,
+        .toolbar-right {
+          gap: 3px;
+        }
+
+        .tool-btn {
+          padding: 5px;
+        }
+
+        .patient-info {
+          padding: 4px 6px;
+          font-size: 9px;
+        }
+
+        .help-btn span {
+          display: none;
+        }
       }
     </style>
   </body>

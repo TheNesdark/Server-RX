@@ -31,14 +31,14 @@ import StudiesList from "../components/StudiesList.astro";
 
 <style>
     :root {
-        --bg-dark: #0f1115;
-        --bg-panel: #181b21;
-        --bg-input: #0f1115;
-        --bg-hover: #232730;
-        --accent-color: #3b82f6;
-        --text-main: #e2e8f0;
-        --text-muted: #94a3b8;
-        --border-color: #2d3748;
+        --bg-dark: #ffffff;
+        --bg-panel: #e8f5e9;
+        --bg-input: #ffffff;
+        --bg-hover: #c8e6c9;
+        --accent-color: #4caf50;
+        --text-main: #2e7d32;
+        --text-muted: #666666;
+        --border-color: #c8e6c9;
     }
 
     section {
@@ -49,7 +49,7 @@ import StudiesList from "../components/StudiesList.astro";
         display: flex;
         flex-direction: column;
         gap: 20px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px -1px rgba(76, 175, 80, 0.1);
         margin-bottom: 24px;
     }
 
@@ -67,11 +67,11 @@ import StudiesList from "../components/StudiesList.astro";
     section input:focus {
         outline: none;
         border-color: var(--accent-color);
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.15);
     }
 
     section input#dicom-search {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='%232e7d32' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
         background-position: 16px center;
         padding-left: 48px;
@@ -93,17 +93,30 @@ import StudiesList from "../components/StudiesList.astro";
         cursor: pointer;
         transition: all 0.2s;
         appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%232e7d32' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
         background-position: right 16px center;
     }
 
     .filter-section select:hover {
         border-color: var(--text-muted);
+        background-color: var(--bg-hover);
     }
 
     .filter-section select:focus {
         outline: none;
         border-color: var(--accent-color);
+        background-color: var(--bg-input);
+    }
+
+    /* Estilos adicionales para mejorar la apariencia */
+    body {
+        background-color: #e3f2fd;
+        font-family: 'Roboto', -apple-system, sans-serif;
+    }
+
+    option {
+        background-color: var(--bg-input);
+        color: var(--text-main);
     }
 </style>

@@ -16,12 +16,13 @@ export interface DicomLoadResult {
  */
 export async function loadDicomData(): Promise<DicomLoadResult> {
     try {
+        const baseUrl = import.meta.env.PUBLIC_BACKEND_URL || 'http://localhost:3001';
         const studyId = new URL(window.location.href).searchParams.get("study");
-        const response = await fetch(`http://localhost:3001/studies/${studyId}`);
+        const response = await fetch(`${baseUrl}/studies/${studyId}`);
         const data: StudyData = await response.json();
 
         return {
-            urls: ["http://localhost:3001/files/" + data.dicomFile],
+            urls: [`${baseUrl}/files/` + data.dicomFile],
             studyData: data
         };
     } catch (error) {

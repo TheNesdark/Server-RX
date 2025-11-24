@@ -15,7 +15,8 @@ import {
     setupDrawMenu,
     setupShapeOptions,
     setupResetButton,
-    setupHelpModal
+    setupHelpModal,
+    setupSidebarToggle
 } from "../handlers/eventHandlers";
 
 // ============================================================================
@@ -67,3 +68,6 @@ setupResetButton(app);
 
 // Configurar modal de ayuda
 setupHelpModal();
+
+// Configurar toggle del sidebar de thumbnails
+setupSidebarToggle();

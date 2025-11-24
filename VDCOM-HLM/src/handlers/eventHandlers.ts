@@ -183,3 +183,15 @@ export function setupHelpModal(): void {
         }
     });
 }
+
+/**
+ * Configura el botón de toggle del sidebar de thumbnails
+ */
+export function setupSidebarToggle(): void {
+    const toggleBtn = document.querySelector(".sidebar-toggle");
+    const sidebar = document.querySelector(".thumbnails-sidebar");
+
+    toggleBtn?.addEventListener("click", () => {
+        sidebar?.classList.toggle("collapsed");
+    });
+}

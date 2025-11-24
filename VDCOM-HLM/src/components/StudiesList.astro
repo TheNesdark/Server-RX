@@ -1,39 +1,11 @@
 ---
 import Studie from "./Studie.astro";
 
-const studies = [
-  {
-    id: 1,
-    title: "Estudio de Tórax",
-    date: "2025-11-01",
-    patient: "Juan Pérez",
-    modality: "CT"
-  },
-  {
-    id: 2,
-    title: "Estudio de Abdomen",
-    date: "2025-11-05",
-    patient: "María García",
-    modality: "MRI"
-  },
-  {
-    id: 3,
-    title: "Estudio de Cabeza",
-    date: "2025-11-10",
-    patient: "Carlos López",
-    modality: "RX"
-  },
-  {
-    id: 4,
-    title: "Estudio de Extremidades",
-    date: "2025-11-15",
-    patient: "Ana Martínez",
-    modality: "Ecografía"
-  }
-];
+const studies = await fetch("http://localhost:3001/studies").then(res => res.json());
+
 ---
 <section>
-  {studies.map((study) => (
+  {studies.map((study: any) => (
     <Studie study={study} />
   ))}
 </section>

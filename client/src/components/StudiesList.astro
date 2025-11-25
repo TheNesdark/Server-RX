@@ -1,0 +1,40 @@
+---
+import Studie from "./Studie.astro";
+
+---
+<section>
+
+</section>
+<script>
+// Usamos la IP directa porque tienes la extensión activada
+// y (después del paso 1) habrás permitido el contenido mixto.
+try {
+
+    const response = await fetch('http://192.168.1.41:8042/studies/', {
+    method: 'GET',
+    headers: {
+        // Orthanc necesita usuario y contraseña
+        'Authorization': 'Basic TUVESUNPOk1FRElDTw==' ,
+        
+        // Esto ayuda a que la extensión entienda que es JSON
+        'Content-Type': 'application/json'
+    }
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error del servidor: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log(data); // Para ver si llegan los datos en la consola (F12)
+} catch (error) {
+    console.error('Error al obtener los estudios:', error);
+}
+
+</script>
+<style>
+    section {
+        margin-top: 16px;
+        display: flex;
+        flex-direction: column;
+    }
+</style>

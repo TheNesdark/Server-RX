@@ -20,7 +20,7 @@ const mockStudies = [
     patientName: "Juan Pérez",
     studyDate: "2025-11-01",
     studyType: "Tomografía Computarizada",
-    dicomFile: "1.dcm"
+    dicomFile: "3.dicm"
   },
   {
     id: 2,

@@ -285,12 +285,10 @@ const series = await getStudyById(
     <!-- Contenedor Principal -->
     <div class="viewer-container">
       <ThumbnailSidebar series={series} />
-       <DicomViewer/>
-
-
+      <div class="main-viewer">
+        <DicomViewer />
+      </div>
     </div>
-
-   
 
     <style>
       * {
@@ -557,7 +555,6 @@ const series = await getStudyById(
         box-shadow: 0 4px 10px rgba(16, 185, 129, 0.5);
       }
 
-      
       /* ============================================ */
       /* RESPONSIVE DESIGN - Media Queries */
       /* ============================================ */
@@ -800,8 +797,6 @@ const series = await getStudyById(
           font-size: 12px;
         }
       }
-
-     
     </style>
   </body>
 </html>

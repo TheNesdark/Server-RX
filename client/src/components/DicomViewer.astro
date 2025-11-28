@@ -1,52 +1,90 @@
 ---
-import { getSeriesImages } from "@/services/Orthan";
-
-const serie = "d7bde3ff-5ef3323e-b41888be-a5203b81-53b8f9c6";
-console.log("Cargando DicomViewer para la serie:", serie);
-
-const { Instances } = await getSeriesImages(serie);
-
+// DicomViewer.astro
 ---
 
-<div id="dwv"><div id="layerGroup0"></div></div>
+<div class="viewer-wrapper">
+    <div id="dwv">
+        <div id="layerGroup0"></div>
+    </div>
+</div>
 
-<script define:vars={Instances}>
+<script>
     import { App, AppOptions, ViewConfig } from "dwv";
+    import { serieActivaId } from "../stores/dicomStore";
+
+    // Inicializar DWV
     const app = new App();
-    // initialise
     const viewConfig0 = new ViewConfig("layerGroup0");
     const viewConfigs = { "*": [viewConfig0] };
     const options = new AppOptions(viewConfigs);
+
+    // Esperar a que el DOM esté listo
     app.init(options);
-    // load dicom data
-    console.log("Instances to load:", instances);
 
-    const promesas = data.Instances.map(async (id) => {
-        const r = await fetch(`/api/instances/${id}/file`, {
-          headers: { Authorization: "Basic TUVESUNPOk1FRElDTw==" },
-        });
-        const blob = await r.blob();
-        return URL.createObjectURL(blob);
-      });
+    let currentObjectUrls = [];
 
-      const urlsNuevas = await Promise.all(promesas);
+    // Suscribirse a los cambios en el store
+    serieActivaId.subscribe(async (serieId) => {
+        if (!serieId) return;
 
-    
-    app.loadURLs(urlsNuevas);
+        console.log("Cargando serie:", serieId);
+
+        try {
+            // 1. Obtener información de la serie para conseguir las instancias
+            const response = await fetch(`/api/series/${serieId}`, {
+                headers: {
+                    "Bypass-Tunnel-Reminder": "true",
+                },
+            });
+
+            if (!response.ok) throw new Error("Error al obtener la serie");
+            const data = await response.json();
+            const instances = data.Instances;
+
+            console.log(`Encontradas ${instances.length} instancias.`);
+
+            // 2. Obtener las imágenes (blobs)
+            // Limpiar URLs anteriores para evitar fugas de memoria
+            currentObjectUrls.forEach((url) => URL.revokeObjectURL(url));
+            currentObjectUrls = [];
+
+            const promises = instances.map(async (id) => {
+                const r = await fetch(`/api/instances/${id}/file`, {
+                    headers: {
+                        Authorization: "Basic TUVESUNPOk1FRElDTw==",
+                        "Bypass-Tunnel-Reminder": "true",
+                    },
+                });
+                const blob = await r.blob();
+                return URL.createObjectURL(blob);
+            });
+
+            const urls = await Promise.all(promises);
+            currentObjectUrls = urls;
+
+            // 3. Cargar en DWV
+            if (urls.length > 0) {
+                app.loadURLs(urls);
+            }
+        } catch (error) {
+            console.error("Error cargando la serie:", error);
+        }
+    });
 </script>
+
 <style>
-    /* 1. El contenedor padre debe tener tamaño definido y posición relativa */
     .viewer-wrapper {
-        width: 100%; /* Ocupa todo el ancho disponible */
-        height: 100%; /* Ocupa todo el alto (asegúrate que el padre tenga altura) */
-        min-height: 600px; /* Altura mínima por seguridad */
-        background-color: #000; /* Fondo negro médico */
-        position: relative; /* ¡CRUCIAL! Para que las capas se posicionen bien */
-        overflow: hidden; /* Evita barras de scroll si la imagen es gigante */
+        width: 100%;
+        height: 100%;
+        position: relative;
+        background-color: #000;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    /* 2. Estilos para el contenedor de capas de DWV */
-    .layerContainer {
+    #dwv {
         width: 100%;
         height: 100%;
         position: absolute;
@@ -54,9 +92,13 @@ const { Instances } = await getSeriesImages(serie);
         left: 0;
     }
 
-    /* 3. El Canvas donde se dibuja la imagen */
-    .imageLayer {
-        /* DWV ajustará esto automáticamente, pero esto ayuda a centrar */
+    /* Asegurar que el canvas de DWV se comporte bien */
+    :global(.layerContainer) {
+        width: 100%;
+        height: 100%;
+    }
+
+    :global(.imageLayer) {
         position: absolute;
         top: 50%;
         left: 50%;

@@ -5,7 +5,7 @@ export default defineConfig({
     server: {
       proxy: {
         '/api': {
-          target: 'https://sega-avoid-dresses-citation.trycloudflare.com/', // <--- ACTUALIZA ESTO
+          target: 'https://sega-avoid-dresses-citation.trycloudflare.com', // <--- ACTUALIZA ESTO
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/api/, ''),

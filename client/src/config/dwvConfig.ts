@@ -1,11 +1,15 @@
 import { App, AppOptions, ViewConfig, ToolConfig } from "dwv";
+import { serieActivaId } from "../stores/dicomStore";
+let app: App | null = null;
+
+
 
 /**
  * Crea y configura la aplicación principal de DWV
  */
-export function createMainApp(dicomUrls: string[]): App {
+export function initDwv(): App {
     const app = new App();
-    const viewConfig = new ViewConfig("layerGroup0");
+    const viewConfig = new ViewConfig("imageLayer");
     const viewConfigs = { "*": [viewConfig] };
     const options = new AppOptions(viewConfigs);
 
@@ -30,24 +34,45 @@ export function createMainApp(dicomUrls: string[]): App {
     };
 
     app.init(options);
-    app.loadURLs(dicomUrls);
 
     console.log("DWV main app created and DICOM URLs loaded.");
 
     return app;
 }
+async function cargarSerie(seriesId) {
+    if (!app) app = initDwv();
+    app.reset();
 
-/**
- * Crea y configura la aplicación de thumbnails de DWV
- */
-export function createThumbnailApp(dicomUrls: string[]): App {
-    const thumbApp = new App();
-    const thumbViewConfig = new ViewConfig("layerGroup1");
-    const thumbViewConfigs = { "*": [thumbViewConfig] };
-    const thumbOptions = new AppOptions(thumbViewConfigs);
+    // 4. DESCARGAR SI ES NUEVO
+    console.log(`🌐 Descargando de Orthanc: ${seriesId}`);
+    try {
+        const resp = await fetch(`/api/series/${seriesId}`, {
+            headers: { Authorization: "Basic TUVESUNPOk1FRElDTw==" },
+        });
+        const data = await resp.json();
 
-    thumbApp.init(thumbOptions);
-    thumbApp.loadURLs(dicomUrls);
+        const promesas = data.Instances.map(async (id) => {
+            const r = await fetch(`/api/instances/${id}/file`, {
+                headers: { Authorization: "Basic TUVESUNPOk1FRElDTw==" },
+            });
+            const blob = await r.blob();
+            return URL.createObjectURL(blob);
+        });
+        console.log("Descargando imágenes DICOM...");
 
-    return thumbApp;
+        const urlsNuevas = await Promise.all(promesas);
+
+
+        // Mostramos
+        app.loadURLs(urlsNuevas);
+        console.log("Serie cargada correctamente.");
+
+    } catch (error) {
+        console.error("Error cargando serie:", error);
+    }
 }
+
+serieActivaId.subscribe((nuevoId) => {
+    if (nuevoId) cargarSerie(nuevoId);
+});
+

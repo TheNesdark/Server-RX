@@ -1,36 +1,87 @@
 ---
 import Studie from "./Studie.astro";
 
----
-<section>
+async function getStudies() {
+    try {
+        const response = await fetch(
+            "https://grumpy-spoons-enjoy.loca.lt/studies?expand",
+            {
+                method: "GET",
+                headers: {
+                    "Bypass-Tunnel-Reminder": "true",
+                    "Content-Type": "application/json",
+                },
+            },
+        );
+        if (!response.ok) {
+            throw new Error(`Error del servidor: ${response.status}`);
+        }
+        const data = await response.json();
+        return data;
 
-</section>
-<script>
-// Usamos la IP directa porque tienes la extensión activada
-// y (después del paso 1) habrás permitido el contenido mixto.
-try {
-
-    const response = await fetch('http://192.168.1.41:8042/studies/', {
-    method: 'GET',
-    headers: {
-        // Orthanc necesita usuario y contraseña
-        'Authorization': 'Basic TUVESUNPOk1FRElDTw==' ,
-        
-        // Esto ayuda a que la extensión entienda que es JSON
-        'Content-Type': 'application/json'
+    } catch (error) {
+        console.error("Error al obtener los estudios:", error);
+        return []; // Retorna un array vacío en caso de error
     }
-    });
-
-    if (!response.ok) {
-        throw new Error(`Error del servidor: ${response.status}`);
-    }
-    const data = await response.json();
-    console.log(data); // Para ver si llegan los datos en la consola (F12)
-} catch (error) {
-    console.error('Error al obtener los estudios:', error);
 }
 
-</script>
+const fetchedStudies = await getStudies();
+
+// Mapea los datos obtenidos a un formato compatible con el componente Studie
+interface DicomStudy {
+    ID: string;
+    PatientMainDicomTags: {
+        PatientName?: string;
+    };
+    MainDicomTags: {
+        StudyDate?: string;
+        StudyDescription?: string;
+        AccessionNumber?: string;
+        StudyID?: string;
+    };
+}
+
+interface StudyDisplayData {
+    id: string;
+    patientName: string;
+    studyDate: string;
+    studyType: string;
+}
+
+const studiesForComponent = fetchedStudies.map((study: DicomStudy) => ({
+    id: study.ID,
+    patientName: study.PatientMainDicomTags.PatientName?.replace('^', '') || 'Desconocido',
+    studyDate: study.MainDicomTags.StudyDate ?
+        `${study.MainDicomTags.StudyDate.substring(0, 4)}-${study.MainDicomTags.StudyDate.substring(4, 6)}-${study.MainDicomTags.StudyDate.substring(6, 8)}`
+        : 'N/A',
+    studyType: study.MainDicomTags.StudyDescription || study.MainDicomTags.AccessionNumber || study.MainDicomTags.StudyID || 'Estudio DICOM',
+}));
+console.log(studiesForComponent);
+---
+
+<section>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre del Paciente</th>
+                <th>Fecha del Estudio</th>
+                <th>Tipo de Estudio</th>
+            </tr>
+        </thead>
+        <tbody>
+            {studiesForComponent.map((study: StudyDisplayData) => (
+                <tr>
+                    <td>{study.id}</td>
+                    <td>{study.patientName}</td>
+                    <td>{study.studyDate}</td>
+                    <td>{study.studyType}</td>
+                </tr>
+            ))}
+        </tbody>
+    </table>
+</section>
+<script></script>
 <style>
     section {
         margin-top: 16px;

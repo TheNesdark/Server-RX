@@ -27,16 +27,13 @@ import {
 toolList["None"] = NoneTool;
 
 // Cargar URLs de archivos DICOM y datos del estudio
-const { urls: dicomUrls, studyData } = await loadDicomData();
-
-// Mostrar información del estudio en la UI
-displayStudyInfo(studyData);
+const { DicomUrl , previewUrl } = await loadDicomData();
 
 // Crear aplicación principal
-const app = createMainApp(dicomUrls);
+const app = createMainApp(DicomUrl);
 
 // Crear aplicación de thumbnails
-const thumbApp = createThumbnailApp(dicomUrls);
+createThumbnailApp(previewUrl);
 
 // ============================================================================
 // EVENT LISTENERS DE LA APLICACIÓN

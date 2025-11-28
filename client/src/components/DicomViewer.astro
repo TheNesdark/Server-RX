@@ -1,0 +1,65 @@
+---
+import { getSeriesImages } from "@/services/Orthan";
+
+const serie = "d7bde3ff-5ef3323e-b41888be-a5203b81-53b8f9c6";
+console.log("Cargando DicomViewer para la serie:", serie);
+
+const { Instances } = await getSeriesImages(serie);
+
+---
+
+<div id="dwv"><div id="layerGroup0"></div></div>
+
+<script define:vars={Instances}>
+    import { App, AppOptions, ViewConfig } from "dwv";
+    const app = new App();
+    // initialise
+    const viewConfig0 = new ViewConfig("layerGroup0");
+    const viewConfigs = { "*": [viewConfig0] };
+    const options = new AppOptions(viewConfigs);
+    app.init(options);
+    // load dicom data
+    console.log("Instances to load:", instances);
+
+    const promesas = data.Instances.map(async (id) => {
+        const r = await fetch(`/api/instances/${id}/file`, {
+          headers: { Authorization: "Basic TUVESUNPOk1FRElDTw==" },
+        });
+        const blob = await r.blob();
+        return URL.createObjectURL(blob);
+      });
+
+      const urlsNuevas = await Promise.all(promesas);
+
+    
+    app.loadURLs(urlsNuevas);
+</script>
+<style>
+    /* 1. El contenedor padre debe tener tamaño definido y posición relativa */
+    .viewer-wrapper {
+        width: 100%; /* Ocupa todo el ancho disponible */
+        height: 100%; /* Ocupa todo el alto (asegúrate que el padre tenga altura) */
+        min-height: 600px; /* Altura mínima por seguridad */
+        background-color: #000; /* Fondo negro médico */
+        position: relative; /* ¡CRUCIAL! Para que las capas se posicionen bien */
+        overflow: hidden; /* Evita barras de scroll si la imagen es gigante */
+    }
+
+    /* 2. Estilos para el contenedor de capas de DWV */
+    .layerContainer {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    /* 3. El Canvas donde se dibuja la imagen */
+    .imageLayer {
+        /* DWV ajustará esto automáticamente, pero esto ayuda a centrar */
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+</style>

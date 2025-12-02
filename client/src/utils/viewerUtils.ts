@@ -36,4 +36,6 @@ export function clearAllAnnotations(app: App): void {
         app.setToolFeatures({ shapeName: shapeName });
         drawController.removeAllAnnotationsWithCommand(app.addToUndoStack);
     });
+
+    app.setTool("None")
 }

@@ -10,7 +10,6 @@ export default defineConfig({
   vite: {
     resolve: {
       alias: {
-        "dwv": "./node_modules/dwv",
         "@config": "./src/config",
       },
     },

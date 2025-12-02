@@ -1,0 +1,93 @@
+---
+import ThumbnailSidebar from "@/components/ThumbnailSidebar.astro";
+import DicomViewer from "@/components/DicomViewer.astro";
+import ViewerToolbar from "@/components/ViewerToolbar.astro";
+import { getSeriesByStudyId } from "@/services/Orthan";
+
+const { studyId } = Astro.params;
+if (!studyId) {
+  return Astro.redirect("/");
+}
+
+const series = await getSeriesByStudyId(studyId);
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DICOM Viewer - Visor Médico</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+    />
+  </head>
+  <body>
+    <!-- Toolbar Superior -->
+    <ViewerToolbar />
+
+    <!-- Contenedor Principal -->
+    <div class="viewer-container">
+      <ThumbnailSidebar series={series} />
+      <div class="main-viewer">
+        <DicomViewer />
+      </div>
+    </div>
+
+    <style is:global>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          "Roboto",
+          -apple-system,
+          sans-serif;
+        background: #0f0f0f;
+        color: #fff;
+        overflow: hidden;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .viewer-container {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      .main-viewer {
+        flex: 1;
+        position: relative;
+        background: #000;
+        overflow: hidden;
+      }
+
+      .patient-info {
+        position: absolute;
+        background: rgba(15, 15, 15, 0.85);
+        padding: 14px 18px;
+        font-size: 14px;
+        z-index: 10;
+        border-radius: 8px;
+        backdrop-filter: blur(4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      .patient-info.top-left {
+        top: 20px;
+        left: 20px;
+      }
+
+      .patient-info.top-right {
+        top: 20px;
+        right: 20px;
+      }
+    </style>
+  </body>
+</html>

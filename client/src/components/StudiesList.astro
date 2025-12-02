@@ -1,6 +1,4 @@
 ---
-import Studie from "./Studie.astro";
-
 const API_BASE_URL = import.meta.env.API_BASE_URL || "http://localhost:8042";
 
 async function getStudies() {
@@ -77,7 +75,7 @@ const studiesForComponent = fetchedStudies.map((study: DicomStudy) => ({
             {
                 studiesForComponent.map((study: StudyDisplayData) => (
                     <tr
-                        onclick={`window.location.href='/viewer?id=${study.id}'`}
+                        onclick={`window.location.href='/viewer/${study.id}'`}
                         style="cursor: pointer;"
                     >
                         <td>{study.id}</td>

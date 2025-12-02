@@ -1,6 +1,6 @@
-const API_BASE_URL = import.meta.env.API_BASE_URL || '/api';
+const API_BASE_URL = import.meta.env.API_BASE_URL || 'https://sega-avoid-dresses-citation.trycloudflare.com';
 
-export async function getStudyById(studyId: string) {
+export async function getSeriesByStudyId(studyId: string) {
     try {
         const response = await fetch(`${API_BASE_URL}/studies/${studyId}`,
             {

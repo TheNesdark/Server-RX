@@ -1,7 +1,19 @@
+// Force reload
 import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
 
 export default defineConfig({
+  output: 'server',
+  adapter: node({
+    mode: 'standalone',
+  }),
   vite: {
+    resolve: {
+      alias: {
+        "dwv": "./node_modules/dwv",
+        "@config": "./src/config",
+      },
+    },
     server: {
       proxy: {
         '/api': {

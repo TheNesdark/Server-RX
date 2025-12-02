@@ -2,75 +2,7 @@
 // DicomViewer.astro
 ---
 
-<div class="viewer-wrapper">
-    <div id="dwv">
-        <div id="layerGroup0"></div>
-    </div>
-</div>
-
-<script>
-    import { App, AppOptions, ViewConfig } from "dwv";
-    import { serieActivaId } from "../stores/dicomStore";
-
-    // Inicializar DWV
-    const app = new App();
-    const viewConfig0 = new ViewConfig("layerGroup0");
-    const viewConfigs = { "*": [viewConfig0] };
-    const options = new AppOptions(viewConfigs);
-
-    // Esperar a que el DOM esté listo
-    app.init(options);
-
-    let currentObjectUrls = [];
-
-    // Suscribirse a los cambios en el store
-    serieActivaId.subscribe(async (serieId) => {
-        if (!serieId) return;
-
-        console.log("Cargando serie:", serieId);
-
-        try {
-            // 1. Obtener información de la serie para conseguir las instancias
-            const response = await fetch(`/api/series/${serieId}`, {
-                headers: {
-                    "Bypass-Tunnel-Reminder": "true",
-                },
-            });
-
-            if (!response.ok) throw new Error("Error al obtener la serie");
-            const data = await response.json();
-            const instances = data.Instances;
-
-            console.log(`Encontradas ${instances.length} instancias.`);
-
-            // 2. Obtener las imágenes (blobs)
-            // Limpiar URLs anteriores para evitar fugas de memoria
-            currentObjectUrls.forEach((url) => URL.revokeObjectURL(url));
-            currentObjectUrls = [];
-
-            const promises = instances.map(async (id) => {
-                const r = await fetch(`/api/instances/${id}/file`, {
-                    headers: {
-                        Authorization: "Basic TUVESUNPOk1FRElDTw==",
-                        "Bypass-Tunnel-Reminder": "true",
-                    },
-                });
-                const blob = await r.blob();
-                return URL.createObjectURL(blob);
-            });
-
-            const urls = await Promise.all(promises);
-            currentObjectUrls = urls;
-
-            // 3. Cargar en DWV
-            if (urls.length > 0) {
-                app.loadURLs(urls);
-            }
-        } catch (error) {
-            console.error("Error cargando la serie:", error);
-        }
-    });
-</script>
+<div id="dwv"><div id="layerGroup0"></div></div>
 
 <style>
     .viewer-wrapper {
@@ -92,16 +24,78 @@
         left: 0;
     }
 
-    /* Asegurar que el canvas de DWV se comporte bien */
     :global(.layerContainer) {
-        width: 100%;
-        height: 100%;
+        width: 100% !important;
+        height: 100% !important;
+        position: relative !important;
     }
 
     :global(.imageLayer) {
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        max-width: none !important;
+        max-height: none !important;
+    }
+
+    /* Hacer que el canvas ocupe más espacio */
+    :global(.imageLayer canvas) {
+        max-width: 90vw !important;
+        max-height: 85vh !important;
+        width: auto !important;
+        height: auto !important;
+        object-fit: contain !important;
+    }
+
+    #loading-indicator {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        z-index: 100;
+    }
+
+    #error-message {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
+        background: rgba(220, 53, 69, 0.9);
+        padding: 20px;
+        border-radius: 8px;
+        color: white;
+        z-index: 101;
+        text-align: center;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    .spinner {
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top: 4px solid #fff;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin-bottom: 10px;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
     }
 </style>

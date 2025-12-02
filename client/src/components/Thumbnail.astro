@@ -1,7 +1,6 @@
 ---
 import { getSeriesImages } from "@/services/Orthan";
 const { serie } = Astro.props;
-
 const { Instances, mainDicomTags } = await getSeriesImages(serie);
 const previewUrl = `/api/instances/${Instances[0]}/preview`;
 ---

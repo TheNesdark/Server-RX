@@ -39,7 +39,7 @@ export function initDwv(): App {
 
     return app;
 }
-async function cargarSerie(seriesId) {
+export async function cargarSerie(seriesId: string) {
     if (!app) app = initDwv();
     app.reset();
 
@@ -51,7 +51,7 @@ async function cargarSerie(seriesId) {
         });
         const data = await resp.json();
 
-        const promesas = data.Instances.map(async (id) => {
+        const promesas = data.Instances.map(async (id: string) => {
             const r = await fetch(`/api/instances/${id}/file`, {
                 headers: { Authorization: "Basic TUVESUNPOk1FRElDTw==" },
             });

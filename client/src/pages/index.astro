@@ -4,28 +4,6 @@ import StudiesList from "../components/StudiesList.astro";
 ---
 
 <Layout>
-    <section>
-        <input
-            type="search"
-            id="dicom-search"
-            placeholder="Buscar Estudios DICOM por ID, paciente..."
-        />
-        <div class="filter-section">
-            <select id="filter-modality">
-                <option value="">Todas Modalidades</option>
-                <option value="RX">Rayos X (RX)</option>
-                <option value="CT">Tomografía (CT)</option>
-                <option value="MR">Resonancia (MR)</option>
-                <option value="US">Ecografía (US)</option>
-            </select>
-            <select id="filter-status">
-                <option value="">Todos Estados</option>
-                <option value="pendiente">Pendiente Procesado</option>
-                <option value="listo">Listo para Visualizar</option>
-                <option value="archivado">Archivado</option>
-            </select>
-        </div>
-    </section>
     <StudiesList />
 </Layout>
 

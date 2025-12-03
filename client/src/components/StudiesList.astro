@@ -1,98 +1,74 @@
 ---
-const API_BASE_URL = import.meta.env.API_BASE_URL || "http://localhost:8042";
+import { getStudies } from '../services/Orthan';
 
-async function getStudies() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/studies?expand`, {
-            method: "GET",
-            headers: {
-                "Bypass-Tunnel-Reminder": "true",
-                "Content-Type": "application/json",
-                Authorization: "Basic TUVESUNPOk1FRElDTw==", // Add auth if needed, assuming default Orthanc
-            },
-        });
-        if (!response.ok) {
-            throw new Error(`Error del servidor: ${response.status}`);
-        }
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error("Error al obtener los estudios:", error);
-        return []; // Retorna un array vacío en caso de error
-    }
-}
-
-const fetchedStudies = await getStudies();
-
-// Mapea los datos obtenidos a un formato compatible con el componente Studie
+// Interfaces para tipado de datos
 interface DicomStudy {
-    ID: string;
-    PatientMainDicomTags: {
-        PatientName?: string;
-    };
-    MainDicomTags: {
-        StudyDate?: string;
-        StudyDescription?: string;
-        AccessionNumber?: string;
-        StudyID?: string;
-    };
+  ID: string;
+  PatientMainDicomTags?: {
+    PatientName?: string;
+  };
+  MainDicomTags?: {
+    StudyDate?: string;
+    StudyDescription?: string;
+    AccessionNumber?: string;
+    StudyID?: string;
+  };
 }
 
-interface StudyDisplayData {
-    id: string;
-    patientName: string;
-    studyDate: string;
-    studyType: string;
+interface FormattedStudy {
+  id: string;
+  patientName: string;
+  studyDate: string;
+  studyType: string;
 }
 
-const studiesForComponent = fetchedStudies.map((study: DicomStudy) => ({
-    id: study.ID,
-    patientName:
-        study.PatientMainDicomTags.PatientName?.replace("^", "") ||
-        "Desconocido",
-    studyDate: study.MainDicomTags.StudyDate
-        ? `${study.MainDicomTags.StudyDate.substring(0, 4)}-${study.MainDicomTags.StudyDate.substring(4, 6)}-${study.MainDicomTags.StudyDate.substring(6, 8)}`
-        : "N/A",
-    studyType:
-        study.MainDicomTags.StudyDescription ||
-        study.MainDicomTags.AccessionNumber ||
-        study.MainDicomTags.StudyID ||
-        "Estudio DICOM",
+// Obtener estudios desde el servidor usando el servicio
+const studies = await getStudies();
+
+// Formatear datos para mostrar en la tabla
+const formattedStudies: FormattedStudy[] = studies.map((study: DicomStudy) => ({
+  id: study.ID,
+  patientName: study.PatientMainDicomTags?.PatientName?.replace("^", "") || "Desconocido",
+  studyDate: study.MainDicomTags?.StudyDate 
+    ? `${study.MainDicomTags.StudyDate.substring(0, 4)}-${study.MainDicomTags.StudyDate.substring(4, 6)}-${study.MainDicomTags.StudyDate.substring(6, 8)}`
+    : "N/A",
+  studyType: study.MainDicomTags?.StudyDescription ||
+             study.MainDicomTags?.AccessionNumber ||
+             study.MainDicomTags?.StudyID ||
+             "Estudio DICOM",
 }));
 ---
 
 <section>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre del Paciente</th>
-                <th>Fecha del Estudio</th>
-                <th>Tipo de Estudio</th>
-            </tr>
-        </thead>
-        <tbody>
-            {
-                studiesForComponent.map((study: StudyDisplayData) => (
-                    <tr
-                        onclick={`window.location.href='/viewer/${study.id}'`}
-                        style="cursor: pointer;"
-                    >
-                        <td>{study.id}</td>
-                        <td>{study.patientName}</td>
-                        <td>{study.studyDate}</td>
-                        <td>{study.studyType}</td>
-                    </tr>
-                ))
-            }
-        </tbody>
-    </table>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre del Paciente</th>
+        <th>Fecha del Estudio</th>
+        <th>Tipo de Estudio</th>
+      </tr>
+    </thead>
+    <tbody>
+      {formattedStudies.map((study: FormattedStudy) => (
+        <tr
+          onclick={`window.location.href='/viewer/${study.id}'`}
+          style="cursor: pointer;"
+        >
+          <td>{study.id}</td>
+          <td>{study.patientName}</td>
+          <td>{study.studyDate}</td>
+          <td>{study.studyType}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
 </section>
-<script></script>
+
 <style>
-    section {
-        margin-top: 16px;
-        display: flex;
-        flex-direction: column;
-    }
+  section {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+  }
 </style>

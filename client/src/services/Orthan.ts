@@ -1,29 +1,97 @@
+// URL del servidor API - configurable desde .env
 const API_BASE_URL = import.meta.env.API_BASE_URL || 'https://sega-avoid-dresses-citation.trycloudflare.com';
 
 // Interfaces para tipado de datos DICOM
-interface DicomStudy {
+export interface DicomStudy {
   ID: string;
   PatientMainDicomTags?: {
     PatientName?: string;
+    PatientID?: string;
   };
   MainDicomTags?: {
     StudyDate?: string;
     StudyDescription?: string;
     AccessionNumber?: string;
     StudyID?: string;
+    ModalitiesInStudy?: string;
   };
 }
 
-// Función para obtener estudios DICOM desde Orthanc
+export interface PaginatedStudiesResult {
+  studies: DicomStudy[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+// Obtener estadísticas para saber el total de estudios
+export async function getStatistics(): Promise<{ countStudies: number }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/statistics`, {
+      method: "GET",
+    });
+    if (!response.ok) {
+      throw new Error(`Error del servidor: ${response.status}`);
+    }
+    const data = await response.json();
+    return { countStudies: data.CountStudies || 0 };
+  } catch (error) {
+    console.error("Error al obtener estadísticas:", error);
+    return { countStudies: 0 };
+  }
+}
+
+// Función para obtener estudios con paginación
+export async function getStudiesPaginated(
+  page: number = 1,
+  limit: number = 10
+): Promise<PaginatedStudiesResult> {
+  try {
+    // Obtener total de estudios
+    const stats = await getStatistics();
+    const total = stats.countStudies;
+    const totalPages = Math.ceil(total / limit);
+
+    // Calcular offset
+    const since = (page - 1) * limit;
+
+    // Obtener estudios paginados
+    const response = await fetch(
+      `${API_BASE_URL}/studies?since=${since}&limit=${limit}&expand`,
+      { method: "GET" }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Error del servidor: ${response.status}`);
+    }
+
+    const studies = await response.json();
+
+    return {
+      studies,
+      total,
+      page,
+      limit,
+      totalPages
+    };
+  } catch (error) {
+    console.error("Error al obtener los estudios:", error);
+    return {
+      studies: [],
+      total: 0,
+      page: 1,
+      limit,
+      totalPages: 0
+    };
+  }
+}
+
+// Función legacy para compatibilidad (obtiene todos)
 export async function getStudies(): Promise<DicomStudy[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/studies?expand`, {
       method: "GET",
-      headers: {
-        "Bypass-Tunnel-Reminder": "true",
-        "Content-Type": "application/json",
-        Authorization: "Basic TUVESUNPOk1FRElDTw==",
-      },
     });
 
     if (!response.ok) {
@@ -38,45 +106,31 @@ export async function getStudies(): Promise<DicomStudy[]> {
 }
 
 export async function getSeriesByStudyId(studyId: string) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/studies/${studyId}`,
-            {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Bypass-Tunnel-Reminder': 'true',
-                },
-
-            }
-        );
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(`Failed to fetch studies: ${response.statusText}`);
-        }
-        return data.Series;
-    } catch (error) {
-        throw error
+  try {
+    const response = await fetch(`${API_BASE_URL}/studies/${studyId}`, {
+      method: 'GET',
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(`Failed to fetch studies: ${response.statusText}`);
     }
+    return data.Series;
+  } catch (error) {
+    throw error;
+  }
 }
 
 export async function getSeriesImages(seriesId: string) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/series/${seriesId}`,
-            {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Bypass-Tunnel-Reminder': 'true',
-                },
-
-            }
-        );
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(`Failed to fetch series images: ${response.statusText}`);
-        }
-        return { Instances: data.Instances, mainDicomTags: data.MainDicomTags };
-    } catch (error) {
-        throw error
+  try {
+    const response = await fetch(`${API_BASE_URL}/series/${seriesId}`, {
+      method: 'GET',
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(`Failed to fetch series images: ${response.statusText}`);
     }
+    return { Instances: data.Instances, mainDicomTags: data.MainDicomTags };
+  } catch (error) {
+    throw error;
+  }
 }

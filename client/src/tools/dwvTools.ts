@@ -1,16 +1,18 @@
-export class NoneTool {
-    app: any;
+import type { App } from "dwv";
 
-    constructor(app: any) {
+export class NoneTool {
+    app: App;
+
+    constructor(app: App) {
         this.app = app;
     }
 
-    activate(bool: boolean) {
+    activate(_bool: boolean) {
     }
 
     init() {
     }
 
-    setFeatures(features: any) {
+    setFeatures(_features: Record<string, unknown>) {
     }
 }

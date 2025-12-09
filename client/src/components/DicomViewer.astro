@@ -9,7 +9,6 @@
 <script>
     import { App, AppOptions, ViewConfig, ToolConfig, toolOptions } from "dwv";
     import { serieActivaId } from "../stores/dicomStore";
-    import { NoneTool } from "@/tools/dwvTools";
     import {
         setupToolButtons,
         setupDrawMenu,
@@ -17,7 +16,7 @@
         setupSidebarToggle,
     } from "../handlers/eventHandlers";
 
-    toolOptions["None"] = NoneTool;
+    // toolOptions["None"] = NoneTool;
 
     const app = new App();
     const viewConfig = new ViewConfig("layerGroup0");
@@ -41,7 +40,7 @@
         },
         Floodfill: new ToolConfig(),
         Livewire: new ToolConfig(),
-        None: new ToolConfig(),
+        // None: new ToolConfig(),
     };
 
     app.init(options);

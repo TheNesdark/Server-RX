@@ -1,25 +1,40 @@
 ---
 import Layout from "../layouts/layout.astro";
 import StudiesList from "../components/StudiesList.astro";
-import { getStudiesPaginated } from "../services/Orthan";
+import { obtenerEstudios, getTotalEstudios } from "@/services/Orthan";
+import PaginationNav from "../components/PaginationNav.astro";
 
-// Obtener parámetros de paginación de la URL
+// Obtener el número de página y término de búsqueda de los parámetros de URL
 const url = new URL(Astro.request.url);
-const page = parseInt(url.searchParams.get("page") || "1");
-// Límite fijo a 10 según requerimiento
-const limit = 10;
+const page = parseInt(url.searchParams.get('page') || '1');
+const searchTerm = url.searchParams.get('q') || '';
 
-// Obtener estudios paginados
-const paginationData = await getStudiesPaginated(page, limit);
+// Asegurar que page sea un número válido
+const currentPage = isNaN(page) || page < 1 ? 1 : page;
+
+// Límite fijo de estudios por página
+const limit = 10;
+const offset = (currentPage - 1) * limit;
+
+// Obtener estudios y total considerando el término de búsqueda
+const [studies, total] = await Promise.all([
+  obtenerEstudios(limit, offset, searchTerm),
+  getTotalEstudios(searchTerm)
+]);
+const totalPages = Math.ceil(total / limit);
 ---
 
 <Layout>
     <StudiesList
-        studies={paginationData.studies}
-        currentPage={paginationData.page}
-        totalPages={paginationData.totalPages}
-        total={paginationData.total}
-        limit={paginationData.limit}
+        studies={studies}
+        total={total}
+        limit={limit}
+        currentPage={currentPage}
+    />
+    <PaginationNav
+        total={total}
+        currentPage={currentPage}
+        totalPages={totalPages}
     />
 </Layout>
 

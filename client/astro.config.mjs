@@ -2,14 +2,18 @@
 import { defineConfig } from 'astro/config';
 import node from '@astrojs/node';
 
+import react from '@astrojs/react';
+
 // URL del servidor API - configurable desde .env
-const API_BASE_URL = process.env.API_BASE_URL || 'https://sega-avoid-dresses-citation.trycloudflare.com';
+const API_BASE_URL ="https://tablets-dreams-cardiac-lightning.trycloudflare.com"
 
 export default defineConfig({
   output: 'server',
+
   adapter: node({
     mode: 'standalone',
   }),
+
   vite: {
     resolve: {
       alias: {
@@ -18,18 +22,20 @@ export default defineConfig({
     },
     server: {
       proxy: {
-        '/api': {
+        '/orthanc': {
           target: API_BASE_URL,
           changeOrigin: true,
           secure: false,
-          rewrite: (path) => path.replace(/^\/api/, ''),
+          rewrite: (path) => path.replace(/^\/orthanc/, ''),
           configure: (proxy, _options) => {
             proxy.on('proxyReq', (proxyReq, req, _res) => {
-              proxyReq.setHeader('Bypass-Tunnel-Reminder', 'true');
+              proxyReq.setHeader('Authorization', 'Basic TUVESUNPOk1FRElDTw==');
             });
           },
         },
       },
     },
   },
+
+  integrations: [react()],
 });

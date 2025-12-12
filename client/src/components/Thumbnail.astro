@@ -4,7 +4,7 @@ const { serie } = Astro.props;
 const { Instances, mainDicomTags } = await getSeriesImages(serie);
 const previewUrl =
     Instances.length > 0
-        ? `/api/instances/${Instances[0]}/preview`
+        ? `/orthanc/instances/${Instances[0]}/preview`
         : "/favicon.svg";
 ---
 

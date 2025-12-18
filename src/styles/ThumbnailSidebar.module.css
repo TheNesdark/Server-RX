@@ -1,0 +1,113 @@
+.thumbnailsSidebar {
+    background: #121212;
+    border-right: 1px solid #2a2a2a;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    width: 200px;
+    height: 100%;
+}
+
+.collapsed {
+    width: 52px;
+}
+
+.collapsed .thumbnailsList {
+    display: none;
+}
+
+.sidebarHeader {
+    padding: 14px;
+    border-bottom: 1px solid #2a2a2a;
+    display: flex;
+    justify-content: center;
+}
+
+.sidebarToggle {
+    background: rgba(40, 40, 40, 0.7);
+    border: 1px solid #333;
+    color: #ccc;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.sidebarToggle:hover {
+    background: #2a2a2a;
+    border-color: #555;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.thumbnailsList {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.thumbnailItem {
+    background: #1a1a1a;
+    border: 2px solid #333;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.thumbnailItem:hover {
+    border-color: #444;
+    background: #1f1f1f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.active {
+    border-color: #0d6efd !important;
+    background: linear-gradient(180deg, #1e3a5f 0%, #1a3452 100%) !important;
+    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.4) !important;
+}
+
+.active:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+.thumbnailPreview {
+    width: 100%;
+    aspect-ratio: 1;
+    background: #0a0a0a;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.thumbnailPreview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.thumbnailInfo {
+    font-size: 12px;
+}
+
+.thumbnailTitle {
+    color: #fff;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.thumbnailDescription {
+    color: #aaa;
+}

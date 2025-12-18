@@ -1,15 +1,32 @@
 ---
-import ThumbnailSidebar from "@/components/viewer/ThumbnailSidebar.astro";
+import ThumbnailSidebar from "@/components/viewer/ThumbnailSidebar";
 import DicomViewer from "@/components/viewer/DicomViewer.astro";
 import ViewerToolbar from "@/components/viewer/ViewerToolbar.astro";
-import { getSeriesByStudyId } from "@/services/Orthan";
+import { getSeriesByStudyId, getSeriesImages } from "@/services/Orthan";
+import type { ThumbnailInfo } from "@/types";
 
 const { studyId } = Astro.params;
 if (!studyId) {
   return Astro.redirect("/");
 }
 
-const series = await getSeriesByStudyId(studyId);
+const seriesIds = await getSeriesByStudyId(studyId);
+
+// Pre-obtener la información de todas las series para las miniaturas
+const seriesData: ThumbnailInfo[] = await Promise.all(
+  seriesIds.map(async (id: string) => {
+    const { Instances, mainDicomTags } = await getSeriesImages(id);
+    return {
+      id,
+      previewUrl:
+        Instances.length > 0
+          ? `/orthanc/instances/${Instances[0]}/preview`
+          : "/favicon.svg",
+      modality: mainDicomTags.Modality || "N/A",
+      bodyPart: mainDicomTags.BodyPartExamined || "N/A",
+    };
+  }),
+);
 ---
 
 <!doctype html>
@@ -29,7 +46,7 @@ const series = await getSeriesByStudyId(studyId);
 
     <!-- Contenedor Principal -->
     <div class="viewer-container">
-      <ThumbnailSidebar series={series} />
+      <ThumbnailSidebar client:load series={seriesData} />
       <div class="main-viewer">
         <DicomViewer />
       </div>

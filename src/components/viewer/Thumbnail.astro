@@ -1,0 +1,21 @@
+---
+import { getSeriesImages } from "@/services/Orthan";
+const { serie } = Astro.props;
+const { Instances, mainDicomTags } = await getSeriesImages(serie);
+const previewUrl =
+    Instances.length > 0
+        ? `/orthanc/instances/${Instances[0]}/preview`
+        : "/favicon.svg";
+---
+
+<div class="thumbnail-item" data-id={serie}>
+    <div class="thumbnail-preview">
+        <img src={previewUrl} alt="Thumbnail 1" />
+    </div>
+    <div class="thumbnail-info">
+        <div class="thumbnail-title">{mainDicomTags.Modality}</div>
+        <div class="thumbnail-description">
+            {mainDicomTags.BodyPartExamined}
+        </div>
+    </div>
+</div>

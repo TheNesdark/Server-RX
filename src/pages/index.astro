@@ -1,0 +1,20 @@
+---
+import Layout from "@/layouts/layout.astro";
+import StudiesList from "@/components/Studies/StudiesList.tsx";
+import { obtenerEstudios, getTotalEstudios } from "@/services/Orthan";
+
+const limit = 10;
+const studies = await obtenerEstudios(limit, 0) as Study[];
+const totalStudies = await getTotalEstudios();
+---
+
+<Layout title="Orthanc Explorer">
+	<main>
+		<StudiesList
+			client:load
+			total={totalStudies}
+			studies={studies}
+			currentPage={1}
+		/>
+	</main>
+</Layout>

@@ -1,0 +1,108 @@
+---
+// DicomViewer.astro
+---
+
+<div id="dwv">
+    <div id="layerGroup0" class="layerGroup"></div>
+</div>
+
+<script>
+    import {
+        App,
+        AppOptions,
+        ViewConfig,
+        ToolConfig,
+        toolOptions,
+        toolList,
+    } from "dwv";
+    import { serieActivaId } from "../../stores/dicomStore";
+    import {
+        setupToolButtons,
+        setupDrawMenu,
+        setupResetButton,
+        setupSidebarToggle,
+    } from "../../handlers/eventHandlers";
+    import { NoneTool } from "../../tools/dwvTools";
+
+    toolList["None"] = NoneTool;
+
+    const app = new App();
+    const viewConfig = new ViewConfig("layerGroup0");
+    const viewConfigs = { "*": [viewConfig] };
+    const options = new AppOptions(viewConfigs);
+
+    options.tools = {
+        Scroll: new ToolConfig(),
+        WindowLevel: new ToolConfig(),
+        ZoomAndPan: new ToolConfig(),
+        Draw: {
+            options: [
+                "Arrow",
+                "Ruler",
+                "Circle",
+                "Ellipse",
+                "Rectangle",
+                "Protractor",
+                "Roi",
+            ],
+        },
+        Floodfill: new ToolConfig(),
+        Livewire: new ToolConfig(),
+        None: new ToolConfig(),
+    };
+
+    app.init(options);
+    console.log("DWV initialized");
+
+    async function cargarSerie(seriesId: string) {
+        setupToolButtons(app);
+        setupDrawMenu(app);
+        setupResetButton(app);
+        setupSidebarToggle();
+        app.reset();
+
+        console.log(`🌐 Descargando serie: ${seriesId}`);
+
+        try {
+            const resp = await fetch(`/orthanc/series/${seriesId}`);
+            const data = await resp.json();
+
+            const dicomUrls = data.Instances.map(
+                (instance: string) => `/orthanc/instances/${instance}/file`,
+            );
+            app.loadURLs(dicomUrls);
+            console.log("Serie cargada correctamente");
+        } catch (error) {
+            console.error("Error cargando serie:", error);
+        }
+    }
+
+    serieActivaId.subscribe((nuevoId) => {
+        if (nuevoId) cargarSerie(nuevoId);
+    });
+</script>
+
+<style>
+    #dwv {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        background-color: #000;
+    }
+
+    #layerGroup0 {
+        width: 100%;
+        height: 100%;
+    }
+
+    :global(#layerGroup0 .layerContainer) {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    :global(#layerGroup0 canvas) {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain;
+    }
+</style>

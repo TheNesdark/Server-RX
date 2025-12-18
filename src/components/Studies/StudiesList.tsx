@@ -1,121 +1,102 @@
-import { useState, useEffect, useMemo, useRef } from 'preact/hooks';
-import type { Study, FormattedStudy, StudiesListProps } from '@/types';
-import { FormatStudy } from '@/utils/StudyUtils';
+import { useStudies } from '@/hooks/useStudies';
+import type { StudiesListProps, FormattedStudy } from '@/types';
 import styles from '@/styles/StudiesList.module.css';
 
-const LIMIT = 15;
-
 export default function StudiesList({ total: initialTotal, studies: initialStudies, currentPage: initialCurrentPage = 1 }: StudiesListProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [studies, setStudies] = useState<Study[]>(initialStudies);
-  const [total, setTotal] = useState<number>(initialTotal);
-  const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(initialCurrentPage);
-  const isInitialMount = useRef(true);
+  const {
+    searchTerm,
+    loading,
+    total,
+    currentPage,
+    totalPages,
+    formattedStudies,
+    handleSearchChange,
+    handleNextPage,
+    handlePrevPage,
+    LIMIT
+  } = useStudies({ initialStudies, initialTotal, initialCurrentPage });
 
-  const totalPages = useMemo(() => Math.ceil(total / LIMIT), [total]);
-
-  const formattedStudies: FormattedStudy[] = useMemo(() => {
-    return studies.map(FormatStudy);
-  }, [studies]);
-
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-
-    const performSearch = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `/api/search/studies?q=${encodeURIComponent(searchTerm)}&page=${currentPage}`,
-        );
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || "Error en la búsqueda");
-        }
-        setStudies(data.studies);
-        setTotal(data.total);
-      } catch (error) {
-        console.error("Error en la búsqueda:", error);
-        setStudies([]); // Clear studies on error
-        setTotal(0);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    performSearch();
-  }, [searchTerm, currentPage]);
-
-  const handleSearchChange = (event: Event) => {
-    setSearchTerm((event.target as HTMLInputElement).value);
-    setCurrentPage(1); // Reset page to 1 on new search
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-  
   const renderTable = () => {
-    if (loading) {
-        return <div className={styles.emptyStateContainer}>Cargando...</div>;
-    }
-
-    if (formattedStudies.length === 0) {
-        return <div className={styles.emptyStateContainer}><p>No hay estudios</p></div>;
+    if (formattedStudies.length === 0 && !loading) {
+      return (
+        <div className={styles.emptyStateContainer}>
+          <svg
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            style={{ marginBottom: '1rem', color: '#94a3b8' }}
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <p>No se encontraron estudios que coincidan con tu búsqueda.</p>
+        </div>
+      );
     }
 
     return (
-        <table className={styles.studiesTable}>
-            <thead>
-                <tr>
-                    <th className={styles.colId}>Cédula</th>
-                    <th className={styles.colPatient}>Paciente</th>
-                    <th className={styles.colSex}>Sexo</th>
-                    <th className={styles.colInstitution}>Institución</th>
-                    <th className={styles.colDate}>Fecha</th>
-                    <th className={styles.colModality}>Modalidad</th>
-                </tr>
-            </thead>
-            <tbody>
-                {formattedStudies.map((study: FormattedStudy, index: number) => (
-                    <tr 
-                        key={study.id} 
-                        className={styles.studyRow} 
-                        style={{ "--delay": `${index * 0.04}s` }}
-                        onClick={() => window.open(`/viewer/${study.id}`)}
-                    >
-                        <td>
-                            <code className={styles.idCode}>{study.patientId}</code>
-                        </td>
-                        <td>
-                            <span className={styles.patientName}>{study.patientName}</span>
-                        </td>
-                        <td>{study.patientSex}</td>
-                        <td>{study.institution}</td>
-                        <td>{study.studyDate}</td>
-                        <td>
-                            <span
-                                className={`${styles.modalityChip} ${styles[`modality-${study.modality.toLowerCase()}`]}`}
-                            >
-                                {study.modality}
-                            </span>
-                        </td>
-                    </tr>
-                ))}
-            </tbody>
-        </table>
+      <table className={styles.studiesTable}>
+        <thead>
+          <tr>
+            <th className={styles.colId}>Cédula</th>
+            <th className={styles.colPatient}>Paciente</th>
+            <th className={styles.colSex}>Sexo</th>
+            <th className={styles.colInstitution}>Institución</th>
+            <th className={styles.colDate}>Fecha</th>
+            <th className={styles.colModality}>Modalidad</th>
+            <th className={styles.colActions}>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {formattedStudies.map((study: FormattedStudy, index: number) => (
+            <tr
+              key={study.id}
+              className={styles.studyRow}
+              style={{ "--delay": `${index * 0.04}s` }}
+            >
+              <td>
+                <code className={styles.idCode}>{study.patientId}</code>
+              </td>
+              <td>
+                <span className={styles.patientName}>{study.patientName}</span>
+              </td>
+              <td>{study.patientSex}</td>
+              <td>{study.institution}</td>
+              <td>{study.studyDate}</td>
+              <td>
+                <span
+                  className={`${styles.modalityChip} ${styles[`modality-${study.modality.toLowerCase()}`]}`}
+                >
+                  {study.modality}
+                </span>
+              </td>
+              <td>
+                <button
+                  className={styles.actionBtn}
+                  onClick={() => window.location.href = `/viewer/${study.id}`}
+                  aria-label={`Ver estudio de ${study.patientName}`}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  Ver
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     );
   }
 
@@ -176,7 +157,11 @@ export default function StudiesList({ total: initialTotal, studies: initialStudi
         </div>
       </header>
 
-      <div className={styles.tableContainer}>
+      <div className={`${styles.tableContainer} ${loading ? styles.tableLoading : ''}`}>
+        <div className={`${styles.loadingBar} ${loading ? styles.active : ''}`}></div>
+        <div className={`${styles.tableLoadingOverlay} ${loading ? styles.active : ''}`}>
+          <div className={styles.spinner}></div>
+        </div>
         {renderTable()}
       </div>
 
@@ -185,22 +170,22 @@ export default function StudiesList({ total: initialTotal, studies: initialStudi
           <div className={styles.paginationInfo}>
             Mostrando <strong>
               {currentPage === 1 ? 1 : (currentPage - 1) * LIMIT + 1}
-              - 
+              -
               {Math.min(currentPage * LIMIT, total)}
             </strong> de <strong>{total}</strong>
           </div>
-          
+
           <div className={styles.paginationControls}>
-            <button 
-              onClick={handlePrevPage} 
+            <button
+              onClick={handlePrevPage}
               className={styles.pageBtn}
               disabled={currentPage <= 1}
             >
               &lt;
             </button>
-            
-            <button 
-              onClick={handleNextPage} 
+
+            <button
+              onClick={handleNextPage}
               className={styles.pageBtn}
               disabled={currentPage >= totalPages}
             >

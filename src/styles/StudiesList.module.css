@@ -109,6 +109,7 @@
 }
 
 .tableContainer {
+    position: relative;
     min-width: 100%;
     background: white;
     border-radius: 12px;
@@ -116,6 +117,58 @@
     border: 1px solid #e2e8f0;
     overflow-y: auto;
     margin-bottom: 24px;
+    min-height: 400px;
+}
+
+.tableLoadingOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(2px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    border-radius: 12px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.tableLoadingOverlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.loadingBar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: #3b82f6;
+    width: 0%;
+    z-index: 20;
+    transition: width 0.3s ease;
+}
+
+.loadingBar.active {
+    width: 100%;
+    animation: loadingProgress 2s ease-in-out infinite;
+}
+
+@keyframes loadingProgress {
+    0% {
+        left: -100%;
+        width: 100%;
+    }
+
+    100% {
+        left: 100%;
+        width: 100%;
+    }
 }
 
 .studiesTable {
@@ -123,6 +176,11 @@
     border-collapse: collapse;
     overflow: hidden;
     table-layout: fixed;
+    transition: opacity 0.3s ease;
+}
+
+.tableLoading .studiesTable {
+    opacity: 0.5;
 }
 
 .studiesTable th,
@@ -162,6 +220,7 @@
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -242,79 +301,137 @@
     width: 100%;
     min-height: 300px;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+    gap: 16px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .colPatient {
-  width: 30%;
+    width: 30%;
 }
 
 .colId {
-  width: 15%;
+    width: 15%;
 }
 
 .colSex {
-  width: 10%;
+    width: 10%;
 }
 
 .colInstitution {
-  width: 25%;
+    width: 25%;
 }
 
 .colDate {
-  width: 10%;
+    width: 10%;
 }
 
 .colModality {
-  width: 10%;
+    width: 10%;
+}
+
+.colActions {
+    width: 10%;
+    text-align: center;
+}
+
+.actionBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.actionBtn:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+    transform: translateY(-1px);
+}
+
+.actionBtn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.actionBtn svg {
+    width: 14px;
+    height: 14px;
 }
 
 
 
 
 .pagination {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  margin-top: 1rem;
-  border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-top: 1px solid #e2e8f0;
 }
 
 .paginationInfo {
-  font-size: 0.875rem;
-  color: #475569;
+    font-size: 0.875rem;
+    color: #475569;
 }
 
 .paginationControls {
-  display: flex;
-  gap: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
 }
 
 .pageBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  text-decoration: none;
-  color: #475569;
-  background-color: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-weight: 500;
-  transition: all 0.2s;
-  cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    text-decoration: none;
+    color: #475569;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s;
+    cursor: pointer;
 }
 
 .pageBtn:hover:not(:disabled) {
-  background-color: #f8fafc;
-  border-color: #cbd5e1;
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
 }
 
 .pageBtn:disabled {
-  color: #94a3b8;
-  cursor: not-allowed;
-  opacity: 0.6;
+    color: #94a3b8;
+    cursor: not-allowed;
+    opacity: 0.6;
 }

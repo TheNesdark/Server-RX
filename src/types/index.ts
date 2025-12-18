@@ -23,3 +23,10 @@ export interface StudiesListProps {
     studies: Study[];
     currentPage: number;
 }
+
+export interface ThumbnailInfo {
+    id: string;
+    previewUrl: string;
+    modality: string;
+    bodyPart: string;
+}

@@ -35,7 +35,7 @@ export default function ThumbnailSidebar({ series }: ThumbnailSidebarProps) {
 
     return (
         <aside className={`${styles.thumbnailsSidebar} ${collapsed ? styles.collapsed : ''}`}>
-            <div className={styles.sidebarHeader}>
+            <header className={styles.sidebarHeader}>
                 <button
                     className={styles.sidebarToggle}
                     onClick={toggleSidebar}
@@ -55,7 +55,7 @@ export default function ThumbnailSidebar({ series }: ThumbnailSidebarProps) {
                         <rect x="14" y="14" width="7" height="7"></rect>
                     </svg>
                 </button>
-            </div>
+            </header>
 
             <div className={styles.thumbnailsList}>
                 {series.map((item) => (

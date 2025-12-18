@@ -3,7 +3,7 @@ import ThumbnailSidebar from "@/components/viewer/ThumbnailSidebar";
 import DicomViewer from "@/components/viewer/DicomViewer.astro";
 import ViewerToolbar from "@/components/viewer/ViewerToolbar.astro";
 import HelpModal from "@/components/modals/HelpModal.astro";
-import { getSeriesByStudyId, getSeriesImages } from "@/services/Orthan";
+import { getSeriesByStudyId, getSeriesImages } from "@/libs/orthanc/Orthanc";
 import type { ThumbnailInfo } from "@/types";
 
 const { studyId } = Astro.params;

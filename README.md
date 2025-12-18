@@ -1,43 +1,51 @@
-# Astro Starter Kit: Minimal
+# Visualizador de Estudios DICOM (vdcom-hlm)
 
-```sh
-npm create astro@latest -- --template minimal
-```
+Este es un visor de estudios DICOM desarrollado con Astro, Preact y TypeScript. Permite cargar y visualizar imágenes médicas en formato DICOM.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## 🚀 Estructura del Proyecto
 
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
+Dentro de este proyecto Astro, encontrarás la siguiente estructura de carpetas y archivos:
 
 ```text
 /
-├── public/
+├── public/               # Assets estáticos (imágenes, scripts)
+├── dist/                 # Directorio de build de producción
 ├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+│   ├── components/       # Componentes Astro/Preact reutilizables
+│   ├── layouts/          # Layouts base de Astro
+│   ├── libs/             # Librerías y utilidades (BD, Orthanc)
+│   ├── pages/            # Páginas y rutas de la aplicación
+│   │   ├── api/          # Endpoints de API
+│   │   └── viewer/       # Página del visor
+│   ├── stores/           # Manejo de estado con Nanostores
+│   └── styles/           # Estilos CSS
+├── package.json          # Dependencias y scripts del proyecto
+└── studies.db            # Base de datos SQLite para los estudios
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## 🧞 Comandos
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+Todos los comandos se ejecutan desde la raíz del proyecto, en una terminal:
 
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
+| Comando | Acción |
 | :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+| `npm install` | Instala las dependencias del proyecto. |
+| `npm run dev` | Inicia el servidor de desarrollo local en `localhost:4321`. |
+| `npm run build` | Compila el sitio de producción en el directorio `./dist/`. |
+| `npm run preview` | Previsualiza la compilación localmente antes de desplegar. |
+| `npm run astro ...` | Ejecuta comandos de la CLI de Astro como `astro add`, `astro check`. |
 
-## 👀 Want to learn more?
+## 👀 Funcionalidades Principales
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+*   **Visualización de estudios DICOM:** Carga y muestra imágenes DICOM.
+*   **Herramientas de visualización:** Incluye herramientas como Zoom, Pan, y Scroll entre slices.
+*   **Lista de estudios:** Permite navegar y buscar entre los estudios disponibles.
+*   **Base de datos local:** Utiliza SQLite para almacenar información de los estudios.
+
+## 📚 Librerías Utilizadas
+
+*   **Astro:** Framework de desarrollo web.
+*   **Preact:** Librería para construir interfaces de usuario.
+*   **DWV (DICOM Web Viewer):** Librería para la visualización y manipulación de imágenes DICOM.
+*   **better-sqlite3:** Driver para la base de datos SQLite.
+*   **Nanostores:** Para el manejo de estado.

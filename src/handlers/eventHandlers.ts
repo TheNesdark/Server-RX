@@ -44,14 +44,33 @@ export function setupDrawMenu(app: App): void {
     const drawMenu = document.querySelector<HTMLElement>(".draw-shapes-menu");
     const drawContainer = document.querySelector<HTMLElement>(".draw-tool-container");
 
-    drawBtn?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        drawMenu?.classList.toggle("show");
+    if (!drawBtn || !drawMenu) {
+        console.warn("⚠️ No se encontró el botón o menú de dibujo");
+        return;
+    }
+
+    // Toggle del menú al hacer clic en el botón
+    drawBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // Evita que el clic llegue al document
+        const isShown = drawMenu.classList.contains("show");
+        
+        // Cerramos todos los menús primero (por si hubiera otros)
+        document.querySelectorAll(".draw-shapes-menu").forEach(m => m.classList.remove("show"));
+        
+        if (!isShown) {
+            drawMenu.classList.add("show");
+            console.log("Menu Draw mostrado");
+        } else {
+            drawMenu.classList.remove("show");
+            console.log("Menu Draw ocultado");
+        }
     });
 
+    // Cerrar el menú si se hace clic fuera
     document.addEventListener("click", (e) => {
-        if (!drawContainer?.contains(e.target as HTMLElement)) {
-            drawMenu?.classList.remove("show");
+        if (drawMenu.classList.contains("show") && !drawContainer?.contains(e.target as HTMLElement)) {
+            drawMenu.classList.remove("show");
+            console.log("Menu Draw cerrado por clic externo");
         }
     });
 
@@ -61,21 +80,24 @@ export function setupDrawMenu(app: App): void {
             e.stopPropagation();
             const action = option.getAttribute("data-action");
             const shapeName = option.getAttribute("data-shape");
-            const btnText = drawBtn?.querySelector("span");
+            const btnText = drawBtn.querySelector("span");
 
             if (action === "clear") {
                 clearAllAnnotations(app);
                 if (btnText) btnText.textContent = "Draw";
-                drawMenu?.classList.remove("show");
+                drawMenu.classList.remove("show");
                 return;
             }
 
-            app.setTool("Draw");
-            app.setToolFeatures({ shapeName });
-            clearActiveButtons();
-            drawBtn?.classList.add("active");
-            if (btnText) btnText.textContent = `Draw: ${shapeName}`;
-            drawMenu?.classList.remove("show");
+            if (shapeName) {
+                app.setTool("Draw");
+                app.setToolFeatures({ shapeName: shapeName });
+                clearActiveButtons();
+                drawBtn.classList.add("active");
+                if (btnText) btnText.textContent = `Draw: ${shapeName}`;
+                drawMenu.classList.remove("show");
+                console.log(`Herramienta Draw activada con forma: ${shapeName}`);
+            }
         });
     });
 }

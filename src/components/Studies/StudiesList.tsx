@@ -5,7 +5,7 @@ import styles from '@/styles/StudiesList.module.css';
 export default function StudiesList({ total: initialTotal, studies: initialStudies, currentPage: initialCurrentPage = 1 }: StudiesListProps) {
   const {
     searchTerm,
-    loading,
+    // loading, // Eliminado el estado `loading`
     total,
     currentPage,
     totalPages,
@@ -17,7 +17,8 @@ export default function StudiesList({ total: initialTotal, studies: initialStudi
   } = useStudies({ initialStudies, initialTotal, initialCurrentPage });
 
   const renderTable = () => {
-    if (formattedStudies.length === 0 && !loading) {
+    // Ya no usamos `loading` para esta condición
+    if (formattedStudies.length === 0) {
       return (
         <div className={styles.emptyStateContainer}>
           <svg
@@ -157,11 +158,8 @@ export default function StudiesList({ total: initialTotal, studies: initialStudi
         </div>
       </header>
 
-      <div className={`${styles.tableContainer} ${loading ? styles.tableLoading : ''}`}>
-        <div className={`${styles.loadingBar} ${loading ? styles.active : ''}`}></div>
-        <div className={`${styles.tableLoadingOverlay} ${loading ? styles.active : ''}`}>
-          <div className={styles.spinner}></div>
-        </div>
+      {/* Se eliminan el loadingBar y el tableLoadingOverlay */}
+      <div className={styles.tableContainer}>
         {renderTable()}
       </div>
 

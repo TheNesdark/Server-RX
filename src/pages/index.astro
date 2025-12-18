@@ -1,7 +1,9 @@
 ---
 import Layout from "@/layouts/layout.astro";
 import StudiesList from "@/components/Studies/StudiesList.tsx";
-import { obtenerEstudios, getTotalEstudios } from "@/services/Orthan";
+import { obtenerEstudios, getTotalEstudios } from "@/libs/orthanc/Orthanc";
+import type { Study } from "@/types";
+
 
 const limit = 10;
 const studies = await obtenerEstudios(limit, 0) as Study[];

@@ -2,6 +2,7 @@
 import ThumbnailSidebar from "@/components/viewer/ThumbnailSidebar";
 import DicomViewer from "@/components/viewer/DicomViewer.astro";
 import ViewerToolbar from "@/components/viewer/ViewerToolbar.astro";
+import HelpModal from "@/components/modals/HelpModal.astro";
 import { getSeriesByStudyId, getSeriesImages } from "@/services/Orthan";
 import type { ThumbnailInfo } from "@/types";
 
@@ -51,6 +52,9 @@ const seriesData: ThumbnailInfo[] = await Promise.all(
         <DicomViewer />
       </div>
     </div>
+
+    <!-- Modal de Ayuda -->
+    <HelpModal />
 
     <style is:global>
       * {

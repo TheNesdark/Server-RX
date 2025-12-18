@@ -8,6 +8,8 @@
     "dist"
   ],
   "compilerOptions": {
+    "module": "ESNext", // <--- Añade esta línea
+    "moduleResolution": "node", // <--- También es recomendable añadir esta
     "paths": {
       "@/*": [
         "./src/*"

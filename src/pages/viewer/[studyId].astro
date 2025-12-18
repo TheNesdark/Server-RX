@@ -21,7 +21,7 @@ const seriesData: ThumbnailInfo[] = await Promise.all(
       id,
       previewUrl:
         Instances.length > 0
-          ? `/orthanc/instances/${Instances[0]}/preview`
+          ? `/orthanc/instances/${Instances[0]}/preview?viewport=256`
           : "/favicon.svg",
       modality: mainDicomTags.Modality || "N/A",
       bodyPart: mainDicomTags.BodyPartExamined || "N/A",

@@ -32,9 +32,8 @@ export async function getStatistics(): Promise<{ countStudies: number }> {
       method: "GET",
       headers: {
         'Authorization': 'Basic TUVESUNPOk1FRElDTw==', // MEDICO:MEDICO
-        'Accept-Encoding': 'identity'
       }
-      
+
     });
     if (!response.ok) {
       throw new Error(`Error del servidor: ${response.status}`);
@@ -64,12 +63,12 @@ export async function getStudiesPaginated(
     // Obtener estudios paginados
     const response = await fetch(
       `${API_BASE_URL}/studies?since=${since}&limit=${limit}&expand`,
-      { method: "GET",
-          headers: {
-        'Authorization': 'Basic TUVESUNPOk1FRElDTw==', // MEDICO:MEDICO
-        'Accept-Encoding': 'identity'
+      {
+        method: "GET",
+        headers: {
+          'Authorization': 'Basic TUVESUNPOk1FRElDTw==', // MEDICO:MEDICO
+        }
       }
-       }
     );
 
     if (!response.ok) {
@@ -102,7 +101,7 @@ export async function getStudies(): Promise<DicomStudy[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/studies?expand`, {
       method: "GET",
-            headers: {
+      headers: {
         'Authorization': 'Basic TUVESUNPOk1FRElDTw==', // MEDICO:MEDICO
         'Accept-Encoding': 'identity'
       }
@@ -123,7 +122,7 @@ export async function getSeriesByStudyId(studyId: string) {
   try {
     const response = await fetch(`${API_BASE_URL}/studies/${studyId}`, {
       method: 'GET',
-            headers: {
+      headers: {
         'Authorization': 'Basic TUVESUNPOk1FRElDTw==', // MEDICO:MEDICO
         'Accept-Encoding': 'identity'
       }
@@ -142,9 +141,8 @@ export async function getSeriesImages(seriesId: string) {
   try {
     const response = await fetch(`${API_BASE_URL}/series/${seriesId}`, {
       method: 'GET',
-            headers: {
+      headers: {
         'Authorization': 'Basic TUVESUNPOk1FRElDTw==', // MEDICO:MEDICO
-        'Accept-Encoding': 'identity'
       }
     });
     const data = await response.json();
@@ -164,13 +162,12 @@ const ORTHANC_URL = import.meta.env.API_BASE_URL;
 
 export async function sincronizarDatos() {
   console.log('🔄 Iniciando sincronización diaria...');
-  
+
   try {
     // 1. Pedimos TODOS los estudios a Orthanc (Expandido)
     const response = await fetch(`${ORTHANC_URL}/studies?expand`, {
       headers: {
         'Authorization': 'Basic TUVESUNPOk1FRElDTw==', // MEDICO:MEDICO
-        'Accept-Encoding': 'identity'
       }
     });
 
@@ -210,19 +207,19 @@ export async function sincronizarDatos() {
   }
 }
 
-export async function obtenerEstudios(limit: number , offset: number = 0, searchTerm: string = '') {
+export async function obtenerEstudios(limit: number, offset: number = 0, searchTerm: string = '') {
   try {
     let query = `
       SELECT id, patient_name, patient_id, patient_sex, institution_name, study_date, description 
       FROM estudios 
     `;
-    
+
     const params: any[] = [];
-    
+
     if (searchTerm) {
       // Escapar caracteres especiales en la búsqueda para evitar problemas con LIKE
       const escapedSearchTerm = searchTerm.replace(/[%_]/g, '\\$&');
-      
+
       query += `
         WHERE patient_name LIKE ? ESCAPE '\\' 
         OR patient_id LIKE ? ESCAPE '\\' 
@@ -231,10 +228,10 @@ export async function obtenerEstudios(limit: number , offset: number = 0, search
       `;
       params.push(`%${escapedSearchTerm}%`, `%${escapedSearchTerm}%`, `%${escapedSearchTerm}%`, `%${escapedSearchTerm}%`);
     }
-    
+
     query += ' ORDER BY study_date DESC LIMIT ? OFFSET ?';
     params.push(limit, offset);
-    
+
     const data = db.prepare(query).all(...params);
     return data;
   } catch (error: unknown) {
@@ -247,11 +244,11 @@ export async function getTotalEstudios(searchTerm: string = ''): Promise<number>
   try {
     let query = 'SELECT COUNT(*) as count FROM estudios';
     const params: any[] = [];
-    
+
     if (searchTerm) {
       // Escapar caracteres especiales en la búsqueda para evitar problemas con LIKE
       const escapedSearchTerm = searchTerm.replace(/[%_]/g, '\\$&');
-      
+
       query += `
         WHERE patient_name LIKE ? ESCAPE '\\' 
         OR patient_id LIKE ? ESCAPE '\\' 
@@ -260,7 +257,7 @@ export async function getTotalEstudios(searchTerm: string = ''): Promise<number>
       `;
       params.push(`%${escapedSearchTerm}%`, `%${escapedSearchTerm}%`, `%${escapedSearchTerm}%`, `%${escapedSearchTerm}%`);
     }
-    
+
     const result = db.prepare(query).get(...params) as { count: number };
     return result.count;
   } catch (error: unknown) {

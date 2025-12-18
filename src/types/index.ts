@@ -30,3 +30,29 @@ export interface ThumbnailInfo {
     modality: string;
     bodyPart: string;
 }
+
+// Orthanc specific types
+export interface DicomStudy {
+    ID: string;
+    PatientMainDicomTags?: {
+        PatientName?: string;
+        PatientID?: string;
+        PatientSex?: string;
+    };
+    MainDicomTags?: {
+        StudyDate?: string;
+        StudyDescription?: string;
+        AccessionNumber?: string;
+        StudyID?: string;
+        ModalitiesInStudy?: string;
+        InstitutionName?: string;
+    };
+}
+
+export interface PaginatedStudiesResult {
+    studies: DicomStudy[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}

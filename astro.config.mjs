@@ -16,10 +16,7 @@ export default defineConfig({
   vite: {
     resolve: {
       alias: {
-        "@config": "./src/config",
-        "@components": "./src/components",
-        "@pages": "./src/pages",
-        "@styles": "./src/styles",
+        "@/*": "./src/*",
       },
     },
     server: {

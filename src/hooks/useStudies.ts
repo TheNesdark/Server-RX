@@ -3,6 +3,7 @@ import type { Study, FormattedStudy } from '@/types';
 import { FormatStudy } from '@/utils/StudyUtils';
 
 const LIMIT = 15;
+const DEBOUNCE_DELAY = 100; // Retraso para la búsqueda (ms)
 
 interface UseStudiesProps {
     initialStudies: Study[];
@@ -14,10 +15,11 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
     const [searchTerm, setSearchTerm] = useState('');
     const [studies, setStudies] = useState<Study[]>(initialStudies);
     const [total, setTotal] = useState<number>(initialTotal);
-    const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(initialCurrentPage);
+    
     const isInitialMount = useRef(true);
     const debounceTimer = useRef<number | null>(null);
+    const prevSearchTerm = useRef('');
 
     const totalPages = useMemo(() => Math.ceil(total / LIMIT), [total]);
 
@@ -26,7 +28,7 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
     }, [studies]);
 
     const performSearch = async (query: string, page: number) => {
-        setLoading(true);
+        // Eliminamos la lógica del `loadingTimer` y `setLoading(true)`.
         try {
             const response = await fetch(
                 `/api/search/studies?q=${encodeURIComponent(query)}&page=${page}`,
@@ -36,21 +38,28 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
             if (!response.ok) {
                 throw new Error(data.error || "Error en la búsqueda");
             }
+            
             setStudies(data.studies);
             setTotal(data.total);
         } catch (error) {
             console.error("Error en la búsqueda:", error);
-            setStudies([]);
-            setTotal(0);
         } finally {
-            setLoading(false);
+            // Eliminamos `setLoading(false)`.
         }
     };
 
     useEffect(() => {
         if (isInitialMount.current) {
             isInitialMount.current = false;
+            if (initialStudies.length === 0 && searchTerm) {
+                performSearch(searchTerm, currentPage);
+            }
             return;
+        }
+
+        if (searchTerm !== prevSearchTerm.current) {
+            setCurrentPage(1);
+            prevSearchTerm.current = searchTerm;
         }
 
         if (debounceTimer.current) {
@@ -59,17 +68,17 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
 
         debounceTimer.current = window.setTimeout(() => {
             performSearch(searchTerm, currentPage);
-        }, 300);
+        }, DEBOUNCE_DELAY);
 
         return () => {
             if (debounceTimer.current) clearTimeout(debounceTimer.current);
+            // Eliminamos la limpieza de `loadingTimer`.
         };
     }, [searchTerm, currentPage]);
 
     const handleSearchChange = (event: Event) => {
         const value = (event.target as HTMLInputElement).value;
         setSearchTerm(value);
-        setCurrentPage(1);
     };
 
     const handleNextPage = () => {
@@ -88,7 +97,7 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
 
     return {
         searchTerm,
-        loading,
+        // Eliminamos `loading` del retorno.
         total,
         currentPage,
         totalPages,

@@ -1,4 +1,4 @@
-import { obtenerEstudios, getTotalEstudios } from "@/services/Orthan";
+import { obtenerEstudios, getTotalEstudios } from "@/libs/orthanc/Orthanc";
 
 export async function GET(request: Request) {
   try {

@@ -8,24 +8,12 @@
     "dist"
   ],
   "compilerOptions": {
-    "module": "ESNext", // <--- Añade esta línea
-    "moduleResolution": "node", // <--- También es recomendable añadir esta
+    "module": "ESNext",
+    "moduleResolution": "node", 
     "paths": {
       "@/*": [
         "./src/*"
       ],
-      "@components/*": [
-        "./src/components/*"
-      ],
-      "@layouts/*": [
-        "./src/layouts/*"
-      ],
-      "@/styles/*": [
-        "./src/styles/*"
-      ],
-      "@config/*": [
-        "./src/config/*"
-      ]
     },
     "jsx": "react-jsx",
     "jsxImportSource": "preact"

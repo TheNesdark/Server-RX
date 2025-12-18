@@ -7,22 +7,15 @@
 </div>
 
 <script>
-    import {
-        App,
-        AppOptions,
-        ViewConfig,
-        ToolConfig,
-        toolOptions,
-        toolList,
-    } from "dwv";
-    import { serieActivaId } from "../../stores/dicomStore";
+    import { App, AppOptions, ViewConfig, ToolConfig, toolList } from "dwv";
+    import { serieActivaId } from "@/stores/dicomStore";
     import {
         setupToolButtons,
         setupDrawMenu,
         setupResetButton,
         setupSidebarToggle,
-    } from "../../handlers/eventHandlers";
-    import { NoneTool } from "../../tools/dwvTools";
+    } from "@/handlers/eventHandlers";
+    import { NoneTool } from "@/tools/dwvTools";
 
     toolList["None"] = NoneTool;
 
@@ -54,13 +47,14 @@
     app.init(options);
     console.log("DWV initialized");
 
-    async function cargarSerie(seriesId: string) {
-        setupToolButtons(app);
-        setupDrawMenu(app);
-        setupResetButton(app);
-        setupSidebarToggle();
-        app.reset();
+    // Configuramos los eventos de la UI una sola vez al cargar la página
+    setupToolButtons(app);
+    setupDrawMenu(app);
+    setupResetButton(app);
+    setupSidebarToggle();
 
+    async function cargarSerie(seriesId: string) {
+        app.reset();
         console.log(`🌐 Descargando serie: ${seriesId}`);
 
         try {
@@ -70,7 +64,15 @@
             const dicomUrls = data.Instances.map(
                 (instance: string) => `/orthanc/instances/${instance}/file`,
             );
-            app.loadURLs(dicomUrls);
+            
+            app.loadURLs(dicomUrls, {
+                requestHeaders: [
+                    { name: "Accept", value: "application/dicom" },
+                ],
+                withCredentials: false,
+                batchSize: 5,
+            });
+            
             console.log("Serie cargada correctamente");
         } catch (error) {
             console.error("Error cargando serie:", error);

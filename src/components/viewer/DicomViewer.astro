@@ -4,10 +4,14 @@
 
 <div id="dwv">
     <div id="layerGroup0" class="layerGroup"></div>
+    <div id="contrast-sliders">
+        <label for="width-slider">Window Width:</label>
+        <input type="range" id="width-slider" class="contrast-slider" orient="vertical" disabled/>
+    </div>
 </div>
 
 <script>
-    import { App, AppOptions, ViewConfig, ToolConfig, toolList } from "dwv";
+    import { App, AppOptions, ViewConfig, ToolConfig, toolList, WindowLevel } from "dwv";
     import { serieActivaId } from "@/stores/dicomStore";
     import {
         setupToolButtons,
@@ -26,7 +30,7 @@
 
     options.tools = {
         Scroll: new ToolConfig(),
-        WindowLevel: new ToolConfig(),
+        WindowLevel: new ToolConfig(), // Keep this for interactive adjustment, or remove if sliders are sufficient
         ZoomAndPan: new ToolConfig(),
         Draw: {
             options: [
@@ -40,7 +44,6 @@
             ],
         },
         Floodfill: new ToolConfig(),
-        Livewire: new ToolConfig(),
         None: new ToolConfig(),
     };
 
@@ -52,6 +55,11 @@
     setupDrawMenu(app);
     setupResetButton(app);
     setupSidebarToggle();
+
+    // Get slider elements
+
+
+
 
     async function cargarSerie(seriesId: string) {
         app.reset();
@@ -82,6 +90,60 @@
     serieActivaId.subscribe((nuevoId) => {
         if (nuevoId) cargarSerie(nuevoId);
     });
+    // Después de obtener los elementos de los sliders  
+const widthSlider = document.getElementById('width-slider');  
+  
+// Función para inicializar los sliders cuando se carga una imagen  
+function initContrastSliders() {  
+    const layerGroup = app.getLayerGroupByDivId('layerGroup0');  
+    const viewLayer = layerGroup.getActiveViewLayer();  
+      
+    if (viewLayer) {  
+        const viewController = viewLayer.getViewController();  
+        const dataRange = viewController.getImageRescaledDataRange();  
+          
+        // Configurar rangos de los sliders  
+        widthSlider.min = 1;  
+        widthSlider.max = dataRange.max - dataRange.min;  
+
+          
+        // Establecer valores iniciales  
+        const currentWL = viewController.getWindowLevel();  
+        widthSlider.value = currentWL.width;  
+
+          
+        // Habilitar sliders  
+        widthSlider.disabled = false;  
+    }  
+}  
+  
+// Event listeners para los sliders  
+widthSlider.addEventListener('input', function() {  
+    updateWindowLevel();  
+});  
+
+
+// Función para actualizar el window/level  
+function updateWindowLevel() {  
+    const layerGroup = app.getLayerGroupByDivId('layerGroup0');  
+    const viewLayer = layerGroup.getActiveViewLayer();  
+      
+    if (viewLayer) {  
+        const viewController = viewLayer.getViewController();  
+        const width = parseFloat(widthSlider.value);  
+          
+        // Crear y aplicar el nuevo window level  
+        const wl = new WindowLevel(0, width);  
+        viewController.setWindowLevel(wl);  
+    }  
+}  
+  
+// Inicializar sliders cuando se carga la serie  
+app.addEventListener('load', function() {  
+    initContrastSliders();  
+});
+
+        
 </script>
 
 <style>
@@ -106,5 +168,28 @@
         width: 100% !important;
         height: 100% !important;
         object-fit: contain;
+    }
+
+    #contrast-sliders {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background-color: rgba(15, 15, 15, 0.85);
+        padding: 10px;
+        border-radius: 8px;
+        backdrop-filter: blur(4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .contrast-slider {
+        -webkit-appearance: slider-vertical; /* For vertical sliders in WebKit browsers */
+        writing-mode: bt-lr; /* For vertical sliders */
+        width: 10px;
+        height: 100px;
+        padding: 0 5px;
     }
 </style>

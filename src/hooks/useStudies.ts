@@ -3,7 +3,7 @@ import type { Study, FormattedStudy } from '@/types';
 import { FormatStudy } from '@/utils/StudyUtils';
 
 const LIMIT = 15;
-const DEBOUNCE_DELAY = 100; // Retraso para la búsqueda (ms)
+const DEBOUNCE_DELAY = 300; // Retraso para la búsqueda (ms)
 
 interface UseStudiesProps {
     initialStudies: Study[];
@@ -28,7 +28,6 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
     }, [studies]);
 
     const performSearch = async (query: string, page: number) => {
-        // Eliminamos la lógica del `loadingTimer` y `setLoading(true)`.
         try {
             const response = await fetch(
                 `/api/search/studies?q=${encodeURIComponent(query)}&page=${page}`,
@@ -43,8 +42,6 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
             setTotal(data.total);
         } catch (error) {
             console.error("Error en la búsqueda:", error);
-        } finally {
-            // Eliminamos `setLoading(false)`.
         }
     };
 
@@ -72,7 +69,6 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
 
         return () => {
             if (debounceTimer.current) clearTimeout(debounceTimer.current);
-            // Eliminamos la limpieza de `loadingTimer`.
         };
     }, [searchTerm, currentPage]);
 
@@ -97,7 +93,6 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
 
     return {
         searchTerm,
-        // Eliminamos `loading` del retorno.
         total,
         currentPage,
         totalPages,

@@ -1,0 +1,123 @@
+.dwvContainer {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-color: #000;
+}
+
+.layerGroup {
+    width: 100%;
+    height: 100%;
+}
+
+:global(#layerGroup0 .layerContainer) {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+:global(#layerGroup0 canvas) {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+}
+
+.controlsOverlay {
+    position: absolute;
+    bottom: 30px;
+    right: 20px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background-color: rgba(15, 15, 15, 0.8);
+    padding: 15px;
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 180px;
+}
+
+.sliderGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.sliderGroup label {
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.sliderGroup input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+}
+
+.sliderGroup span {
+    font-family: monospace;
+    font-size: 12px;
+    color: #3b82f6;
+    text-align: right;
+}
+
+/* Estilos para el Loading */
+.loadingOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+    gap: 15px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(59, 130, 246, 0.1);
+    border-top: 3px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loadingText {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.progressBarContainer {
+    width: 250px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progressBar {
+    height: 100%;
+    background: #3b82f6;
+    width: 0%;
+    transition: width 0.2s ease-out;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+.fileCount {
+    color: #64748b;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

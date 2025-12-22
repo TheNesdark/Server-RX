@@ -1,6 +1,6 @@
 ---
 import ThumbnailSidebar from "@/components/viewer/ThumbnailSidebar";
-import DicomViewer from "@/components/viewer/DicomViewer.astro";
+import DicomViewer from "@/components/viewer/DicomViewer";
 import ViewerToolbar from "@/components/viewer/ViewerToolbar.astro";
 import HelpModal from "@/components/modals/HelpModal.astro";
 import { getSeriesByStudyId, getSeriesImages } from "@/libs/orthanc/Orthanc";
@@ -17,6 +17,7 @@ const seriesIds = await getSeriesByStudyId(studyId);
 const seriesData: ThumbnailInfo[] = await Promise.all(
   seriesIds.map(async (id: string) => {
     const { Instances, mainDicomTags } = await getSeriesImages(id);
+
     return {
       id,
       previewUrl:
@@ -49,7 +50,7 @@ const seriesData: ThumbnailInfo[] = await Promise.all(
     <div class="viewer-container">
       <ThumbnailSidebar client:load series={seriesData} />
       <div class="main-viewer">
-        <DicomViewer />
+        <DicomViewer client:load />
       </div>
     </div>
 

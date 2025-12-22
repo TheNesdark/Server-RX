@@ -199,23 +199,6 @@
             </svg>
             <span>Floodfill</span>
         </button>
-        <button class="tool-btn" title="Livewire">
-            <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-                <path d="M4 20h16"></path>
-                <path d="M6 16v4"></path>
-                <path d="M18 16v4"></path>
-                <path d="M9 3l3 3 3-3"></path>
-                <path d="M9 3h6"></path>
-            </svg>
-            <span>Livewire</span>
-        </button>
         <button class="tool-btn" title="Reset">
             <svg
                 width="20"
@@ -234,8 +217,9 @@
             <span>Reset</span>
         </button>
     </div>
+
     <div class="toolbar-right">
-        <button class="tool-btn help-btn" title="Ayuda" id="modal-open">
+        <button class="tool-btn" title="Ayuda" id="modal-open">
             <svg
                 width="20"
                 height="20"
@@ -250,7 +234,7 @@
             </svg>
             <span>Ayuda</span>
         </button>
-        <button class="tool-btn close-btn" title="Close">
+        <button class="tool-btn" title="Close">
             <svg
                 width="20"
                 height="20"
@@ -263,6 +247,7 @@
                 <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
         </button>
+        </div>
     </div>
 </div>
 
@@ -337,7 +322,6 @@
 
     .draw-btn {
         position: relative;
-        min-width: 90px;
     }
 
     .dropdown-arrow {
@@ -371,6 +355,7 @@
 
     .draw-shapes-menu.show {
         display: flex;
+
     }
 
     @keyframes fadeIn {
@@ -416,31 +401,6 @@
         height: 1px;
         background: #333;
         margin: 6px 0;
-    }
-
-    .close-btn {
-        background: linear-gradient(180deg, #dc3545 0%, #c82333 100%);
-        border-color: #c82333;
-        color: #fff;
-        box-shadow: 0 2px 6px rgba(220, 53, 69, 0.4);
-    }
-
-    .close-btn:hover {
-        background: linear-gradient(180deg, #c82333 0%, #bd2130 100%);
-        box-shadow: 0 4px 10px rgba(220, 53, 69, 0.5);
-    }
-
-    /* Botón de Ayuda */
-    .help-btn {
-        background: linear-gradient(180deg, #10b981 0%, #059669 100%);
-        border-color: #059669;
-        color: #fff;
-        box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
-    }
-
-    .help-btn:hover {
-        background: linear-gradient(180deg, #059669 0%, #047857 100%);
-        box-shadow: 0 4px 10px rgba(16, 185, 129, 0.5);
     }
 
     /* ============================================ */

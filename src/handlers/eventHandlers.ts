@@ -1,6 +1,22 @@
 import type { App } from "dwv";
 import { clearActiveButtons, clearAllAnnotations } from "@/utils/viewerUtils";
 
+interface DWVEventCallbacks {
+    onWindowLevelChange: (center: number, width: number) => void;
+    onLoad: (dataRange: { min: number, max: number }, wl: { center: number, width: number }) => void;
+    onLoadItem: () => void;
+}
+
+interface DataRange {
+    min: number;
+    max: number;
+}
+
+interface WindowLevel {
+    center: number;
+    width: number;
+}
+
 export function setupToolButtons(app: App): void {
     document.querySelectorAll(".tool-btn").forEach((btn) => {
         btn.addEventListener("click", function (this: HTMLElement) {
@@ -47,7 +63,7 @@ export function setupDrawMenu(app: App): void {
     });
 
     document.addEventListener("click", (e) => {
-        if (drawMenu.classList.contains("show") && !drawContainer?.contains(e.target as HTMLElement)) {
+        if (drawMenu.classList.contains("show") && drawContainer && e.target instanceof HTMLElement && !drawContainer.contains(e.target)) {
             drawMenu.classList.remove("show");
         }
     });
@@ -84,32 +100,35 @@ export function setupResetButton(app: App): void {
         clearActiveButtons();
         clearAllAnnotations(app);
         app.resetDisplay();
-        app.setTool("None")
+        app.setTool("None");
         const drawBtnText = drawBtn?.querySelector("span");
         if (drawBtnText) drawBtnText.textContent = "Draw";
     });
 }
 
 export function setupSidebarToggle(): void {
-    document.querySelector(".sidebar-toggle")?.addEventListener("click", () => {
-        document.querySelector(".thumbnails-sidebar")?.classList.toggle("collapsed");
-    });
+    const sidebarToggle = document.querySelector(".sidebar-toggle");
+    const thumbnailsSidebar = document.querySelector(".thumbnails-sidebar");
+    
+    if (sidebarToggle && thumbnailsSidebar) {
+        sidebarToggle.addEventListener("click", () => {
+            thumbnailsSidebar.classList.toggle("collapsed");
+        });
+    }
 }
 
 /**
  * Registra todos los event listeners de DWV
  */
-export function setupDWVEventListeners(app: any, callbacks: {
-    onWindowLevelChange: (center: number, width: number) => void;
-    onLoad: (dataRange: { min: number, max: number }, wl: { center: number, width: number }) => void;
-    onLoadItem: () => void;
-}) {
+export function setupDWVEventListeners(app: App, callbacks: DWVEventCallbacks) {
     app.addEventListener('window-level-change', () => {
         const layerGroup = app.getLayerGroupByDivId('layerGroup0');
-        const viewLayer = layerGroup.getActiveViewLayer();
-        if (viewLayer) {
-            const wl = viewLayer.getViewController().getWindowLevel();
-            callbacks.onWindowLevelChange(wl.center, wl.width);
+        if (layerGroup) {
+            const viewLayer = layerGroup.getActiveViewLayer();
+            if (viewLayer) {
+                const wl = viewLayer.getViewController().getWindowLevel();
+                callbacks.onWindowLevelChange(wl.center, wl.width);
+            }
         }
     });
 
@@ -119,15 +138,17 @@ export function setupDWVEventListeners(app: any, callbacks: {
 
     app.addEventListener('load', () => {
         const layerGroup = app.getLayerGroupByDivId('layerGroup0');
-        const viewLayer = layerGroup.getActiveViewLayer();
-        if (viewLayer) {
-            const viewController = viewLayer.getViewController();
-            const dataRange = viewController.getImageRescaledDataRange();
-            const currentWL = viewController.getWindowLevel();
-            callbacks.onLoad(
-                { min: dataRange.min, max: dataRange.max },
-                { center: currentWL.center, width: currentWL.width }
-            );
+        if (layerGroup) {
+            const viewLayer = layerGroup.getActiveViewLayer();
+            if (viewLayer) {
+                const viewController = viewLayer.getViewController();
+                const dataRange = viewController.getImageRescaledDataRange() as DataRange;
+                const currentWL = viewController.getWindowLevel() as WindowLevel;
+                callbacks.onLoad(
+                    { min: dataRange.min, max: dataRange.max },
+                    { center: currentWL.center, width: currentWL.width }
+                );
+            }
         }
     });
 }

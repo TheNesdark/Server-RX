@@ -29,6 +29,7 @@ export interface ThumbnailInfo {
     previewUrl: string;
     modality: string;
     bodyPart: string;
+    instances?: string[];
 }
 
 // Orthanc specific types

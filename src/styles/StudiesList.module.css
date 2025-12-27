@@ -11,7 +11,7 @@
     padding: 24px;
     margin-bottom: 24px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e2e8f0; /* Grey border */
 }
 
 .headerContent {
@@ -32,22 +32,22 @@
     width: 48px;
     height: 48px;
     border-radius: 8px;
-    background: #3b82f6;
+    background: #e2e8f0; /* Neutral background */
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: #475569; /* Darker grey for icon */
 }
 
 .titleSection h1 {
-    color: #1e293b;
+    color: #1e293b; /* Dark text */
     margin: 0;
     font-size: 1.5rem;
     font-weight: 700;
 }
 
 .subtitle {
-    color: #64748b;
+    color: #64748b; /* Medium grey text */
     margin: 0;
     font-size: 0.875rem;
 }
@@ -61,7 +61,7 @@
 .statsBadge {
     display: flex;
     align-items: center;
-    background-color: #f1f5f9;
+    background-color: #f1f5f9; /* Light grey background */
     border-radius: 16px;
     padding: 4px 12px;
     font-size: 0.875rem;
@@ -69,13 +69,13 @@
 }
 
 .statsNumber {
-    color: #0f172a;
+    color: #0f172a; /* Dark text */
     font-weight: 700;
     margin-right: 4px;
 }
 
 .statsLabel {
-    color: #475569;
+    color: #475569; /* Medium grey text */
 }
 
 .searchContainer {
@@ -90,22 +90,25 @@
     top: 50%;
     transform: translateY(-50%);
     pointer-events: none;
+    color: #94a3b8; /* Light grey icon */
 }
 
 .searchInput {
     width: 100%;
     padding: 10px;
     padding-left: 30px;
-    border: 1px solid #444;
+    border: 1px solid #cbd5e1; /* Light grey border */
     border-radius: 8px;
+    color: #1e293b; /* Dark text */
 }
 
 .searchInput::placeholder {
-    color: #94a3b8;
+    color: #94a3b8; /* Light grey placeholder */
 }
 
 .searchInput:focus {
     outline: none;
+    border-color: #94a3b8; /* Slightly darker grey on focus */
 }
 
 .tableContainer {
@@ -114,7 +117,7 @@
     background: white;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e2e8f0; /* Grey border */
     overflow-y: auto;
     margin-bottom: 24px;
     min-height: 400px;
@@ -135,7 +138,7 @@
     border-radius: 12px;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.15s ease; /* Reducido a 0.15s */
+    transition: opacity 0.15s ease;
 }
 
 .tableLoadingOverlay.active {
@@ -148,7 +151,7 @@
     top: 0;
     left: 0;
     height: 3px;
-    background: #3b82f6;
+    background: #cbd5e1; /* Neutral grey loading bar */
     width: 0%;
     z-index: 20;
     transition: width 0.3s ease;
@@ -187,17 +190,18 @@
 .studiesTable td {
     padding: 12px 16px;
     text-align: left;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0; /* Grey border */
     vertical-align: middle;
 }
 
 .studiesTable td {
     font-size: 0.875rem;
+    color: #333; /* Darker text for content */
 }
 
 .studiesTable th {
-    background-color: #f8fafc;
-    color: #475569;
+    background-color: #f8fafc; /* Light grey header background */
+    color: #475569; /* Medium grey header text */
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -206,13 +210,13 @@
 
 .studyRow {
     opacity: 0;
-    animation: fadeIn 0.3s ease-out forwards; /* Reducido a 0.3s */
+    animation: fadeIn 0.3s ease-out forwards;
     animation-delay: var(--delay);
     transition: background-color 0.2s ease;
 }
 
 .studyRow:hover {
-    background-color: #f8fafc;
+    background-color: #f8fafc; /* Light grey on hover */
 }
 
 @keyframes fadeIn {
@@ -234,15 +238,15 @@
 .idCode {
     font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
     font-size: 0.75rem;
-    background-color: #f1f5f9;
-    color: #475569;
+    background-color: #f1f5f9; /* Light grey background */
+    color: #475569; /* Medium grey text */
     padding: 2px 6px;
     border-radius: 4px;
 }
 
 .patientName {
     font-weight: 600;
-    color: #1e293b;
+    color: #1e293b; /* Dark text */
     font-size: 0.875rem;
 }
 
@@ -253,13 +257,13 @@
     border-radius: 12px;
     font-size: 0.75rem;
     font-weight: 500;
-    background-color: #e0e7ff;
-    color: #4338ca;
+    background-color: #e2e8f0; /* Neutral background */
+    color: #475569; /* Neutral text */
 }
 
 .modality-dx {
-    background-color: #d1fae5;
-    color: #065f46;
+    background-color: #f1f5f9; /* Another neutral background */
+    color: #475569; /* Neutral text */
 }
 
 .actionsCell {
@@ -269,7 +273,7 @@
 }
 
 .viewLink {
-    color: #3b82f6;
+    color: #475569; /* Neutral link color */
     text-decoration: none;
     font-weight: 500;
     font-size: 0.875rem;
@@ -277,7 +281,7 @@
 }
 
 .viewLink:hover {
-    color: #2563eb;
+    color: #1e293b; /* Darker neutral on hover */
     text-decoration: underline;
 }
 
@@ -286,18 +290,18 @@
     border: none;
     cursor: pointer;
     padding: 0;
-    color: #94a3b8;
+    color: #94a3b8; /* Light grey button icon/text */
     transition: color 0.2s ease;
 }
 
 .actionButton:hover {
-    color: #475569;
+    color: #475569; /* Medium grey on hover */
 }
 
 .emptyStateContainer {
     text-align: center;
     padding: 48px;
-    color: #64748b;
+    color: #64748b; /* Medium grey text */
     width: 100%;
     min-height: 300px;
     display: flex;
@@ -310,8 +314,8 @@
 .spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #3b82f6;
+    border: 3px solid #f3f3f3; /* Light grey for spinner */
+    border-top: 3px solid #94a3b8; /* Medium grey for spinner animation */
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -339,7 +343,7 @@
 }
 
 .colInstitution {
-    width: 25%;
+    width: 20%;
 }
 
 .colDate {
@@ -351,8 +355,14 @@
 }
 
 .colActions {
-    width: 10%;
+    width: 15%;
     text-align: center;
+}
+
+.actionButtonsContainer {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
 }
 
 .actionBtn {
@@ -360,35 +370,33 @@
     align-items: center;
     gap: 6px;
     padding: 6px 12px;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    color: white;
-    border: none;
+    background: #f1f5f9; /* Light grey background */
+    color: #475569; /* Medium grey text */
+    border: 1px solid #cbd5e1; /* Light grey border */
     border-radius: 6px;
     font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Subtle shadow */
 }
 
 .actionBtn:hover {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+    background: #e2e8f0; /* Slightly darker grey on hover */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Slightly more prominent shadow on hover */
     transform: translateY(-1px);
 }
 
 .actionBtn:active {
     transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .actionBtn svg {
     width: 14px;
     height: 14px;
+    color: #64748b; /* Icon color */
 }
-
-
-
 
 .pagination {
     display: flex;
@@ -396,12 +404,12 @@
     align-items: center;
     padding: 1rem;
     margin-top: 1rem;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid #e2e8f0; /* Grey border */
 }
 
 .paginationInfo {
     font-size: 0.875rem;
-    color: #475569;
+    color: #475569; /* Medium grey text */
 }
 
 .paginationControls {
@@ -416,9 +424,9 @@
     width: 2.5rem;
     height: 2.5rem;
     text-decoration: none;
-    color: #475569;
+    color: #475569; /* Medium grey text */
     background-color: white;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e2e8f0; /* Grey border */
     border-radius: 8px;
     font-weight: 500;
     transition: all 0.2s;
@@ -426,12 +434,12 @@
 }
 
 .pageBtn:hover:not(:disabled) {
-    background-color: #f8fafc;
-    border-color: #cbd5e1;
+    background-color: #f8fafc; /* Light grey on hover */
+    border-color: #cbd5e1; /* Slightly darker grey border on hover */
 }
 
 .pageBtn:disabled {
-    color: #94a3b8;
+    color: #94a3b8; /* Lighter grey for disabled */
     cursor: not-allowed;
     opacity: 0.6;
 }

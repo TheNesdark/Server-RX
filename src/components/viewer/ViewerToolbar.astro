@@ -35,7 +35,7 @@
             <span>Zoom & Pan</span>
         </button>
         <div class="draw-tool-container">
-            <button class="tool-btn draw-btn" title="Draw">
+            <button class="tool-btn draw-btn" title="Draw" id="draw-dropdown-btn">
                 <svg
                     width="20"
                     height="20"
@@ -62,7 +62,7 @@
                     <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
             </button>
-            <div class="draw-shapes-menu">
+            <div class="draw-shapes-menu" id="draw-menu">
                 <button class="shape-option" data-shape="Arrow">
                     <svg
                         width="16"
@@ -234,7 +234,7 @@
             </svg>
             <span>Ayuda</span>
         </button>
-        <button class="tool-btn" title="Close">
+        <button class="tool-btn" title="Close" onclick="window.location.href='/'">
             <svg
                 width="20"
                 height="20"

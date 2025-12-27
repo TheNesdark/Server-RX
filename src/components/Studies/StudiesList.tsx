@@ -75,24 +75,44 @@ export default function StudiesList({ total: initialTotal, studies: initialStudi
                 </span>
               </td>
               <td>
-                <button
-                  className={styles.actionBtn}
-                  onClick={() => window.location.href = `/viewer/${study.id}`}
-                  aria-label={`Ver estudio de ${study.patientName}`}
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
+                <div className={styles.actionButtonsContainer}>
+                  <button
+                    className={styles.actionBtn}
+                    onClick={() => window.open(`/viewer/${study.id}`, '_blank')}
+                    aria-label={`Ver estudio de ${study.patientName}`}
                   >
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                  Ver
-                </button>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    Ver
+                  </button>
+                  <button
+                    className={styles.actionBtn}
+                    onClick={() => window.open(`/viewer-lite/${study.id}`, '_blank')}
+                    aria-label={`Ver estudio de ${study.patientName}`}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    Ver Lite
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

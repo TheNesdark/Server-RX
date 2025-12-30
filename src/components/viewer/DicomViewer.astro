@@ -12,7 +12,7 @@
 
 <script>
     import { App, AppOptions, ViewConfig, ToolConfig, toolList, WindowLevel } from "dwv";
-    import { serieActivaId } from "@/stores/dicomStore";
+    import { activeSeriesId } from "@/stores/dicomStore";
     import {
         setupToolButtons,
         setupDrawMenu,
@@ -87,7 +87,7 @@
         }
     }
 
-    serieActivaId.subscribe((nuevoId) => {
+    activeSeriesId.subscribe((nuevoId) => {
         if (nuevoId) cargarSerie(nuevoId);
     });
     // Después de obtener los elementos de los sliders  

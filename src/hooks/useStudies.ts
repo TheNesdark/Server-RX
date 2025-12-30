@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'preact/hooks';
 import type { Study, FormattedStudy } from '@/types';
-import { FormatStudy } from '@/utils/StudyUtils';
+import { FormatStudy } from '@/utils';
 
 const LIMIT = 10;
 const DEBOUNCE_DELAY = 300; // Retraso para la búsqueda (ms)
@@ -32,16 +32,19 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
             const response = await fetch(
                 `/api/search/studies?q=${encodeURIComponent(query)}&page=${page}`,
             );
-            const data = await response.json();
-
+            
             if (!response.ok) {
-                throw new Error(data.error || "Error en la búsqueda");
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
+            const data = await response.json();
             setStudies(data.studies);
             setTotal(data.total);
         } catch (error) {
             console.error("Error en la búsqueda:", error);
+            // Mantener el estado anterior en caso de error
+            setStudies([]);
+            setTotal(0);
         }
     };
 
@@ -63,8 +66,12 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
             clearTimeout(debounceTimer.current);
         }
 
-        debounceTimer.current = window.setTimeout(() => {
-            performSearch(searchTerm, targetPage);
+        debounceTimer.current = window.setTimeout(async () => {
+            try {
+                await performSearch(searchTerm, targetPage);
+            } catch (error) {
+                console.error('Error in debounced search:', error);
+            }
         }, DEBOUNCE_DELAY);
 
         return () => {
@@ -80,14 +87,22 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
     const handleNextPage = () => {
         if (currentPage < totalPages) {
             setCurrentPage(currentPage + 1);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            try {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (error) {
+                console.warn('Error scrolling to top:', error);
+            }
         }
     };
 
     const handlePrevPage = () => {
         if (currentPage > 1) {
             setCurrentPage(currentPage - 1);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            try {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (error) {
+                console.warn('Error scrolling to top:', error);
+            }
         }
     };
 

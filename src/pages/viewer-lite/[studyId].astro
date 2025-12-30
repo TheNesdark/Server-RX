@@ -55,7 +55,7 @@ const seriesData: ThumbnailInfo[] = await Promise.all(
     <div id="series-metadata" data-series={JSON.stringify(seriesData)}></div>
 
     <script>
-      import { serieActivaId } from '@/stores/dicomStore';
+      import { activeSeriesId } from '@/stores/dicomStore';
 
       const renderedImage = document.getElementById('renderedImage') as HTMLImageElement | null;
       const seriesMetadataEl = document.getElementById('series-metadata');
@@ -75,7 +75,7 @@ const seriesData: ThumbnailInfo[] = await Promise.all(
       }
 
       // Escuchar cambios en la serie activa
-      serieActivaId.subscribe((id) => {
+      activeSeriesId.subscribe((id) => {
         if (id) {
           const series = seriesData.find((s: any) => s.id === id);
           if (series && series.instances && series.instances.length > 0) {
@@ -84,8 +84,8 @@ const seriesData: ThumbnailInfo[] = await Promise.all(
         }
       });
       // Inicializar con la primera serie si no hay ninguna activa
-      if (seriesData.length > 0 && !serieActivaId.get()) {
-        serieActivaId.set(seriesData[0].id);
+      if (seriesData.length > 0 && !activeSeriesId.get()) {
+        activeSeriesId.set(seriesData[0].id);
       }
     </script>
 

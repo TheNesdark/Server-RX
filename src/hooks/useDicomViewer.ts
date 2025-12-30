@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { serieActivaId } from '@/stores/dicomStore';
+import { activeSeriesId } from '@/stores/dicomStore';
 import { 
     setupToolButtons, 
     setupDrawMenu, 
@@ -8,7 +8,7 @@ import {
 } from '@/handlers/eventHandlers';
 
 export function useDicomViewer() {
-    const appRef = useRef<any>(null);
+    const dwvAppRef = useRef<any>(null);
 
     const [windowCenter, setWindowCenter] = useState<number>(0);
     const [windowWidth, setWindowWidth] = useState<number>(0);
@@ -21,8 +21,8 @@ export function useDicomViewer() {
             const { NoneTool } = await import('@/tools/dwvTools');
             
             dwv.toolList["None"] = NoneTool;
-            const app = new dwv.App();
-            appRef.current = app;
+            const dwvApp = new dwv.App();
+            dwvAppRef.current = dwvApp;
 
             const viewConfig = new dwv.ViewConfig("layerGroup0");
             const options = new dwv.AppOptions({ "*": [viewConfig] });
@@ -38,15 +38,15 @@ export function useDicomViewer() {
                 None: new dwv.ToolConfig(),
             };
 
-            app.init(options);
+            dwvApp.init(options);
 
             // Setup de UI
-            setupToolButtons(app);
-            setupDrawMenu(app);
-            setupResetButton(app);
+            setupToolButtons(dwvApp);
+            setupDrawMenu(dwvApp);
+            setupResetButton(dwvApp);
 
             // Setup de Event Listeners de DWV (Centralizados)
-            setupDWVEventListeners(app, {
+            setupDWVEventListeners(dwvApp, {
                 onWindowLevelChange: (center, width) => {
                     setWindowCenter(center);
                     setWindowWidth(width);
@@ -61,8 +61,8 @@ export function useDicomViewer() {
                 }
             });
 
-            const unsubscribe = serieActivaId.subscribe((id) => {
-                if (id) cargarSerie(id);
+            const unsubscribe = activeSeriesId.subscribe((id) => {
+                if (id) loadSeries(id);
             });
 
             return unsubscribe;
@@ -71,6 +71,8 @@ export function useDicomViewer() {
         let unsubscribeFn: (() => void) | undefined;
         initDWV().then(unsub => {
             unsubscribeFn = unsub;
+        }).catch(error => {
+            console.error('Error initializing DWV:', error);
         });
 
         return () => {
@@ -78,38 +80,40 @@ export function useDicomViewer() {
         };
     }, []);
 
-    const cargarSerie = async (seriesId: string) => {
-        const app = appRef.current;
-        if (!app) return;
+    const loadSeries = async (seriesId: string) => {
+        const dwvApp = dwvAppRef.current;
+        if (!dwvApp) return;
 
-        app.reset();
+        dwvApp.reset();
         setIsLoaded(false);
 
         try {
             const resp = await fetch(`/orthanc/series/${seriesId}`);
+            if (!resp.ok) {
+                throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+            }
             const data = await resp.json();
             const dicomUrls = data.Instances.map(
                 (instance: string) => `/orthanc/instances/${instance}/file`,
             );
 
-            // totalFilesRef.current = dicomUrls.length; // Eliminado
-
-            app.loadURLs(dicomUrls, {
+            dwvApp.loadURLs(dicomUrls, {
                 requestHeaders: [{ name: "Accept", value: "application/dicom" }],
                 withCredentials: false,
                 batchSize: 5,
             });
+            setIsLoaded(true)
         } catch (error) {
             console.error("Error cargando serie:", error);
-            setIsLoaded(true);
-        }
+
+        } 
     };
 
     const applyWindowLevel = (center: number, width: number) => {
-        const app = appRef.current;
-        if (!app) return;
+        const dwvApp = dwvAppRef.current;
+        if (!dwvApp) return;
 
-        const layerGroup = app.getLayerGroupByDivId('layerGroup0');
+        const layerGroup = dwvApp.getLayerGroupByDivId('layerGroup0');
         const viewLayer = layerGroup.getActiveViewLayer();
 
         if (viewLayer) {

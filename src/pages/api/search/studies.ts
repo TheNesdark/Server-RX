@@ -5,7 +5,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const searchTerm = url.searchParams.get('q') || '';
     const page = parseInt(url.searchParams.get('page') || '1');
-    const limit = 10; // Límite fijo
+    const limit = 10; // Límite fijo a 10
 
     // Asegurar que page sea un número válido
     const currentPage = isNaN(page) || page < 1 ? 1 : page;

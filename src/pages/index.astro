@@ -5,7 +5,7 @@ import { obtenerEstudios, getTotalEstudios } from "@/libs/orthanc/Orthanc";
 import type { Study } from "@/types";
 
 
-const limit = 10;
+const limit = 15;
 const studies = await obtenerEstudios(limit, 0) as Study[];
 const totalStudies = await getTotalEstudios();
 ---

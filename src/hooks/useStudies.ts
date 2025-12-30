@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'preact/hooks';
 import type { Study, FormattedStudy } from '@/types';
 import { FormatStudy } from '@/utils/StudyUtils';
 
-const LIMIT = 15;
+const LIMIT = 10;
 const DEBOUNCE_DELAY = 300; // Retraso para la búsqueda (ms)
 
 interface UseStudiesProps {
@@ -48,13 +48,13 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
     useEffect(() => {
         if (isInitialMount.current) {
             isInitialMount.current = false;
-            if (initialStudies.length === 0 && searchTerm) {
-                performSearch(searchTerm, currentPage);
-            }
             return;
         }
 
+        let targetPage = currentPage;
+        // Si el término de búsqueda cambió, reseteamos a la página 1 inmediatamente
         if (searchTerm !== prevSearchTerm.current) {
+            targetPage = 1;
             setCurrentPage(1);
             prevSearchTerm.current = searchTerm;
         }
@@ -64,7 +64,7 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
         }
 
         debounceTimer.current = window.setTimeout(() => {
-            performSearch(searchTerm, currentPage);
+            performSearch(searchTerm, targetPage);
         }, DEBOUNCE_DELAY);
 
         return () => {

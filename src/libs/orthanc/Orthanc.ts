@@ -72,7 +72,7 @@ export async function sincronizarDatos() {
 
     // 2. Preparamos la inserción en la base de datos
     const insert = db.prepare(`
-      INSERT OR REPLACE INTO estudios (id, patient_name, patient_id, patient_sex, institution_name, study_date, description, json_completo)
+      INSERT OR REPLACE INTO studies (id, patient_name, patient_id, patient_sex, institution_name, study_date, description, json_completo)
       VALUES (@id, @name, @pid, @sex, @iname, @date, @desc, @json)
     `);
 
@@ -104,7 +104,7 @@ export async function obtenerEstudios(limit: number, offset: number = 0, searchT
   try {
     let query = `
       SELECT id, patient_name, patient_id, patient_sex, institution_name, study_date, description 
-      FROM estudios 
+      FROM studies 
     `;
 
     const params: any[] = [];
@@ -133,7 +133,7 @@ export async function obtenerEstudios(limit: number, offset: number = 0, searchT
 
 export async function getTotalEstudios(searchTerm: string = ''): Promise<number> {
   try {
-    let query = 'SELECT COUNT(*) as count FROM estudios';
+    let query = 'SELECT COUNT(*) as count FROM studies';
     const params: any[] = [];
 
     if (searchTerm) {

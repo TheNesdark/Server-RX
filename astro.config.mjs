@@ -5,7 +5,8 @@ import preact from '@astrojs/preact';
 import { loadEnv } from "vite";
 
 const env = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), "");
-const { API_BASE_URL } = env;
+const { API_BASE_URL, ORTHANC_USERNAME, ORTHANC_PASSWORD } = env;
+const ORTHANC_AUTH = `Basic ${btoa(`${ORTHANC_USERNAME}:${ORTHANC_PASSWORD}`)}`; 
 
 if (!API_BASE_URL) {
   console.warn('API_BASE_URL not found in environment variables. Proxy may not work correctly.');
@@ -34,7 +35,7 @@ export default defineConfig({
           configure: (proxy, _options) => {
             proxy.on('proxyReq', (proxyReq, req, _res) => {
               try {
-                proxyReq.setHeader('Authorization', 'Basic TUVESUNPOk1FRElDTw==');
+                proxyReq.setHeader('Authorization', ORTHANC_AUTH);
               } catch (error) {
                 console.error('Error setting proxy authorization header:', error);
               }

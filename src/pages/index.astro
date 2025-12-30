@@ -8,7 +8,6 @@ import type { Study } from "@/types";
 const limit = 15;
 const studies = await obtenerEstudios(limit, 0) as Study[];
 const totalStudies = await getTotalEstudios();
-console.log(studies)
 ---
 
 <Layout title="Orthanc Explorer">

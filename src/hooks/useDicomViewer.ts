@@ -102,10 +102,9 @@ export function useDicomViewer() {
                 withCredentials: false,
                 batchSize: 5,
             });
-            setIsLoaded(true)
+
         } catch (error) {
             console.error("Error cargando serie:", error);
-
         } 
     };
 

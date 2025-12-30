@@ -120,7 +120,6 @@
     border: 1px solid #e2e8f0; /* Grey border */
     overflow-y: auto;
     margin-bottom: 24px;
-    min-height: 400px;
 }
 
 .tableLoadingOverlay {

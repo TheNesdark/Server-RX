@@ -25,6 +25,16 @@ export default defineConfig({
         "@/*": "./src/*",
       },
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'dwv': ['dwv']
+          }
+        }
+      },
+      chunkSizeWarningLimit: 1000
+    },
     server: {
       proxy: {
         '/orthanc': {

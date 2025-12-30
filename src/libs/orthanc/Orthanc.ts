@@ -1,12 +1,7 @@
 import db from '../db/db';
 import type { DicomStudy } from '../../types';
 import { sanitizeString } from '@/utils';
-
-// Credenciales desde las variables de entorno
-const ORTHANC_URL = import.meta.env.API_BASE_URL;
-const ORTHANC_USERNAME = import.meta.env.ORTHANC_USERNAME
-const ORTHANC_PASSWORD = import.meta.env.ORTHANC_PASSWORD
-const ORTHANC_AUTH = `Basic ${btoa(`${ORTHANC_USERNAME}:${ORTHANC_PASSWORD}`)}`; 
+import { ORTHANC_URL, ORTHANC_AUTH } from '@/config/orthanc';
 
 /**
  * Funciones de Comunicación con Orthanc (API)

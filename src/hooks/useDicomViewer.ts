@@ -9,6 +9,7 @@ import {
 
 export function useDicomViewer() {
     const dwvAppRef = useRef<any>(null);
+    const dwvModuleRef = useRef<any>(null);
 
     const [windowCenter, setWindowCenter] = useState<number>(0);
     const [windowWidth, setWindowWidth] = useState<number>(0);
@@ -17,25 +18,27 @@ export function useDicomViewer() {
 
     useEffect(() => {
         const initDWV = async () => {
-            const dwv = await import('dwv');
+            // Importación dinámica de DWV
+            const dwvModule = await import('dwv');
+            dwvModuleRef.current = dwvModule;
             const { NoneTool } = await import('@/tools/dwvTools');
             
-            dwv.toolList["None"] = NoneTool;
-            const dwvApp = new dwv.App();
+            dwvModule.toolList["None"] = NoneTool;
+            const dwvApp = new dwvModule.App();
             dwvAppRef.current = dwvApp;
 
-            const viewConfig = new dwv.ViewConfig("layerGroup0");
-            const options = new dwv.AppOptions({ "*": [viewConfig] });
+            const viewConfig = new dwvModule.ViewConfig("layerGroup0");
+            const options = new dwvModule.AppOptions({ "*": [viewConfig] });
 
             options.tools = {
-                Scroll: new dwv.ToolConfig(),
-                WindowLevel: new dwv.ToolConfig(),
-                ZoomAndPan: new dwv.ToolConfig(),
+                Scroll: new dwvModule.ToolConfig(),
+                WindowLevel: new dwvModule.ToolConfig(),
+                ZoomAndPan: new dwvModule.ToolConfig(),
                 Draw: {
                     options: ["Arrow", "Ruler", "Circle", "Ellipse", "Rectangle", "Protractor", "Roi"]
                 },
-                Floodfill: new dwv.ToolConfig(),
-                None: new dwv.ToolConfig(),
+                Floodfill: new dwvModule.ToolConfig(),
+                None: new dwvModule.ToolConfig(),
             };
 
             dwvApp.init(options);
@@ -88,13 +91,13 @@ export function useDicomViewer() {
         setIsLoaded(false);
 
         try {
-            const resp = await fetch(`/orthanc/series/${seriesId}`);
+            const resp = await fetch(`/api/orthanc/series/${seriesId}`);
             if (!resp.ok) {
                 throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
             }
             const data = await resp.json();
             const dicomUrls = data.Instances.map(
-                (instance: string) => `/orthanc/instances/${instance}/file`,
+                (instance: string) => `/api/orthanc/instances/${instance}/file`,
             );
 
             dwvApp.loadURLs(dicomUrls, {
@@ -117,10 +120,11 @@ export function useDicomViewer() {
 
         if (viewLayer) {
             const viewController = viewLayer.getViewController();
-            import('dwv').then(dwv => {
-                const wl = new dwv.WindowLevel(center, width);
+            const dwvModule = dwvModuleRef.current;
+            if (dwvModule) {
+                const wl = new dwvModule.WindowLevel(center, width);
                 viewController.setWindowLevel(wl);
-            });
+            }
         }
     };
 

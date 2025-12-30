@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
-import { serieActivaId } from '@/stores/dicomStore';
+import { activeSeriesId } from '@/stores/dicomStore';
 import type { ThumbnailInfo } from '@/types';
 import styles from '@/styles/ThumbnailSidebar.module.css';
 
@@ -12,17 +12,27 @@ export default function ThumbnailSidebar({ series }: ThumbnailSidebarProps) {
     const [activeId, setActiveId] = useState<string | null>(null);
 
     useEffect(() => {
-        // Escuchar cambios en el store de nanostores
-        const unsubscribe = serieActivaId.subscribe((value) => {
-            setActiveId(value);
-        });
+        try {
+            // Escuchar cambios en el store de nanostores
+            const unsubscribe = activeSeriesId.subscribe((value) => {
+                setActiveId(value);
+            });
 
-        // Seleccionar la primera serie por defecto si no hay ninguna activa
-        if (series.length > 0 && !serieActivaId.get()) {
-            serieActivaId.set(series[0].id);
+            // Seleccionar la primera serie por defecto si no hay ninguna activa
+            if (series.length > 0 && !activeSeriesId.get()) {
+                activeSeriesId.set(series[0].id);
+            }
+
+            return () => {
+                try {
+                    unsubscribe();
+                } catch (error) {
+                    console.warn('Error unsubscribing from activeSeriesId:', error);
+                }
+            };
+        } catch (error) {
+            console.error('Error setting up series subscription:', error);
         }
-
-        return () => unsubscribe();
     }, [series]);
 
     const toggleSidebar = () => {
@@ -30,7 +40,7 @@ export default function ThumbnailSidebar({ series }: ThumbnailSidebarProps) {
     };
 
     const handleSelectSerie = (id: string) => {
-        serieActivaId.set(id);
+        activeSeriesId.set(id);
     };
 
     return (
@@ -65,7 +75,16 @@ export default function ThumbnailSidebar({ series }: ThumbnailSidebarProps) {
                         onClick={() => handleSelectSerie(item.id)}
                     >
                         <div className={styles.thumbnailPreview}>
-                            <img src={item.previewUrl} alt={`Serie ${item.modality}`} loading="lazy" />
+                            <img 
+                                src={item.previewUrl} 
+                                alt={`Serie ${item.modality}`} 
+                                loading="lazy"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    console.warn(`Failed to load thumbnail: ${item.previewUrl}`);
+                                }}
+                            />
                         </div>
                         <div className={styles.thumbnailInfo}>
                             <div className={styles.thumbnailTitle}>{item.modality}</div>

@@ -2,7 +2,12 @@ import { sincronizarDatos } from './libs/orthanc/Orthanc';
 import type { MiddlewareHandler } from 'astro';
 
 // Estado global para evitar re-inicializaciones por HMR en desarrollo
-const globalState = globalThis as any;
+interface GlobalSyncState {
+    isSyncing?: boolean;
+    isSyncJobScheduled?: boolean;
+}
+
+const globalState = (globalThis as any) as GlobalSyncState;
 
 const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000;
 
@@ -29,19 +34,29 @@ async function runSync() {
 // --- Lógica de inicialización ---
 // Esto se ejecuta UNA SOLA VEZ cuando el proceso del servidor arranca.
 if (!globalState.isSyncJobScheduled) {
-    globalState.isSyncing = false;
+    try {
+        globalState.isSyncing = false;
 
-    console.log('🔧 Configurando la tarea de sincronización automática cada 24 horas.');
+        console.log('🔧 Configurando la tarea de sincronización automática cada 24 horas.');
 
-    // 1. Ejecutamos la sincronización una vez al inicio para tener datos frescos.
-    runSync();
+        // 1. Ejecutamos la sincronización una vez al inicio para tener datos frescos.
+        runSync().catch(error => {
+            console.error('❌ Error al iniciar la sincronización automática:', error);
+        });
 
-    // 2. Configuramos la ejecución periódica cada 24 horas.
-    setInterval(runSync, TWENTY_FOUR_HOURS_IN_MS);
+        // 2. Configuramos la ejecución periódica cada 24 horas.
+        setInterval(() => {
+            runSync().catch(error => {
+                console.error('❌ Error en sincronización periódica:', error);
+            });
+        }, TWENTY_FOUR_HOURS_IN_MS);
 
-    // 3. Marcamos como configurado para que no se vuelva a ejecutar.
-    globalState.isSyncJobScheduled = true;
+        // 3. Marcamos como configurado para que no se vuelva a ejecutar.
+        globalState.isSyncJobScheduled = true;
+    } catch (error) {
+        console.error('❌ Error configurando sincronización automática:', error);
+    }
 }
 export const onRequest: MiddlewareHandler = (_, next) => {
-  return next();
+    return next();
 };

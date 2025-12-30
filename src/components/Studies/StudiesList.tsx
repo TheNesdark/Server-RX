@@ -2,10 +2,54 @@ import { useStudies } from '@/hooks/useStudies';
 import type { StudiesListProps, FormattedStudy } from '@/types';
 import styles from '@/styles/StudiesList.module.css';
 
+const EyeIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+    <circle cx="12" cy="12" r="3"></circle>
+  </svg>
+);
+
+const ActionButton = ({ onClick, label, children }: { onClick: () => void; label: string; children: preact.ComponentChildren }) => (
+  <button className={styles.actionBtn} onClick={onClick} aria-label={label}>
+    <EyeIcon />
+    {children}
+  </button>
+);
+
+const StudyRow = ({ study, index }: { study: FormattedStudy; index: number }) => (
+  <tr key={study.id} className={styles.studyRow} style={{ "--delay": `${index * 0.04}s` }}>
+    <td><code className={styles.idCode}>{study.patientId}</code></td>
+    <td><span className={styles.patientName}>{study.patientName}</span></td>
+    <td>{study.patientSex}</td>
+    <td>{study.institution}</td>
+    <td>{study.studyDate}</td>
+    <td>
+      <span className={`${styles.modalityChip} ${styles[`modality-${study.modality.toLowerCase()}`]}`}>
+        {study.modality}
+      </span>
+    </td>
+    <td>
+      <div className={styles.actionButtonsContainer}>
+        <ActionButton 
+          onClick={() => window.open(`/viewer/${study.id}`, '_blank')}
+          label={`Ver estudio de ${study.patientName}`}
+        >
+          Ver
+        </ActionButton>
+        <ActionButton 
+          onClick={() => window.open(`/viewer-lite/${study.id}`, '_blank')}
+          label={`Ver estudio de ${study.patientName}`}
+        >
+          Ver Lite
+        </ActionButton>
+      </div>
+    </td>
+  </tr>
+);
+
 export default function StudiesList({ total: initialTotal, studies: initialStudies, currentPage: initialCurrentPage = 1 }: StudiesListProps) {
   const {
     searchTerm,
-    // loading, // Eliminado el estado `loading`
     total,
     currentPage,
     totalPages,
@@ -17,7 +61,6 @@ export default function StudiesList({ total: initialTotal, studies: initialStudi
   } = useStudies({ initialStudies, initialTotal, initialCurrentPage });
 
   const renderTable = () => {
-    // Ya no usamos `loading` para esta condición
     if (formattedStudies.length === 0) {
       return (
         <div className={styles.emptyStateContainer}>
@@ -53,68 +96,7 @@ export default function StudiesList({ total: initialTotal, studies: initialStudi
         </thead>
         <tbody>
           {formattedStudies.map((study: FormattedStudy, index: number) => (
-            <tr
-              key={study.id}
-              className={styles.studyRow}
-              style={{ "--delay": `${index * 0.04}s` }}
-            >
-              <td>
-                <code className={styles.idCode}>{study.patientId}</code>
-              </td>
-              <td>
-                <span className={styles.patientName}>{study.patientName}</span>
-              </td>
-              <td>{study.patientSex}</td>
-              <td>{study.institution}</td>
-              <td>{study.studyDate}</td>
-              <td>
-                <span
-                  className={`${styles.modalityChip} ${styles[`modality-${study.modality.toLowerCase()}`]}`}
-                >
-                  {study.modality}
-                </span>
-              </td>
-              <td>
-                <div className={styles.actionButtonsContainer}>
-                  <button
-                    className={styles.actionBtn}
-                    onClick={() => window.open(`/viewer/${study.id}`, '_blank')}
-                    aria-label={`Ver estudio de ${study.patientName}`}
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    Ver
-                  </button>
-                  <button
-                    className={styles.actionBtn}
-                    onClick={() => window.open(`/viewer-lite/${study.id}`, '_blank')}
-                    aria-label={`Ver estudio de ${study.patientName}`}
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    Ver Lite
-                  </button>
-                </div>
-              </td>
-            </tr>
+            <StudyRow key={study.id} study={study} index={index} />
           ))}
         </tbody>
       </table>
@@ -169,7 +151,7 @@ export default function StudiesList({ total: initialTotal, studies: initialStudi
                 type="search"
                 className={styles.searchInput}
                 placeholder="Buscar paciente..."
-                autocomplete="off"
+                autoComplete="off"
                 value={searchTerm}
                 onInput={handleSearchChange}
               />

@@ -1,5 +1,5 @@
 {
-  "name": "vdcom-hlm",
+  "name": "@vdcom/hlm",
   "type": "module",
   "version": "0.0.1",
   "scripts": {

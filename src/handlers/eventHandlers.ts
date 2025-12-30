@@ -1,45 +1,59 @@
 import type { App } from "dwv";
-import { clearActiveButtons, clearAllAnnotations } from "@/utils/viewerUtils";
+import { clearActiveButtons, clearAllAnnotations } from "@/utils";
+import type { DWVEventCallbacks, DataRange, WindowLevel } from "@/types";
+import { TOOL_ACTIONS } from "@/types";
 
-interface DWVEventCallbacks {
-    onWindowLevelChange: (center: number, width: number) => void;
-    onLoad: (dataRange: { min: number, max: number }, wl: { center: number, width: number }) => void;
-    onLoadItem: () => void;
-}
+const handleToolClick = (app: App, element: HTMLElement) => {
+    const title = element.getAttribute("title");
+    if (!title || ["Draw", "Reset", "Ayuda", "Close"].includes(title)) return;
+    
+    clearActiveButtons();
+    const toolName = TOOL_ACTIONS[title as keyof typeof TOOL_ACTIONS];
+    if (toolName) {
+        app.setTool(toolName);
+        element.classList.add("active");
+    }
+};
 
-interface DataRange {
-    min: number;
-    max: number;
-}
+const handleDrawMenuClick = (app: App, drawBtn: HTMLElement, drawMenu: HTMLElement) => {
+    return (e: Event) => {
+        e.stopPropagation();
+        const isShown = drawMenu.classList.contains("show");
+        document.querySelectorAll(".draw-shapes-menu").forEach(m => m.classList.remove("show"));
+        if (!isShown) drawMenu.classList.add("show");
+    };
+};
 
-interface WindowLevel {
-    center: number;
-    width: number;
-}
+const handleShapeOptionClick = (app: App, drawBtn: HTMLElement, drawMenu: HTMLElement) => {
+    return (e: Event) => {
+        e.stopPropagation();
+        const target = e.target as HTMLElement;
+        const action = target.getAttribute("data-action");
+        const shapeName = target.getAttribute("data-shape");
+        const btnText = drawBtn.querySelector("span");
+
+        if (action === "clear") {
+            clearAllAnnotations(app);
+            if (btnText) btnText.textContent = "Draw";
+            drawMenu.classList.remove("show");
+            return;
+        }
+
+        if (shapeName) {
+            app.setTool("Draw");
+            app.setToolFeatures({ shapeName });
+            clearActiveButtons();
+            drawBtn.classList.add("active");
+            if (btnText) btnText.textContent = `Draw: ${shapeName}`;
+            drawMenu.classList.remove("show");
+        }
+    };
+};
 
 export function setupToolButtons(app: App): void {
     document.querySelectorAll(".tool-btn").forEach((btn) => {
         btn.addEventListener("click", function (this: HTMLElement) {
-            const title = this.getAttribute("title");
-            
-            if (title === "Draw" || title === "Reset" || title === "Ayuda" || title === "Close") return;
-            
-            clearActiveButtons();
-
-            switch (title) {
-                case "Zoom & Pan":
-                    app.setTool("ZoomAndPan");
-                    this.classList.add("active");
-                    break;
-                case "Levels":
-                    app.setTool("WindowLevel");
-                    this.classList.add("active");
-                    break;
-                case "Floodfill":
-                    app.setTool("Floodfill");
-                    this.classList.add("active");
-                    break;
-            }
+            handleToolClick(app, this);
         });
     });
 
@@ -55,12 +69,7 @@ export function setupDrawMenu(app: App): void {
 
     if (!drawBtn || !drawMenu) return;
 
-    drawBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const isShown = drawMenu.classList.contains("show");
-        document.querySelectorAll(".draw-shapes-menu").forEach(m => m.classList.remove("show"));
-        if (!isShown) drawMenu.classList.add("show");
-    });
+    drawBtn.addEventListener("click", handleDrawMenuClick(app, drawBtn, drawMenu));
 
     document.addEventListener("click", (e) => {
         if (drawMenu.classList.contains("show") && drawContainer && e.target instanceof HTMLElement && !drawContainer.contains(e.target)) {
@@ -69,28 +78,7 @@ export function setupDrawMenu(app: App): void {
     });
 
     document.querySelectorAll(".shape-option").forEach((option) => {
-        option.addEventListener("click", (e) => {
-            e.stopPropagation();
-            const action = option.getAttribute("data-action");
-            const shapeName = option.getAttribute("data-shape");
-            const btnText = drawBtn.querySelector("span");
-
-            if (action === "clear") {
-                clearAllAnnotations(app);
-                if (btnText) btnText.textContent = "Draw";
-                drawMenu.classList.remove("show");
-                return;
-            }
-
-            if (shapeName) {
-                app.setTool("Draw");
-                app.setToolFeatures({ shapeName: shapeName });
-                clearActiveButtons();
-                drawBtn.classList.add("active");
-                if (btnText) btnText.textContent = `Draw: ${shapeName}`;
-                drawMenu.classList.remove("show");
-            }
-        });
+        option.addEventListener("click", handleShapeOptionClick(app, drawBtn, drawMenu));
     });
 }
 
@@ -117,38 +105,41 @@ export function setupSidebarToggle(): void {
     }
 }
 
+const getActiveViewController = (app: App) => {
+    const layerGroup = app.getLayerGroupByDivId('layerGroup0');
+    const viewLayer = layerGroup?.getActiveViewLayer();
+    return viewLayer?.getViewController();
+};
+
+const handleWindowLevelChange = (app: App, callback: (center: number, width: number) => void) => {
+    return () => {
+        const viewController = getActiveViewController(app);
+        if (viewController) {
+            const wl = viewController.getWindowLevel();
+            callback(wl.center, wl.width);
+        }
+    };
+};
+
+const handleLoad = (app: App, callback: (dataRange: { min: number, max: number }, wl: { center: number, width: number }) => void) => {
+    return () => {
+        const viewController = getActiveViewController(app);
+        if (viewController) {
+            const dataRange = viewController.getImageRescaledDataRange() as DataRange;
+            const currentWL = viewController.getWindowLevel() as WindowLevel;
+            callback(
+                { min: dataRange.min, max: dataRange.max },
+                { center: currentWL.center, width: currentWL.width }
+            );
+        }
+    };
+};
+
 /**
  * Registra todos los event listeners de DWV
  */
 export function setupDWVEventListeners(app: App, callbacks: DWVEventCallbacks) {
-    app.addEventListener('window-level-change', () => {
-        const layerGroup = app.getLayerGroupByDivId('layerGroup0');
-        if (layerGroup) {
-            const viewLayer = layerGroup.getActiveViewLayer();
-            if (viewLayer) {
-                const wl = viewLayer.getViewController().getWindowLevel();
-                callbacks.onWindowLevelChange(wl.center, wl.width);
-            }
-        }
-    });
-
-    app.addEventListener('load-item', () => {
-        callbacks.onLoadItem();
-    });
-
-    app.addEventListener('load', () => {
-        const layerGroup = app.getLayerGroupByDivId('layerGroup0');
-        if (layerGroup) {
-            const viewLayer = layerGroup.getActiveViewLayer();
-            if (viewLayer) {
-                const viewController = viewLayer.getViewController();
-                const dataRange = viewController.getImageRescaledDataRange() as DataRange;
-                const currentWL = viewController.getWindowLevel() as WindowLevel;
-                callbacks.onLoad(
-                    { min: dataRange.min, max: dataRange.max },
-                    { center: currentWL.center, width: currentWL.width }
-                );
-            }
-        }
-    });
+    app.addEventListener('window-level-change', handleWindowLevelChange(app, callbacks.onWindowLevelChange));
+    app.addEventListener('load-item', callbacks.onLoadItem);
+    app.addEventListener('load', handleLoad(app, callbacks.onLoad));
 }

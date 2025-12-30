@@ -1,5 +1,34 @@
 import type { App } from "dwv";
 
+const SHAPE_TYPES = [
+    "Arrow",
+    "Ruler", 
+    "Circle",
+    "Ellipse",
+    "Rectangle",
+    "Protractor",
+    "Roi",
+] as const;
+
+/**
+ * Sanitiza datos de entrada removiendo caracteres de control y limitando longitud
+ */
+export function sanitizeString(input: string | undefined, maxLength: number = 255): string {
+    if (!input || typeof input !== 'string') return '';
+    return input.replace(/[\x00-\x1F\x7F-\x9F]/g, '').substring(0, maxLength);
+}
+
+const getDrawController = (app: App) => {
+    const layerGroup = app.getLayerGroupByDivId("layerGroup0");
+    const drawLayer = layerGroup?.getActiveDrawLayer();
+    return drawLayer?.getDrawController();
+};
+
+const removeAnnotationsForShape = (app: App, drawController: any, shapeName: string) => {
+    app.setToolFeatures({ shapeName });
+    drawController.removeAllAnnotationsWithCommand(app.addToUndoStack);
+};
+
 /**
  * Limpia el estado activo de todos los botones de herramientas
  */
@@ -13,29 +42,12 @@ export function clearActiveButtons(): void {
  * Limpia todas las anotaciones del visor DICOM
  */
 export function clearAllAnnotations(app: App): void {
-    const layerGroup = app.getLayerGroupByDivId("layerGroup0");
-    if (!layerGroup) return;
-
-    const drawLayer = layerGroup.getActiveDrawLayer();
-    if (!drawLayer) return;
-
-    const drawController = drawLayer.getDrawController();
+    const drawController = getDrawController(app);
     if (!drawController) return;
 
-    const allShapes = [
-        "Arrow",
-        "Ruler",
-        "Circle",
-        "Ellipse",
-        "Rectangle",
-        "Protractor",
-        "Roi",
-    ];
-
-    allShapes.forEach((shapeName) => {
-        app.setToolFeatures({ shapeName: shapeName });
-        drawController.removeAllAnnotationsWithCommand(app.addToUndoStack);
+    SHAPE_TYPES.forEach((shapeName) => {
+        removeAnnotationsForShape(app, drawController, shapeName);
     });
 
-    app.setTool("None")
+    app.setTool("None");
 }

@@ -1,5 +1,6 @@
 import { sincronizarDatos } from './libs/orthanc/Orthanc';
 import type { MiddlewareHandler } from 'astro';
+import { verifyToken } from './utils/auth';
 
 // Estado global para evitar re-inicializaciones por HMR en desarrollo
 interface GlobalSyncState {
@@ -57,6 +58,41 @@ if (!globalState.isSyncJobScheduled) {
         console.error('❌ Error configurando sincronización automática:', error);
     }
 }
-export const onRequest: MiddlewareHandler = (_, next) => {
+
+export const onRequest: MiddlewareHandler = async (context, next) => {
+    const { url, cookies, redirect } = context;
+
+    // Permitir acceso a login, logout y recursos estáticos/públicos
+    if (
+        url.pathname === '/login' || 
+        url.pathname === '/logout' ||
+        url.pathname.startsWith('/_astro') || 
+        url.pathname.includes('.') || 
+        url.pathname.startsWith('/api/orthanc')
+    ) {
+        return next();
+    }
+
+    // Verificar JWT
+    const authToken = cookies.get('auth_token')?.value;
+
+    if (!authToken) {
+        return redirect('/login');
+    }
+
+    const payload = await verifyToken(authToken);
+
+    if (!payload) {
+        // Token inválido o expirado
+        cookies.delete('auth_token', { path: '/' });
+        return redirect('/login?error=expired');
+    }
+
+    // Guardar información del usuario y la expiración en locals
+    context.locals.user = {
+        username: payload.username as string,
+        exp: payload.exp as number
+    };
+
     return next();
 };

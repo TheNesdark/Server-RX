@@ -1,0 +1,135 @@
+---
+import { createToken } from '../utils/auth';
+
+const error = Astro.url.searchParams.get('error');
+
+if (Astro.request.method === 'POST') {
+  try {
+    const data = await Astro.request.formData();
+    const username = data.get('username');
+    const password = data.get('password');
+
+    const ADMIN_USERNAME = import.meta.env.ADMIN_USERNAME || 'admin';
+    const ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD || 'admin123';
+
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+      // Crear token JWT
+      const token = await createToken({ username });
+
+      // Establecer cookie con el JWT
+      Astro.cookies.set('auth_token', token, {
+        path: '/',
+        httpOnly: true,
+        secure: import.meta.env.PROD,
+        sameSite: 'strict',
+        maxAge: 60 * 60 * 24 // 24 horas
+      });
+
+      return Astro.redirect('/');
+    } else {
+      return Astro.redirect('/login?error=1');
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+if (Astro.cookies.get('auth_token')) {
+  return Astro.redirect('/');
+}
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - DICOM Viewer</title>
+</head>
+<body>
+  <div class="login-container">
+    <form method="POST" class="login-form">
+      <h1>Iniciar Sesión</h1>
+      {error && <p class="error">Credenciales incorrectas</p>}
+      <div class="form-group">
+        <label for="username">Usuario</label>
+        <input type="text" id="username" name="username" required autofocus />
+      </div>
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" name="password" required />
+      </div>
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
+</body>
+</html>
+
+<style>
+  :root {
+    color-scheme: dark;
+  }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
+    background-color: #1a1a1a;
+  }
+  .login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white;
+  }
+  .login-form {
+    background: #2a2a2a;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 400px;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background: #333;
+    color: white;
+    box-sizing: border-box;
+  }
+  button {
+    width: 100%;
+    padding: 0.75rem;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    margin-top: 1rem;
+  }
+  button:hover {
+    background: #2563eb;
+  }
+  .error {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    padding: 0.5rem;
+    border-radius: 4px;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+</style>

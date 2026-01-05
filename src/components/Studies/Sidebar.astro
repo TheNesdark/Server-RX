@@ -22,42 +22,88 @@
             </li>
         </ul>
     </nav>
+    <div class="user-info">
+        {Astro.locals.user && (
+            <div class="user-details" data-exp={Astro.locals.user.exp}>
+                <p>Bienvenido, <strong>{Astro.locals.user.username}</strong></p>
+                <p>Sesión expira en: <span id="session-countdown"></span></p>
+            </div>
+        )}
+    </div>
     <div class="sidebar-footer">
-        <a href="#" class="logout">Cerrar Sesión</a>
+        <a href="/logout" class="logout">Cerrar Sesión</a>
     </div>
 </aside>
 
+<script is:inline>
+    document.addEventListener('DOMContentLoaded', () => {
+        const countdownElement = document.getElementById('session-countdown');
+        const userDetails = document.querySelector('.user-details');
+
+        if (countdownElement && userDetails) {
+            // Leemos el valor de expiración del atributo data-exp y lo convertimos a número
+            const expirationTime = parseInt(userDetails.dataset.exp || '0', 10); // Unix timestamp in seconds
+
+            function updateCountdown() {
+                const now = Math.floor(Date.now() / 1000); // Current Unix timestamp in seconds
+                const timeLeft = expirationTime - now;
+
+                if (timeLeft <= 0) {
+                    countdownElement.textContent = 'Expirada';
+                    clearInterval(interval);
+                    // Redirigir para forzar el cierre de sesión una vez que el tiempo ha expirado
+                    if (window.location.pathname !== '/login') {
+                        window.location.href = '/login?error=expired';
+                    }
+                    return;
+                }
+
+                const hours = Math.floor(timeLeft / 3600);
+                const minutes = Math.floor((timeLeft % 3600) / 60);
+                const seconds = timeLeft % 60;
+
+                countdownElement.textContent = 
+                    `${hours.toString().padStart(2, '0')}:` +
+                    `${minutes.toString().padStart(2, '0')}:` +
+                    `${seconds.toString().padStart(2, '0')}`;
+            }
+
+            const interval = setInterval(updateCountdown, 1000);
+            updateCountdown(); // Initial call to display immediately
+        }
+    });
+</script>
+
 <style>
+    /* --- Definiciones de Color para Tema Oscuro (asumido para dashboards) --- */
     :root {
-        --bg-dark: #f0fdf4;
-        --bg-panel: #ffffff;
-        --bg-hover: #eff6ff;
-        --accent-color: #2563eb;
-        --text-main: #1e293b;
-        --text-muted: #64748b;
-        --border-color: #bbf7d0;
+        --sidebar-bg: #1f2937; /* Gris oscuro, más oscuro que el body */
+        --sidebar-border: #374151;
+        --sidebar-hover: #374151;
+        --sidebar-text-main: #f3f4f6; /* Gris claro */
+        --sidebar-text-muted: #9ca3af; /* Gris medio */
+        --sidebar-accent: #3b82f6; /* Azul primario */
     }
 
     aside {
-        background: var(--bg-panel);
+        background: var(--sidebar-bg);
         padding: 0;
-        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2); /* Sombra más marcada para contraste */
         display: flex;
         flex-direction: column;
-        border-right: 1px solid var(--border-color);
+        border-right: 1px solid var(--sidebar-border);
         max-width: 250px;
         min-width:250px
     }
 
     aside h2 {
         padding: 24px 24px 16px;
-        color: var(--text-main);
+        color: var(--sidebar-text-main);
         font-size: 18px;
         font-weight: 600;
         text-align: left;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--sidebar-border);
         margin: 0;
-        background: var(--bg-panel);
     }
 
     .nav-menu {
@@ -80,7 +126,7 @@
         display: flex;
         align-items: center;
         padding: 12px 16px;
-        color: var(--text-muted);
+        color: var(--sidebar-text-muted);
         text-decoration: none;
         font-size: 14px;
         font-weight: 500;
@@ -90,13 +136,13 @@
     }
 
     aside a:hover {
-        background: var(--bg-hover);
-        color: var(--text-main);
+        background: var(--sidebar-hover);
+        color: var(--sidebar-text-main);
     }
 
     aside a.active {
-        background: rgba(59, 130, 246, 0.15);
-        color: var(--accent-color);
+        background: rgba(59, 130, 246, 0.2); /* Azul semi-transparente */
+        color: var(--sidebar-accent);
     }
 
     aside .icon {
@@ -113,16 +159,40 @@
         height: 100%;
     }
 
+    /* --- Estilos para la sección inferior (Usuario y Footer) --- */
+    .user-info {
+        padding: 16px 24px;
+        border-top: 1px solid var(--sidebar-border);
+        background: var(--sidebar-bg); /* Mismo fondo que el aside */
+        color: var(--sidebar-text-main);
+        font-size: 14px;
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+        gap: 6px; /* Aumentado ligeramente el espacio */
+    }
+
+    .user-details p {
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .user-details strong {
+        color: var(--sidebar-accent);
+    }
+
     .sidebar-footer {
         padding: 16px 24px;
-        border-top: 1px solid var(--border-color);
-        background: var(--bg-panel);
+        border-top: 1px solid var(--sidebar-border);
+        background: var(--sidebar-bg);
         flex-shrink: 0;
     }
 
     .logout {
         display: block;
-        color: #ef4444;
+        color: #f87171; /* Rojo más suave */
         text-decoration: none;
         font-size: 14px;
         padding: 8px 0;
@@ -130,7 +200,7 @@
     }
 
     .logout:hover {
-        color: #f87171;
+        color: #ef4444; /* Rojo más fuerte al pasar el ratón */
         text-decoration: none;
     }
 </style>

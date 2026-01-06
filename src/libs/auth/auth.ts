@@ -2,7 +2,7 @@ import { SignJWT, jwtVerify } from 'jose';
 
 const JWT_SECRET_ENV = import.meta.env.JWT_SECRET;
 
-// Asegúrate de que la clave existe y tiene una longitud mínima (ej: 32 bytes para HS256)
+// Asegúrarse de que la clave existe y tiene una longitud mínima (ej: 32 bytes para HS256)
 if (!JWT_SECRET_ENV || JWT_SECRET_ENV.length < 32) {
     throw new Error('JWT_SECRET debe estar definida y tener una longitud mínima de 32 bytes.');
 }

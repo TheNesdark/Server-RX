@@ -13,9 +13,13 @@ export const GET: APIRoute = async ({ params }) => {
     
     const data = await response.json();
     return new Response(JSON.stringify(data), {
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Cache-Control': 'private, max-age=1800' // 30 min de caché privado
+      }
     });
   } catch (error) {
+    console.error(`Error en API studies ${params.studyId}:`, error);
     return new Response(null, { status: 500 });
   }
 };

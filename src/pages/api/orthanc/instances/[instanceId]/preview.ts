@@ -2,9 +2,10 @@ import type { APIRoute } from 'astro';
 import { ORTHANC_URL, ORTHANC_AUTH } from '@/config/orthanc';
 
 export const GET: APIRoute = async ({ params, url }) => {
+  const viewport = url.searchParams.get('viewport') || '256';
+
   try {
-    const path = url.pathname.replace('/api/orthanc', '');
-    const response = await fetch(`${ORTHANC_URL}${path}`, {
+    const response = await fetch(`${ORTHANC_URL}/instances/${params.instanceId}/preview?viewport=${viewport}`, {
       headers: { 'Authorization': ORTHANC_AUTH }
     });
     
@@ -12,13 +13,17 @@ export const GET: APIRoute = async ({ params, url }) => {
       return new Response(null, { status: response.status });
     }
     
-    const contentType = response.headers.get('content-type') || 'application/octet-stream';
     const data = await response.arrayBuffer();
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
     
     return new Response(data, {
-      headers: { 'Content-Type': contentType }
+      headers: { 
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=86400'
+      }
     });
   } catch (error) {
+    console.error('Error en API preview:', error);
     return new Response(null, { status: 500 });
   }
 };

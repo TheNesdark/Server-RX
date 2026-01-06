@@ -53,17 +53,27 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
     if (!authToken) {
         // Si es una petición API, devolver 401 en lugar de redirigir
         if (url.pathname.startsWith('/api/')) {
-            return new Response(JSON.stringify({ error: 'No autorizado' }), { status: 401 });
+            return new Response(JSON.stringify({ error: 'No autorizado' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
         }
         return redirect('/login');
     }
 
-    const payload = await verifyToken(authToken);
+    let payload;
+    try {
+        payload = await verifyToken(authToken);
+    } catch (err) {
+        console.error('❌ Error verificando token:', err);
+        cookies.delete('auth_token', { path: '/' });
+        if (url.pathname.startsWith('/api/')) {
+            return new Response(JSON.stringify({ error: 'Sesión inválida' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+        }
+        return redirect('/login?error=invalid');
+    }
 
     if (!payload) {
         cookies.delete('auth_token', { path: '/' });
         if (url.pathname.startsWith('/api/')) {
-            return new Response(JSON.stringify({ error: 'Sesión expirada' }), { status: 401 });
+            return new Response(JSON.stringify({ error: 'Sesión expirada' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
         }
         return redirect('/login?error=expired');
     }

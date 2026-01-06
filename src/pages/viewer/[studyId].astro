@@ -3,7 +3,7 @@ import ThumbnailSidebar from "@/components/viewer/ThumbnailSidebar";
 import DicomViewer from "@/components/viewer/DicomViewer";
 import ViewerToolbar from "@/components/viewer/ViewerToolbar.astro";
 import HelpModal from "@/components/modals/HelpModal.astro";
-import { getSeriesByStudyId, getSeriesImages } from "@/libs/orthanc/Orthanc";
+import { getSeriesByStudyId, getInstancesBySeriesId } from "@/libs/orthanc/Orthanc";
 import type { ThumbnailInfo } from "@/types";
 
 const { studyId } = Astro.params;
@@ -13,22 +13,36 @@ if (!studyId) {
 
 const seriesIds = await getSeriesByStudyId(studyId);
 
-// Pre-obtener la información de todas las series para las miniaturas
-const seriesData: ThumbnailInfo[] = await Promise.all(
-  seriesIds.map(async (id: string) => {
-    const { Instances, mainDicomTags } = await getSeriesImages(id);
+// Pre-obtener la información para el Sidebar
+const seriesData: ThumbnailInfo[] = (
+  await Promise.all(
+    seriesIds.map(async (id: string) => {
+      try {
+        const { Instances, mainDicomTags } = await getInstancesBySeriesId(id);
 
-    return {
-      id,
-      previewUrl:
-        Instances.length > 0
-          ? `/api/orthanc/instances/${Instances[0]}/preview?viewport=256`
-          : "/favicon.svg",
-      modality: mainDicomTags.Modality || "N/A",
-      bodyPart: mainDicomTags.BodyPartExamined || "N/A",
-    };
-  }),
-);
+        return {
+          id,
+          instances: Instances,
+          previewUrl:
+            Instances.length > 0
+              ? `/api/orthanc/instances/${Instances[0]}/preview?viewport=256`
+              : "/no-image.svg",
+          modality: mainDicomTags.Modality || "N/A",
+          bodyPart: mainDicomTags.BodyPartExamined || "N/A",
+        } as ThumbnailInfo;
+      } catch (error) {
+        console.error(`Error cargando serie ${id}:`, error);
+        return {
+          id,
+          instances: [],
+          previewUrl: "/no-image.svg",
+          modality: "Error",
+          bodyPart: "Error",
+        } as ThumbnailInfo;
+      }
+    }),
+  )
+).filter((series) => series.instances.length > 0);
 ---
 
 <!doctype html>

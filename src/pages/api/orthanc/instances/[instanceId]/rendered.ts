@@ -1,0 +1,29 @@
+import type { APIRoute } from 'astro';
+import { ORTHANC_URL, ORTHANC_AUTH } from '@/config/orthanc';
+
+export const GET: APIRoute = async ({ params, url }) => {
+  const quality = url.searchParams.get('quality') || '100';
+
+  try {
+    const response = await fetch(`${ORTHANC_URL}/instances/${params.instanceId}/rendered?quality=${quality}`, {
+      headers: { 'Authorization': ORTHANC_AUTH }
+    });
+    
+    if (!response.ok) {
+      return new Response(null, { status: response.status });
+    }
+    
+    const data = await response.arrayBuffer();
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    
+    return new Response(data, {
+      headers: { 
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=86400'
+      }
+    });
+  } catch (error) {
+    console.error('Error en API rendered:', error);
+    return new Response(null, { status: 500 });
+  }
+};

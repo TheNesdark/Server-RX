@@ -16,36 +16,45 @@ const ActionButton = ({ onClick, label, children }: { onClick: () => void; label
   </button>
 );
 
-const StudyRow = ({ study, index }: { study: FormattedStudy; index: number }) => (
-  <tr key={study.id} className={styles.studyRow} style={{ "--delay": `${index * 0.04}s` }}>
-    <td><code className={styles.idCode}>{study.patientId}</code></td>
-    <td><span className={styles.patientName}>{study.patientName}</span></td>
-    <td>{study.patientSex}</td>
-    <td>{study.institution}</td>
-    <td>{study.studyDate}</td>
-    <td>
-      <span className={`${styles.modalityChip} ${styles[`modality-${study.modality.toLowerCase()}`]}`}>
-        {study.modality}
-      </span>
-    </td>
-    <td>
-      <div className={styles.actionButtonsContainer}>
-        <ActionButton 
-          onClick={() => window.open(`/viewer/${study.id}`, '_blank')}
-          label={`Ver estudio de ${study.patientName}`}
-        >
-          Ver
-        </ActionButton>
-        <ActionButton 
-          onClick={() => window.open(`/viewer-lite/${study.id}`, '_blank')}
-          label={`Ver estudio de ${study.patientName}`}
-        >
-          Ver Lite
-        </ActionButton>
-      </div>
-    </td>
-  </tr>
-);
+function getModalityClass(modality?: string) {
+  const m = (modality || '').toString();
+  const slug = m.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'default';
+  return (styles as any)[`modality-${slug}`] ?? (styles as any)['modality-default'] ?? '';
+}
+
+const StudyRow = ({ study, index }: { study: FormattedStudy; index: number }) => {
+  const modalityClass = getModalityClass(study.modality);
+  return (
+    <tr key={study.id} className={styles.studyRow} style={{ "--delay": `${index * 0.04}s` }}>
+      <td><code className={styles.idCode}>{study.patientId}</code></td>
+      <td><span className={styles.patientName}>{study.patientName}</span></td>
+      <td>{study.patientSex}</td>
+      <td>{study.institution}</td>
+      <td>{study.studyDate}</td>
+      <td>
+        <span className={`${styles.modalityChip} ${modalityClass}`}>
+          {study.modality}
+        </span>
+      </td>
+      <td>
+        <div className={styles.actionButtonsContainer}>
+          <ActionButton 
+            onClick={() => window.open(`/viewer/${study.id}`, '_blank')}
+            label={`Ver estudio de ${study.patientName}`}
+          >
+            Ver
+          </ActionButton>
+          <ActionButton 
+            onClick={() => window.open(`/viewer-lite/${study.id}`, '_blank')}
+            label={`Ver estudio de ${study.patientName}`}
+          >
+            Ver Lite
+          </ActionButton>
+        </div>
+      </td>
+    </tr>
+  );
+};
 
 export default function StudiesList({ total: initialTotal, studies: initialStudies, currentPage: initialCurrentPage = 1 }: StudiesListProps) {
   const {

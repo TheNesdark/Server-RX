@@ -3,7 +3,7 @@ import type { Study, FormattedStudy } from "@/types";
 
 export function FormatStudy(study: Study): FormattedStudy {
     const patientName = study.patientName
-        ? study.patientName.replace(/[^a-zA-Z0-9\s]/g, " ")
+        ? study.patientName.replace(/[^\p{L}0-9\s]/gu, ' ').trim()
         : "Paciente Anónimo";
     
     let studyDate = "Fecha Desconocida";

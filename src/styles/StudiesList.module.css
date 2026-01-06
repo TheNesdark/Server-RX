@@ -265,6 +265,11 @@
     color: #475569; /* Neutral text */
 }
 
+.modality-default {
+    background-color: #e2e8f0; /* Default neutral background */
+    color: #475569; /* Neutral text */
+}
+
 .actionsCell {
     display: flex;
     align-items: center;

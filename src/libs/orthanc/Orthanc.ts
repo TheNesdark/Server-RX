@@ -5,6 +5,8 @@ import { ORTHANC_URL, ORTHANC_AUTH } from '@/config/orthanc';
 
 /**
  * Funciones de Comunicación con Orthanc (API)
+ * @param studyId 
+ * @returns
  */
 export async function getSeriesByStudyId(studyId: string) {
   try {
@@ -12,7 +14,6 @@ export async function getSeriesByStudyId(studyId: string) {
       method: 'GET',
       headers: {
         'Authorization': ORTHANC_AUTH,
-        'Accept-Encoding': 'identity'
       }
     });
 
@@ -21,12 +22,16 @@ export async function getSeriesByStudyId(studyId: string) {
     return data.Series;
 
   } catch (error) {
-    console.error(`❌ Error al obtener series para el estudio ${studyId}:`, error);
     throw error;
   }
 }
 
-export async function getSeriesImages(seriesId: string) {
+/**
+ * función para obtener las instancias (imágenes) de una serie dada su ID
+ * @param seriesId 
+ * @returns 
+ */
+export async function getInstancesBySeriesId(seriesId: string) {
   try {
     const response = await fetch(`${ORTHANC_URL}/series/${seriesId}`, {
       method: 'GET',
@@ -40,7 +45,6 @@ export async function getSeriesImages(seriesId: string) {
     return { Instances: data.Instances, mainDicomTags: data.MainDicomTags };
 
   } catch (error) {
-    console.error(`❌ Error al obtener imágenes de la serie ${seriesId}:`, error);
     throw error;
   }
 }
@@ -52,7 +56,6 @@ export async function sincronizarDatos() {
   console.log('🔄 Iniciando sincronización diaria...');
 
   try {
-    // 1. Pedimos TODOS los estudios a Orthanc (Expandido)
     const response = await fetch(`${ORTHANC_URL}/studies?expand`, {
       headers: {
         'Authorization': ORTHANC_AUTH,
@@ -64,13 +67,11 @@ export async function sincronizarDatos() {
     const estudios: DicomStudy[] = await response.json();
     console.log(`📥 Descargados ${estudios.length} estudios. Guardando...`);
 
-    // 2. Preparamos la inserción en la base de datos
     const insert = db.prepare(`
       INSERT OR REPLACE INTO studies (id, patient_name, patient_id, patient_sex, institution_name, study_date, description, json_completo)
       VALUES (@id, @name, @pid, @sex, @iname, @date, @desc, @json)
     `);
 
-    // 3. Usamos una transacción para eficiencia
     const transaction = db.transaction((lista: DicomStudy[]) => {
       for (const est of lista) {
         insert.run({
@@ -89,11 +90,18 @@ export async function sincronizarDatos() {
     transaction(estudios);
     console.log('✅ Sincronización completada con éxito.');
 
-  } catch (error: unknown) {
-    console.error('❌ Error en la sincronización:', error);
+  } catch (error) {
+    throw error;
   }
 }
 
+/**
+ * Función para obtener estudios desde la base de datos local
+ * @param limit 
+ * @param offset 
+ * @param searchTerm 
+ * @returns 
+ */
 export async function obtenerEstudios(limit: number, offset: number = 0, searchTerm: string = '') {
   try {
     const sanitizedSearchTerm = sanitizeString(searchTerm, 100);
@@ -127,12 +135,16 @@ export async function obtenerEstudios(limit: number, offset: number = 0, searchT
 
     const data = db.prepare(query).all(...params);
     return data;
-  } catch (error: unknown) {
-    console.error('❌ Error al obtener estudios de la DB:', error);
-    return [];
+  } catch (error) {
+    throw error;
   }
 }
 
+/**
+ * función para obtener el total de estudios en la base de datos local
+ * @param searchTerm 
+ * @returns 
+ */
 export async function getTotalEstudios(searchTerm: string = ''): Promise<number> {
   try {
     const sanitizedSearchTerm = sanitizeString(searchTerm, 100);
@@ -151,8 +163,7 @@ export async function getTotalEstudios(searchTerm: string = ''): Promise<number>
     const result = db.prepare(query).get(...params) as { count: number };
     return result.count;
 
-  } catch (error: unknown) {
-    console.error('❌ Error al obtener el total de estudios de la DB:', error);
-    return 0;
+  } catch (error) {
+    throw error;
   }
 }

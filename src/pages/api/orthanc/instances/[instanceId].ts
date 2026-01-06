@@ -3,7 +3,7 @@ import { ORTHANC_URL, ORTHANC_AUTH } from '@/config/orthanc';
 
 export const GET: APIRoute = async ({ params }) => {
   try {
-    const response = await fetch(`${ORTHANC_URL}/series/${params.seriesId}`, {
+    const response = await fetch(`${ORTHANC_URL}/instances/${params.instanceId}`, {
       headers: { 'Authorization': ORTHANC_AUTH }
     });
     
@@ -15,11 +15,11 @@ export const GET: APIRoute = async ({ params }) => {
     return new Response(JSON.stringify(data), {
       headers: { 
         'Content-Type': 'application/json',
-        'Cache-Control': 'private, max-age=3600' // 1 hora de caché privado
+        'Cache-Control': 'public, max-age=3600'
       }
     });
   } catch (error) {
-    console.error(`Error en API series ${params.seriesId}:`, error);
+    console.error('Error en API instances:', error);
     return new Response(null, { status: 500 });
   }
 };

@@ -118,8 +118,10 @@
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
     border: 1px solid #e2e8f0; /* Grey border */
+    overflow-x: auto;
     overflow-y: auto;
     margin-bottom: 24px;
+    -webkit-overflow-scrolling: touch;
 }
 
 .tableLoadingOverlay {
@@ -175,9 +177,10 @@
 
 .studiesTable {
     width: 100%;
+    min-width: 800px;
     border-collapse: collapse;
     overflow: hidden;
-    table-layout: fixed;
+    table-layout: auto;
     transition: opacity 0.3s ease;
 }
 
@@ -187,10 +190,25 @@
 
 .studiesTable th,
 .studiesTable td {
-    padding: 12px 16px;
+    padding:6px 12px;
     text-align: left;
     border-bottom: 1px solid #e2e8f0; /* Grey border */
     vertical-align: middle;
+    white-space: nowrap;
+}
+
+.studiesTable td:first-child,
+.studiesTable th:first-child {
+    position: sticky;
+    left: 0;
+    background-color: white;
+    z-index: 1;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+}
+
+.studiesTable thead th:first-child {
+    background-color: #f8fafc;
+    z-index: 2;
 }
 
 .studiesTable td {
@@ -446,4 +464,205 @@
     color: #94a3b8; /* Lighter grey for disabled */
     cursor: not-allowed;
     opacity: 0.6;
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+    .headerContent {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .headerActions {
+        width: 100%;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .searchContainer {
+        width: 100%;
+    }
+
+    .studiesTable {
+        min-width: 900px;
+    }
+
+    .colInstitution {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: 16px;
+    }
+
+    .titleSection h1 {
+        font-size: 1.25rem;
+    }
+
+    .subtitle {
+        font-size: 0.8rem;
+    }
+
+    .studiesTable {
+        min-width: 650px;
+        font-size: 0.8rem;
+    }
+
+    .studiesTable th,
+    .studiesTable td {
+        padding: 8px 12px;
+    }
+
+    .colSex,
+    .colInstitution {
+        display: none !important;
+    }
+
+    .colId {
+        width: 20%;
+        min-width: 120px;
+    }
+
+    .colPatient {
+        width: 35%;
+        min-width: 150px;
+    }
+
+    .colDate {
+        width: 15%;
+        min-width: 100px;
+    }
+
+    .colModality {
+        width: 15%;
+        min-width: 90px;
+    }
+
+    .colActions {
+        width: 15%;
+        min-width: 130px;
+    }
+
+    .actionBtn {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+    }
+
+    .actionButtonsContainer {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .pagination {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .paginationInfo {
+        text-align: center;
+    }
+
+    .paginationControls {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .pageContainer {
+        padding: 0;
+    }
+
+    .header {
+        border-radius: 0;
+        margin-bottom: 16px;
+        padding: 12px;
+    }
+
+    .tableContainer {
+        border-radius: 0;
+        margin-bottom: 16px;
+        overflow-x: scroll;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .studiesTable {
+        min-width: 550px;
+        font-size: 0.75rem;
+    }
+
+    .studiesTable th,
+    .studiesTable td {
+        padding: 6px 8px;
+    }
+
+    .colDate,
+    .colSex,
+    .colInstitution {
+        display: none !important;
+    }
+
+    .colId {
+        width: 25%;
+        min-width: 100px;
+    }
+
+    .colPatient {
+        width: 40%;
+        min-width: 140px;
+    }
+
+    .colModality {
+        width: 20%;
+        min-width: 80px;
+    }
+
+    .colActions {
+        width: 15%;
+        min-width: 120px;
+    }
+
+    .actionBtn {
+        padding: 4px 6px;
+        font-size: 0.65rem;
+    }
+
+    .actionBtn svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    .actionButtonsContainer {
+        gap: 3px;
+    }
+
+    .idCode {
+        font-size: 0.7rem;
+        padding: 2px 4px;
+    }
+
+    .patientName {
+        font-size: 0.8rem;
+    }
+
+    .modalityChip {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+        margin: 0;
+    }
+
+    .titleSection h1 {
+        font-size: 1.1rem;
+    }
+
+    .subtitle {
+        font-size: 0.75rem;
+    }
+
+    .statsBadge {
+        font-size: 0.8rem;
+        padding: 3px 10px;
+    }
 }

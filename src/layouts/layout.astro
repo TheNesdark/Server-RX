@@ -58,7 +58,9 @@ const { title } = Astro.props;
 	main {
 		background: transparent;
 		padding: 1.5rem;
-		width: 100%;
+		flex: 1;
+		min-width: 0;
 		overflow-y: auto;
+		transition: margin-left 0.3s ease;
 	}
 </style>

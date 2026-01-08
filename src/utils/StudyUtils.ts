@@ -34,3 +34,17 @@ export function FormatStudy(study: Study): FormattedStudy {
         modality: study.description || "Sin descripción",
     };
 };
+
+// Función para codificar en base64 de forma compatible
+export function base64Encode(str: string): string {
+    // En navegador, usar btoa (disponible globalmente)
+    if (typeof btoa !== 'undefined') {
+      return btoa(str);
+    }
+    // En servidor Node.js, usar Buffer (solo disponible en servidor)
+    if (typeof Buffer !== 'undefined') {
+      return Buffer.from(str, 'utf-8').toString('base64');
+    }
+    // Fallback: implementación manual (raro que llegue aquí)
+    throw new Error('No se puede codificar en base64: btoa y Buffer no están disponibles');
+  }

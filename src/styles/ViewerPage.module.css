@@ -1,0 +1,117 @@
+/* Contenedor principal del viewer */
+.viewerContainer {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  min-height: 0; /* Permite que flex funcione correctamente */
+}
+
+/* Área principal del visor */
+.mainViewer {
+  flex: 1;
+  position: relative;
+  background: var(--viewer-bg-secondary);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Scrollbar personalizado para el área del viewer */
+.mainViewer::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.mainViewer::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.mainViewer::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.mainViewer::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Información del paciente - Overlay mejorado */
+.patientInfo {
+  position: absolute;
+  background: var(--viewer-overlay-bg);
+  padding: 16px 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  z-index: 10;
+  border-radius: var(--viewer-border-radius);
+  backdrop-filter: var(--viewer-backdrop-blur);
+  -webkit-backdrop-filter: var(--viewer-backdrop-blur);
+  box-shadow: var(--viewer-shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: var(--viewer-transition);
+  color: var(--viewer-text-primary);
+  font-weight: 400;
+}
+
+.patientInfo:hover {
+  background: rgba(20, 20, 20, 0.95);
+  box-shadow: var(--viewer-shadow-lg), 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+/* Posicionamiento del overlay */
+.patientInfoTopLeft {
+  top: 24px;
+  left: 24px;
+}
+
+.patientInfoTopRight {
+  top: 24px;
+  right: 24px;
+}
+
+.patientInfoBottomLeft {
+  bottom: 24px;
+  left: 24px;
+}
+
+.patientInfoBottomRight {
+  bottom: 24px;
+  right: 24px;
+}
+
+/* Animaciones suaves */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.patientInfo {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Mejoras responsive */
+@media (max-width: 768px) {
+  .patientInfo {
+    padding: 12px 16px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .patientInfoTopLeft,
+  .patientInfoTopRight,
+  .patientInfoBottomLeft,
+  .patientInfoBottomRight {
+    top: 12px;
+    left: 12px;
+    right: auto;
+    bottom: auto;
+  }
+}

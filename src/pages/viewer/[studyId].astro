@@ -5,6 +5,8 @@ import ViewerToolbar from "@/components/viewer/ViewerToolbar.astro";
 import HelpModal from "@/components/modals/HelpModal.astro";
 import { getSeriesByStudyId, getInstancesBySeriesId } from "@/libs/orthanc/Orthanc";
 import type { ThumbnailInfo } from "@/types";
+import styles from "@/styles/ViewerPage.module.css";
+import "@/styles/ViewerPage.global.css";
 
 const { studyId } = Astro.params;
 if (!studyId) {
@@ -22,13 +24,13 @@ const seriesData: ThumbnailInfo[] = (
 
         return {
           id,
-          instances: Instances,
+          instances: Instances || [],
           previewUrl:
-            Instances.length > 0
+            Instances && Instances.length > 0
               ? `/api/orthanc/instances/${Instances[0]}/preview?viewport=256`
               : "/no-image.svg",
-          modality: mainDicomTags.Modality || "N/A",
-          bodyPart: mainDicomTags.BodyPartExamined || "N/A",
+          modality: mainDicomTags?.Modality || "N/A",
+          bodyPart: mainDicomTags?.BodyPartExamined || "N/A",
         } as ThumbnailInfo;
       } catch (error) {
         console.error(`Error cargando serie ${id}:`, error);
@@ -61,9 +63,9 @@ const seriesData: ThumbnailInfo[] = (
     <ViewerToolbar />
 
     <!-- Contenedor Principal -->
-    <div class="viewer-container">
+    <div class={styles.viewerContainer}>
       <ThumbnailSidebar client:load series={seriesData} />
-      <div class="main-viewer">
+      <div class={styles.mainViewer}>
         <DicomViewer client:load />
       </div>
     </div>
@@ -80,59 +82,5 @@ const seriesData: ThumbnailInfo[] = (
 				});
 			}
 		</script>
-    <style is:global>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family:
-          "Roboto",
-          -apple-system,
-          sans-serif;
-        background: #0f0f0f;
-        color: #fff;
-        overflow: hidden;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-      }
-
-      .viewer-container {
-        display: flex;
-        flex: 1;
-        overflow: hidden;
-      }
-
-      .main-viewer {
-        flex: 1;
-        position: relative;
-        background: #000;
-        overflow: hidden;
-      }
-
-      .patient-info {
-        position: absolute;
-        background: rgba(15, 15, 15, 0.85);
-        padding: 14px 18px;
-        font-size: 14px;
-        z-index: 10;
-        border-radius: 8px;
-        backdrop-filter: blur(4px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      }
-
-      .patient-info.top-left {
-        top: 20px;
-        left: 20px;
-      }
-
-      .patient-info.top-right {
-        top: 20px;
-        right: 20px;
-      }
-    </style>
   </body>
 </html>

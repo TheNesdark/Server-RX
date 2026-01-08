@@ -2,6 +2,13 @@ import type { APIRoute } from 'astro';
 import { ORTHANC_URL, ORTHANC_AUTH } from '@/config/orthanc';
 
 export const GET: APIRoute = async ({ params, url }) => {
+  if (!params?.instanceId) {
+    return new Response(JSON.stringify({ error: 'instanceId es requerido' }), { 
+      status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
   const quality = url.searchParams.get('quality') || '100';
 
   try {

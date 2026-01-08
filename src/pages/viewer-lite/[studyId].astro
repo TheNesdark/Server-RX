@@ -19,13 +19,13 @@ const seriesData: ThumbnailInfo[] = (
 
         return {
           id,
-          instances: Instances,
+          instances: Instances || [],
           previewUrl:
-            Instances.length > 0
+            Instances && Instances.length > 0
               ? `/api/orthanc/instances/${Instances[0]}/preview?viewport=256`
               : "/no-image.svg",
-          modality: mainDicomTags.Modality || "N/A",
-          bodyPart: mainDicomTags.BodyPartExamined || "N/A",
+          modality: mainDicomTags?.Modality || "N/A",
+          bodyPart: mainDicomTags?.BodyPartExamined || "N/A",
         } as ThumbnailInfo;
       } catch (error) {
         console.error(`Error cargando serie ${id}:`, error);
@@ -78,7 +78,7 @@ const seriesData: ThumbnailInfo[] = (
       const seriesData = seriesMetadataEl ? JSON.parse(seriesMetadataEl.dataset.series || '[]') : [];
 
       // Función para actualizar la imagen renderizada
-      async function updateRenderedImage(instanceId) {
+      async function updateRenderedImage(instanceId: string) {
         if (!instanceId || !renderedImage) return;
 
         // 1. Ocultar imagen anterior y mostrar loader
@@ -107,7 +107,7 @@ const seriesData: ThumbnailInfo[] = (
       // Escuchar cambios en el Nano Store
       activeSeriesId.subscribe((id) => {
         if (id) {
-          const series = seriesData.find((s) => s.id === id);
+          const series = seriesData.find((s: any) => s.id === id);
           if (series && series.instances && series.instances.length > 0) {
             // Cargar la primera instancia de la serie seleccionada
             updateRenderedImage(series.instances[0]);

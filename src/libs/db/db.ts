@@ -1,11 +1,22 @@
 import Database from "better-sqlite3"
 import path from "path";
+import { fileURLToPath } from "url";
 
 let db: Database.Database;
 
 try {
-    // Use absolute path for better reliability across environments
-    const dbPath = path.join(process.cwd(), "studies.db");
+    // Usar import.meta.url para obtener la ruta del módulo actual (más confiable en Astro)
+    // Fallback a process.cwd() si import.meta.url no está disponible
+    let dbPath: string;
+    try {
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
+        // Ir hacia arriba desde src/libs/db hasta la raíz del proyecto
+        dbPath = path.join(__dirname, '../../../', "studies.db");
+    } catch {
+        // Fallback para entornos sin import.meta.url
+        dbPath = path.join(process.cwd(), "studies.db");
+    }
     db = new Database(dbPath);
     
     db.exec(`

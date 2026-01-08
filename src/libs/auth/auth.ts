@@ -7,9 +7,23 @@ if (!JWT_SECRET_ENV || JWT_SECRET_ENV.length < 32) {
     throw new Error('JWT_SECRET debe estar definida y tener una longitud mínima de 32 bytes.');
 }
 
-const SECRET = (globalThis as any).__SECRET || new TextEncoder().encode(JWT_SECRET_ENV);
+// Tipo para el payload del JWT
+export interface JwtPayload {
+    username: string;
+    exp?: number;
+    iat?: number;
+    [key: string]: unknown;
+}
 
-export async function createToken(payload: any) {
+// Declarar el tipo para globalThis.__SECRET
+declare global {
+    // eslint-disable-next-line no-var
+    var __SECRET: Uint8Array | undefined;
+}
+
+const SECRET = globalThis.__SECRET || new TextEncoder().encode(JWT_SECRET_ENV);
+
+export async function createToken(payload: JwtPayload) {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -17,10 +31,10 @@ export async function createToken(payload: any) {
     .sign(SECRET);
 }
 
-export async function verifyToken(token: string) {
+export async function verifyToken(token: string): Promise<JwtPayload | null> {
   try {
     const { payload } = await jwtVerify(token, SECRET);
-    return payload;
+    return payload as JwtPayload;
   } catch (error) {
     return null;
   }

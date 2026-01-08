@@ -18,13 +18,18 @@ export function sanitizeString(input: string | undefined, maxLength: number = 25
     return input.replace(/[\x00-\x1F\x7F-\x9F]/g, '').substring(0, maxLength);
 }
 
-const getDrawController = (app: App) => {
+const getDrawController = (app: App): DrawController | undefined => {
     const layerGroup = app.getLayerGroupByDivId("layerGroup0");
     const drawLayer = layerGroup?.getActiveDrawLayer();
-    return drawLayer?.getDrawController();
+    return drawLayer?.getDrawController() as DrawController | undefined;
 };
 
-const removeAnnotationsForShape = (app: App, drawController: any, shapeName: string) => {
+// Tipo para el drawController de DWV (parcial, ya que DWV no exporta tipos completos)
+interface DrawController {
+    removeAllAnnotationsWithCommand: (command: () => void) => void;
+}
+
+const removeAnnotationsForShape = (app: App, drawController: DrawController, shapeName: string) => {
     app.setToolFeatures({ shapeName });
     drawController.removeAllAnnotationsWithCommand(app.addToUndoStack);
 };

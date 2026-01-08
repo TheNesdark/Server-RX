@@ -16,10 +16,12 @@ const ActionButton = ({ onClick, label, children }: { onClick: () => void; label
   </button>
 );
 
-function getModalityClass(modality?: string) {
+function getModalityClass(modality?: string): string {
   const m = (modality || '').toString();
   const slug = m.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'default';
-  return (styles as any)[`modality-${slug}`] ?? (styles as any)['modality-default'] ?? '';
+  // TypeScript no puede inferir clases CSS dinámicas, pero podemos acceder de forma segura
+  const stylesRecord = styles as Record<string, string>;
+  return stylesRecord[`modality-${slug}`] ?? stylesRecord['modality-default'] ?? '';
 }
 
 const StudyRow = ({ study, index }: { study: FormattedStudy; index: number }) => {

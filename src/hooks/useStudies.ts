@@ -38,8 +38,11 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
             }
             
             const data = await response.json();
-            setStudies(data.studies);
-            setTotal(data.total);
+            if (!data || typeof data !== 'object') {
+                throw new Error('Respuesta inválida del servidor');
+            }
+            setStudies(Array.isArray(data.studies) ? data.studies : []);
+            setTotal(typeof data.total === 'number' ? data.total : 0);
         } catch (error) {
             console.error("Error en la búsqueda:", error);
             // Mantener el estado anterior en caso de error

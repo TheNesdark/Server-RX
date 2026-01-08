@@ -19,7 +19,9 @@ async function runSync() {
     try {
         await sincronizarDatos();
     } catch (error) {
-        throw error
+        // Log del error pero no lanzarlo para evitar que afecte el middleware
+        console.error('❌ Error en sincronización:', error);
+        // No relanzar el error para que el middleware continúe funcionando
     } finally {
         globalState.isSyncing = false;
     }
@@ -28,8 +30,8 @@ async function runSync() {
 if (!globalState.isSyncJobScheduled) {
     try {
         globalState.isSyncing = false;
-        runSync()
-        setInterval(() => runSync().catch(e => console.error(e)), TWENTY_FOUR_HOURS_IN_MS);
+        runSync().catch(e => console.error('❌ Error en sincronización inicial:', e));
+        setInterval(() => runSync().catch(e => console.error('❌ Error en sincronización periódica:', e)), TWENTY_FOUR_HOURS_IN_MS);
         globalState.isSyncJobScheduled = true;
     } catch (error) {
         console.error('❌ Error configurando sincronización automática:', error);

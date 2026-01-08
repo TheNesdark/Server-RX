@@ -6,10 +6,39 @@ import {
     setupResetButton, 
     setupDWVEventListeners 
 } from '@/handlers/eventHandlers';
+import type { App } from 'dwv';
+
+// Tipos parciales para DWV (la librería no exporta tipos completos)
+interface DWVApp {
+    reset: () => void;
+    loadURLs: (urls: string[], options: {
+        requestHeaders: Array<{ name: string; value: string }>;
+        withCredentials: boolean;
+        batchSize: number;
+    }) => void;
+    getLayerGroupByDivId: (id: string) => {
+        getActiveViewLayer: () => {
+            getViewController: () => {
+                setWindowLevel: (wl: { center: number; width: number }) => void;
+            };
+        } | null;
+    } | null;
+}
+
+interface DWVModule {
+    App: new () => DWVApp;
+    ViewConfig: new (id: string) => unknown;
+    AppOptions: new (config: Record<string, unknown[]>) => {
+        tools: Record<string, unknown>;
+    };
+    ToolConfig: new () => unknown;
+    WindowLevel: new (center: number, width: number) => { center: number; width: number };
+    toolList: Record<string, unknown>;
+}
 
 export function useDicomViewer() {
-    const dwvAppRef = useRef<any>(null);
-    const dwvModuleRef = useRef<any>(null);
+    const dwvAppRef = useRef<DWVApp | null>(null);
+    const dwvModuleRef = useRef<DWVModule | null>(null);
 
     const [windowCenter, setWindowCenter] = useState<number>(0);
     const [windowWidth, setWindowWidth] = useState<number>(0);
@@ -19,7 +48,7 @@ export function useDicomViewer() {
     useEffect(() => {
         const initDWV = async () => {
             // Importación dinámica de DWV
-            const dwvModule = await import('dwv');
+            const dwvModule = await import('dwv') as unknown as DWVModule;
             dwvModuleRef.current = dwvModule;
             const { NoneTool } = await import('@/tools/dwvTools');
             
@@ -96,6 +125,9 @@ export function useDicomViewer() {
                 throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
             }
             const data = await resp.json();
+            if (!data || !data.Instances || !Array.isArray(data.Instances)) {
+                throw new Error('Respuesta inválida: la propiedad Instances no está presente o no es un array');
+            }
             const dicomUrls = data.Instances.map(
                 (instance: string) => `/api/orthanc/instances/${instance}/file`,
             );

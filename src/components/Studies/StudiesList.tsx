@@ -28,17 +28,17 @@ const StudyRow = ({ study, index }: { study: FormattedStudy; index: number }) =>
   const modalityClass = getModalityClass(study.modality);
   return (
     <tr key={study.id} className={styles.studyRow} style={{ "--delay": `${index * 0.04}s` }}>
-      <td><code className={styles.idCode}>{study.patientId}</code></td>
-      <td><span className={styles.patientName}>{study.patientName}</span></td>
-      <td>{study.patientSex}</td>
-      <td>{study.institution}</td>
-      <td>{study.studyDate}</td>
-      <td>
+      <td className={styles.colId}><code className={styles.idCode}>{study.patientId}</code></td>
+      <td className={styles.colPatient}><span className={styles.patientName}>{study.patientName}</span></td>
+      <td className={styles.colSex}>{study.patientSex}</td>
+      <td className={styles.colInstitution}>{study.institution}</td>
+      <td className={styles.colDate}>{study.studyDate}</td>
+      <td className={styles.colModality}>
         <span className={`${styles.modalityChip} ${modalityClass}`}>
           {study.modality}
         </span>
       </td>
-      <td>
+      <td className={styles.colActions}>
         <div className={styles.actionButtonsContainer}>
           <ActionButton 
             onClick={() => window.open(`/viewer/${study.id}`, '_blank')}

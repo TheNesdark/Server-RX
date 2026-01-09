@@ -29,9 +29,18 @@ if (Astro.cookies.get('auth_token')) {
 <body>
   <div class="login-container">
     <!-- Monitor de Pulso Mejorado -->
-    <div class="pulse-monitor">
+    <div class="pulse-monitor" id="pulse-monitor">
+      <div class="monitor-grid"></div>
+      <div class="particles">
+        <div class="particle p1"></div>
+        <div class="particle p2"></div>
+        <div class="particle p3"></div>
+        <div class="particle p4"></div>
+      </div>
+      <div class="pulse-line secondary"></div>
       <div class="pulse-line"></div>
       <div class="pulse-glow"></div>
+      <div class="scanline"></div>
     </div>
 
     <form method="POST" class="login-form" action={actions.login}>
@@ -78,13 +87,74 @@ if (Astro.cookies.get('auth_token')) {
   /* Contenedor del Monitor de Pulso */
   .pulse-monitor {
     position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
+    width: 110%; /* Un poco más grande para el parallax */
+    height: 110%;
+    top: -5%;
+    left: -5%;
     z-index: 0;
     pointer-events: none;
-    opacity: 0.12; /* Sutil pero visible */
+    opacity: 0.18;
+    background: #f0fdfa;
+    transition: transform 0.1s ease-out;
+  }
+
+  /* Cuadrícula Médica con movimiento */
+  .monitor-grid {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    background-image: 
+      linear-gradient(var(--hospital-green) 1px, transparent 1px),
+      linear-gradient(90deg, var(--hospital-green) 1px, transparent 1px),
+      linear-gradient(rgba(13, 148, 136, 0.3) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(13, 148, 136, 0.3) 1px, transparent 1px);
+    background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+    opacity: 0.15;
+    animation: grid-pan 60s linear infinite;
+  }
+
+  @keyframes grid-pan {
+    from { transform: translate(0, 0); }
+    to { transform: translate(100px, 100px); }
+  }
+
+  /* Partículas / Puntos de datos */
+  .particles .particle {
+    position: absolute;
+    background: var(--hospital-green);
+    border-radius: 50%;
+    filter: blur(2px);
+    opacity: 0.5;
+    animation: float infinite ease-in-out;
+  }
+
+  .p1 { width: 4px; height: 4px; top: 20%; left: 10%; animation-duration: 8s; }
+  .p2 { width: 6px; height: 6px; top: 60%; left: 80%; animation-duration: 12s; animation-delay: -2s; }
+  .p3 { width: 3px; height: 3px; top: 10%; left: 70%; animation-duration: 10s; animation-delay: -5s; }
+  .p4 { width: 5px; height: 5px; top: 80%; left: 30%; animation-duration: 15s; animation-delay: -1s; }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0); }
+    33% { transform: translate(30px, -50px); }
+    66% { transform: translate(-20px, 20px); }
+  }
+
+  /* Scanline horizontal */
+  .scanline {
+    position: absolute;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(to bottom, transparent, rgba(16, 185, 129, 0.2), transparent);
+    top: 0;
+    z-index: 2;
+    animation: scanline 8s linear infinite;
+  }
+
+  @keyframes scanline {
+    0% { top: -10%; }
+    100% { top: 110%; }
   }
 
   /* La línea base del pulso (ECG) */
@@ -97,12 +167,21 @@ if (Astro.cookies.get('auth_token')) {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='150' viewBox='0 0 600 150'%3E%3Cpath d='M0 75 L250 75 L260 65 L270 85 L280 75 L295 10 L310 140 L325 75 L350 75 L370 55 L390 75 L600 75' fill='none' stroke='%2310b981' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: repeat-x;
     
-    /* Máscara para el efecto de escaneo progresivo */
-    -webkit-mask-image: linear-gradient(to right, transparent, black 40%, black 60%, transparent 70%);
-    mask-image: linear-gradient(to right, transparent, black 40%, black 60%, transparent 70%);
+    /* Máscara para el efecto de escaneo progresivo con estela */
+    -webkit-mask-image: linear-gradient(to right, transparent, black 85%, transparent 95%);
+    mask-image: linear-gradient(to right, transparent, black 85%, transparent 95%);
     -webkit-mask-size: 200% 100%;
     mask-size: 200% 100%;
-    animation: scan 4s linear infinite;
+    animation: scan 3s linear infinite;
+    filter: drop-shadow(0 0 8px var(--hospital-green));
+  }
+
+  .pulse-line.secondary {
+    opacity: 0.3;
+    height: 100px;
+    animation: scan 4.5s linear infinite reverse;
+    filter: blur(1px);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='150' viewBox='0 0 600 150'%3E%3Cpath d='M0 75 L100 75 L110 70 L120 80 L130 75 L145 40 L160 110 L175 75 L600 75' fill='none' stroke='%235eead4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 
   /* El brillo que guía el recorrido del pulso */
@@ -111,20 +190,22 @@ if (Astro.cookies.get('auth_token')) {
     top: 50%;
     left: 0;
     width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at 50% 50%, var(--hospital-green) 0%, transparent 10%);
-    opacity: 0.3;
-    animation: scan-glow 4s linear infinite;
+    height: 200px;
+    transform: translateY(-50%);
+    background: radial-gradient(circle at 90% 50%, var(--hospital-green) 0%, transparent 20%);
+    opacity: 0.4;
+    animation: scan-glow 3s linear infinite;
+    mix-blend-mode: screen;
   }
 
   @keyframes scan {
-    from { -webkit-mask-position: 150% 0; mask-position: 150% 0; }
-    to { -webkit-mask-position: -50% 0; mask-position: -50% 0; }
+    from { -webkit-mask-position: 200% 0; mask-position: 200% 0; }
+    to { -webkit-mask-position: 0% 0; mask-position: 0% 0; }
   }
 
   @keyframes scan-glow {
-    from { transform: translateX(-100%); }
-    to { transform: translateX(100%); }
+    from { transform: translateY(-50%) translateX(-100%); }
+    to { transform: translateY(-50%) translateX(100%); }
   }
 
   .login-form {
@@ -229,3 +310,34 @@ if (Astro.cookies.get('auth_token')) {
     font-weight: 500;
   }
 </style>
+
+<script>
+  // Efecto Parallax para el fondo
+  const monitor = document.getElementById('pulse-monitor');
+  
+  document.addEventListener('mousemove', (e) => {
+    if (!monitor) return;
+    
+    const x = (window.innerWidth / 2 - e.pageX) / 50;
+    const y = (window.innerHeight / 2 - e.pageY) / 50;
+    
+    monitor.style.transform = `translate(${x}px, ${y}px)`;
+  });
+
+  // Efecto de parpadeo aleatorio para la línea de pulso (simula interferencia médica)
+  const pulseLines = document.querySelectorAll('.pulse-line');
+  
+  function glitch() {
+    const line = pulseLines[Math.floor(Math.random() * pulseLines.length)];
+    if (line instanceof HTMLElement) {
+      line.style.opacity = '0.4';
+      setTimeout(() => {
+        line.style.opacity = line.classList.contains('secondary') ? '0.3' : '1';
+      }, 50 + Math.random() * 100);
+    }
+    
+    setTimeout(glitch, 2000 + Math.random() * 3000);
+  }
+  
+  glitch();
+</script>

@@ -1,12 +1,65 @@
+---
+const user = Astro.locals.user;
+---
+
+<!-- Botón para abrir sidebar en móvil -->
+<button
+    id="mobile-toggle"
+    class="mobile-toggle"
+    aria-label="Abrir menú"
+>
+    <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+    >
+        <path d="M3 12h18M3 6h18M3 18h18"></path>
+    </svg>
+</button>
+
+<!-- Overlay para móvil -->
+<div id="sidebar-overlay" class="sidebar-overlay"></div>
+
 <aside id="main-sidebar">
     <div class="sidebar-header">
         <h2 class="sidebar-title">IPS Hospital Local de Montelíbano</h2>
-        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button
+            class="sidebar-toggle"
+            id="sidebar-toggle"
+            aria-label="Toggle sidebar"
+        >
+            <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+            >
                 <path d="M3 12h18M3 6h18M3 18h18"></path>
             </svg>
         </button>
+        <button
+            class="mobile-close"
+            id="mobile-close"
+            aria-label="Cerrar menú"
+        >
+            <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <path d="M18 6L6 18M6 6l12 12"></path>
+            </svg>
+        </button>
     </div>
+
     <nav class="nav-menu">
         <ul>
             <li>
@@ -29,17 +82,35 @@
             </li>
         </ul>
     </nav>
+
     <div class="user-info">
-        {Astro.locals.user && (
-            <div class="user-details" data-exp={Astro.locals.user.exp}>
-                <p class="user-greeting">Bienvenido, <strong class="username">{Astro.locals.user.username}</strong></p>
-                <p class="session-info">Sesión expira en: <span id="session-countdown"></span></p>
-            </div>
-        )}
+        {
+            user && (
+                <div class="user-details" data-exp={user?.exp}>
+                    <p class="user-greeting">
+                        Bienvenido,{" "}
+                        <strong class="username">
+                            {user?.username}
+                        </strong>
+                    </p>
+                    <p class="session-info">
+                        Sesión expira en: <span id="session-countdown" />
+                    </p>
+                </div>
+            )
+        }
     </div>
+
     <div class="sidebar-footer">
         <a href="/logout" class="logout" title="Cerrar Sesión">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+            >
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                 <polyline points="16 17 21 12 16 7"></polyline>
                 <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -49,128 +120,65 @@
     </div>
 </aside>
 
-<script is:inline>
-    document.addEventListener('DOMContentLoaded', () => {
-        const sidebar = document.getElementById('main-sidebar');
-        const toggleButton = document.getElementById('sidebar-toggle');
-        const countdownElement = document.getElementById('session-countdown');
-        const userDetails = document.querySelector('.user-details');
+<script>
+    import { formatCountdown } from "@/utils/StudyUtils";
 
-        // Funcionalidad de colapsar/expandir sidebar
-        if (sidebar && toggleButton) {
-            // En móviles, el sidebar empieza colapsado por defecto
-            const isMobile = window.innerWidth <= 768;
-            
-            // Cargar estado guardado del localStorage (solo en desktop)
-            const savedState = !isMobile ? localStorage.getItem('sidebar-collapsed') : 'true';
-            const isCollapsed = savedState === 'true';
-            
-            if (isCollapsed) {
-                sidebar.classList.add('collapsed');
-            }
+    const sidebar = document.getElementById("main-sidebar");
+    const toggleButton = document.getElementById("sidebar-toggle");
+    const mobileToggle = document.getElementById("mobile-toggle");
+    const mobileClose = document.getElementById("mobile-close");
+    const overlay = document.getElementById("sidebar-overlay");
+    const countdownElement = document.getElementById("session-countdown");
+    const userDetails = document.querySelector(".user-details") as HTMLElement;
 
-            toggleButton.addEventListener('click', () => {
-                sidebar.classList.toggle('collapsed');
-                updateOverlay();
-                // Guardar estado en localStorage solo en desktop
-                if (!isMobile) {
-                    const isNowCollapsed = sidebar.classList.contains('collapsed');
-                    localStorage.setItem('sidebar-collapsed', isNowCollapsed.toString());
-                }
-            });
-
-            // Función para actualizar el overlay
-            function updateOverlay() {
-                let overlay = document.querySelector('.sidebar-overlay');
-                if (window.innerWidth <= 768) {
-                    if (!overlay) {
-                        overlay = document.createElement('div');
-                        overlay.className = 'sidebar-overlay';
-                        document.body.appendChild(overlay);
-                        overlay.addEventListener('click', () => {
-                            sidebar.classList.add('collapsed');
-                            updateOverlay();
-                        });
-                    }
-                    if (sidebar.classList.contains('collapsed')) {
-                        overlay.classList.remove('active');
-                    } else {
-                        overlay.classList.add('active');
-                    }
-                } else if (overlay) {
-                    overlay.classList.remove('active');
-                }
-            }
-
-            // Actualizar overlay inicial
-            updateOverlay();
-
-            // Manejar cambios de tamaño de ventana
-            let resizeTimer;
-            window.addEventListener('resize', () => {
-                clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(() => {
-                    updateOverlay();
-                }, 250);
-            });
-        }
-
-        // Funcionalidad del countdown de sesión
-        if (countdownElement && userDetails) {
-            // Leemos el valor de expiración del atributo data-exp y lo convertimos a número
-            const expirationTime = parseInt(userDetails.dataset.exp || '0', 10); // Unix timestamp in seconds
-
-            function updateCountdown() {
-                const now = Math.floor(Date.now() / 1000); // Current Unix timestamp in seconds
-                const timeLeft = expirationTime - now;
-
-                if (timeLeft <= 0) {
-                    countdownElement.textContent = 'Expirada';
-                    clearInterval(interval);
-                    // Redirigir para forzar el cierre de sesión una vez que el tiempo ha expirado
-                    if (window.location.pathname !== '/login') {
-                        window.location.href = '/login?error=expired';
-                    }
-                    return;
-                }
-
-                const hours = Math.floor(timeLeft / 3600);
-                const minutes = Math.floor((timeLeft % 3600) / 60);
-                const seconds = timeLeft % 60;
-
-                countdownElement.textContent = 
-                    `${hours.toString().padStart(2, '0')}:` +
-                    `${minutes.toString().padStart(2, '0')}:` +
-                    `${seconds.toString().padStart(2, '0')}`;
-            }
-
-            const interval = setInterval(updateCountdown, 1000);
-            updateCountdown(); // Initial call to display immediately
-        }
+    // Toggle para escritorio (colapsar/expandir)
+    toggleButton?.addEventListener("click", () => {
+        sidebar?.classList.toggle("collapsed");
     });
-</script>
-<style>
-    /* --- Definiciones de Color para Tema Oscuro (asumido para dashboards) --- */
-    :root {
-        --sidebar-bg: #1f2937; /* Gris oscuro, más oscuro que el body */
-        --sidebar-border: #374151;
-        --sidebar-hover: #374151;
-        --sidebar-text-main: #f3f4f6; /* Gris claro */
-        --sidebar-text-muted: #9ca3af; /* Gris medio */
-        --sidebar-accent: #3b82f6; /* Azul primario */
-    }
 
+    // Toggle para móvil (abrir/cerrar)
+    const toggleMobileMenu = () => {
+        sidebar?.classList.toggle("mobile-open");
+        overlay?.classList.toggle("show");
+        document.body.classList.toggle("sidebar-open");
+    };
+
+    mobileToggle?.addEventListener("click", toggleMobileMenu);
+    mobileClose?.addEventListener("click", toggleMobileMenu);
+    overlay?.addEventListener("click", toggleMobileMenu);
+
+    if (countdownElement && userDetails) {
+        const exp = parseInt(userDetails.dataset.exp || '0', 10);
+
+        const updateUI = () => {
+            const timeText = formatCountdown(exp);
+            countdownElement.textContent = timeText;
+
+            if (timeText === "00:00:00") {
+                clearInterval(interval);
+                window.location.href = "/login?error=expired";
+            }
+        };
+
+        updateUI();
+        const interval = setInterval(updateUI, 1000);
+    }
+</script>
+
+<style>
+    /* 1. Layout Principal */
     aside {
         background: var(--sidebar-bg);
-        padding: 0;
-        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2); /* Sombra más marcada para contraste */
-        display: flex;
-        flex-direction: column;
         border-right: 1px solid var(--sidebar-border);
         width: 250px;
         min-width: 250px;
-        transition: all 0.3s ease;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding: 0;
         position: relative;
+        transition: all 0.3s ease;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
     }
 
     aside.collapsed {
@@ -178,6 +186,7 @@
         min-width: 70px;
     }
 
+    /* 2. Cabecera (Header) */
     .sidebar-header {
         display: flex;
         align-items: center;
@@ -199,10 +208,6 @@
         flex: 1;
     }
 
-    aside.collapsed .sidebar-title {
-        display: none;
-    }
-
     .sidebar-toggle {
         background: transparent;
         border: 1px solid var(--sidebar-border);
@@ -213,10 +218,10 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s ease;
-        flex-shrink: 0;
         width: 32px;
         height: 32px;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
     }
 
     .sidebar-toggle:hover {
@@ -225,20 +230,26 @@
         border-color: var(--sidebar-accent);
     }
 
-    aside.collapsed .sidebar-toggle {
-        margin: 0 auto;
+    .mobile-close {
+        display: none;
+        background: transparent;
+        border: 1px solid var(--sidebar-border);
+        color: var(--sidebar-text-main);
+        padding: 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        transition: all 0.2s ease;
     }
 
+    /* 3. Menú de Navegación */
     .nav-menu {
         flex: 1;
         padding: 12px 0;
         overflow-y: auto;
-
-    }
-
-    aside.collapsed .nav-menu {
-        transition: all 0.2s ease;
-        visibility: hidden;
     }
 
     aside ul {
@@ -259,16 +270,9 @@
         text-decoration: none;
         font-size: 14px;
         font-weight: 500;
-        transition: all 0.2s ease;
         border-radius: 8px;
-        cursor: pointer;
-        position: relative;
+        transition: all 0.2s ease;
         justify-content: flex-start;
-    }
-
-    aside.collapsed aside a {
-        justify-content: center;
-        padding: 12px;
     }
 
     aside a:hover {
@@ -277,8 +281,9 @@
     }
 
     aside a.active {
-        background: rgba(59, 130, 246, 0.2); /* Azul semi-transparente */
-        color: var(--sidebar-accent);
+        background: var(--sidebar-hover);
+        color: var(--sidebar-text-main);
+        font-weight: 700;
     }
 
     aside .icon {
@@ -291,52 +296,26 @@
         flex-shrink: 0;
     }
 
-    aside.collapsed .icon {
-        margin-right: 0;
-    }
-
-    aside .icon svg {
-        width: 100%;
-        height: 100%;
-    }
-
     .nav-text {
         white-space: nowrap;
         overflow: hidden;
         transition: opacity 0.3s ease;
     }
 
-    aside.collapsed .nav-text {
-        opacity: 0;
-        width: 0;
-        overflow: hidden;
-    }
-
-    /* --- Estilos para la sección inferior (Usuario y Footer) --- */
+    /* 4. Información de Usuario */
     .user-info {
         padding: 16px 24px;
         border-top: 1px solid var(--sidebar-border);
-        background: var(--sidebar-bg); /* Mismo fondo que el aside */
+        background: var(--sidebar-bg);
         color: var(--sidebar-text-main);
         font-size: 14px;
         transition: padding 0.3s ease;
     }
 
-    aside.collapsed .user-info {
-        padding: 16px 8px;
-    }
-
     .user-details {
         display: flex;
         flex-direction: column;
-        gap: 6px; /* Aumentado ligeramente el espacio */
-        transition: opacity 0.3s ease;
-    }
-
-    aside.collapsed .user-details {
-        opacity: 0;
-        height: 0;
-        overflow: hidden;
+        gap: 6px;
     }
 
     .user-details p {
@@ -349,13 +328,7 @@
         color: var(--sidebar-accent);
     }
 
-    .user-greeting,
-    .session-info {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
+    /* 5. Footer y Logout */
     .sidebar-footer {
         padding: 16px 24px;
         border-top: 1px solid var(--sidebar-border);
@@ -364,15 +337,11 @@
         transition: padding 0.3s ease;
     }
 
-    aside.collapsed .sidebar-footer {
-        padding: 16px 8px;
-    }
-
     .logout {
         display: flex;
         align-items: center;
         gap: 8px;
-        color: #f87171; /* Rojo más suave */
+        color: #f87171;
         text-decoration: none;
         font-size: 14px;
         padding: 8px 0;
@@ -380,107 +349,108 @@
         justify-content: flex-start;
     }
 
+    .logout:hover {
+        color: #ef4444;
+    }
+
+    /* 6. Modificadores de Estado (Colapsado) */
+    aside.collapsed .sidebar-title,
+    aside.collapsed .nav-text,
+    aside.collapsed .user-info,
+    aside.collapsed .logout-text {
+        display: none;
+    }
+
+    aside.collapsed .sidebar-toggle {
+        margin: 0 auto;
+    }
+
+    aside.collapsed a,
     aside.collapsed .logout {
         justify-content: center;
-        padding: 8px;
     }
 
-    .logout svg {
-        flex-shrink: 0;
-        width: 16px;
-        height: 16px;
-    }
-
-    .logout-text {
-        white-space: nowrap;
-        transition: opacity 0.3s ease;
-    }
-
-    aside.collapsed .logout-text {
-        opacity: 0;
-        width: 0;
-        overflow: hidden;
-    }
-
-    .logout:hover {
-        color: #ef4444; /* Rojo más fuerte al pasar el ratón */
-        text-decoration: none;
-    }
-
-    /* Tooltips cuando está colapsado */
-    aside.collapsed aside a[title]:hover::after,
-    aside.collapsed .logout[title]:hover::after {
-        content: attr(title);
-        position: absolute;
-        left: 100%;
-        margin-left: 12px;
-        padding: 8px 12px;
-        background: var(--sidebar-bg);
-        border: 1px solid var(--sidebar-border);
-        border-radius: 6px;
-        color: var(--sidebar-text-main);
-        font-size: 13px;
-        white-space: nowrap;
-        z-index: 1000;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        pointer-events: none;
-    }
-
-    aside.collapsed aside li {
-        position: relative;
+    aside.collapsed .icon {
+        margin-right: 0;
     }
 
     aside.collapsed .sidebar-footer {
-        position: relative;
+        padding: 12px 6px;
     }
 
-    /* Responsive: colapsar automáticamente en móviles */
+    /* 7. Diseño Responsivo */
+    .mobile-toggle {
+        display: none;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 999;
+        background: var(--sidebar-bg);
+        color: white;
+        border: none;
+        padding: 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+
+    .sidebar-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
     @media (max-width: 768px) {
+        .mobile-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-overlay {
+            display: block;
+        }
+
         aside {
             position: fixed;
             left: 0;
             top: 0;
             height: 100vh;
             z-index: 1000;
-            transform: translateX(0);
-            transition: transform 0.3s ease;
-        }
-
-        aside.collapsed {
             transform: translateX(-100%);
+            width: 280px;
+            min-width: 280px;
+            box-shadow: none;
         }
 
-        /* Overlay cuando el sidebar está abierto en móviles */
-        .sidebar-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+        aside.mobile-open {
+            transform: translateX(0);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
         }
 
-        .sidebar-overlay.active {
-            display: block;
-            opacity: 1;
-        }
-    }
-
-    /* Mejora para tablets */
-    @media (max-width: 1024px) and (min-width: 769px) {
-        aside {
-            width: 200px;
-            min-width: 200px;
+        .sidebar-toggle {
+            display: none; /* Ocultamos el toggle de colapsar en móvil */
         }
 
-        aside.collapsed {
-            width: 70px;
-            min-width: 70px;
+        .mobile-close {
+            display: flex;
+        }
+
+        .sidebar-title {
+            font-size: 16px;
         }
     }
 </style>
-

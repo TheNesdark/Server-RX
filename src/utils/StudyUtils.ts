@@ -13,7 +13,6 @@ export function FormatStudy(study: Study): FormattedStudy {
             const month = study.studyDate.substring(4, 6);
             const day = study.studyDate.substring(6, 8);
             
-            // Validate date components
             if (year && month && day && 
                 parseInt(month) >= 1 && parseInt(month) <= 12 &&
                 parseInt(day) >= 1 && parseInt(day) <= 31) {
@@ -47,4 +46,21 @@ export function base64Encode(str: string): string {
     }
     // Fallback: implementación manual (raro que llegue aquí)
     throw new Error('No se puede codificar en base64: btoa y Buffer no están disponibles');
+  }
+
+  export function formatCountdown(exp: number) {
+    const now = Math.floor(Date.now() / 1000);
+    const timeLeft = exp - now;
+  
+    if (timeLeft <= 0) {
+      return "00:00:00";
+    }
+  
+    const hours = Math.floor(timeLeft / 3600);
+    const minutes = Math.floor((timeLeft % 3600) / 60);
+    const seconds = timeLeft % 60;
+  
+    return [hours, minutes, seconds]
+      .map(v => v.toString().padStart(2, "0"))
+      .join(":");
   }

@@ -1,0 +1,55 @@
+:root {
+  --primary: #0ea5e9; /* Cyan médico */
+  --hospital-green: #0d9488; /* Verde azulado (Teal) */
+  --hospital-green-hover: #0f766e;
+  --bg-light: #f0fdfa; /* Fondo verde muy claro */
+  --bg-dark: #0f172a;
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --error: #ef4444;
+  --sidebar-bg: #0d9488; /* Verde azulado (Teal) médico */
+  --sidebar-border: #0f766e;
+  --sidebar-hover: #0f766e;
+  --sidebar-text-main: #ffffff;
+  --sidebar-text-muted: #ccfbf1;
+  --sidebar-accent: #5eead4;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text-main);
+  background: var(--bg-light);
+  line-height: 1.5;
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

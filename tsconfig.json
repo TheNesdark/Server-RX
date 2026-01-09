@@ -9,13 +9,14 @@
   ],
   "compilerOptions": {
     "module": "ESNext",
-    "moduleResolution": "node", 
+    "moduleResolution": "bundler", 
     "paths": {
       "@/*": [
         "./src/*"
       ]
     },
     "jsx": "react-jsx",
-    "jsxImportSource": "preact"
+    "jsxImportSource": "preact",
+    "skipLibCheck": true
   }
 }

@@ -3,6 +3,7 @@ import ThumbnailSidebar from "@/components/viewer/ThumbnailSidebar";
 import DicomViewer from "@/components/viewer/DicomViewer";
 import ViewerToolbar from "@/components/viewer/ViewerToolbar.astro";
 import HelpModal from "@/components/modals/HelpModal.astro";
+import ShareModal from "@/components/modals/ShareModal.astro";
 import { getSeriesByStudyId, getInstancesBySeriesId } from "@/libs/orthanc/Orthanc";
 import type { ThumbnailInfo } from "@/types";
 import styles from "@/styles/ViewerPage.module.css";
@@ -45,6 +46,7 @@ const seriesData: ThumbnailInfo[] = (
     }),
   )
 ).filter((series) => series.instances.length > 0);
+
 ---
 
 <!doctype html>
@@ -72,6 +74,7 @@ const seriesData: ThumbnailInfo[] = (
 
     <!-- Modal de Ayuda -->
     <HelpModal />
+    <ShareModal />
 
     <script>
 			if ('serviceWorker' in navigator) {

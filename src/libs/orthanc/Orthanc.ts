@@ -4,7 +4,31 @@ import { sanitizeString } from '@/utils';
 import { ORTHANC_URL, ORTHANC_AUTH } from '@/config/orthanc';
 
 /**
- * Funciones de Comunicación con Orthanc (API)
+* Funcion para obtener la cédula del paciente a partir del ID del estudio	
+* @param studyId 
+* @returns
+*/
+export async function GetDNIbyStudieID(studyId: string) {
+ try {
+   const response = await fetch(`${ORTHANC_URL}/studies/${studyId}`, {
+     method: 'GET',
+     headers: {
+       'Authorization': ORTHANC_AUTH,
+     }
+   });
+   if (!response.ok) throw new Error(response.statusText);
+
+   const data: DicomStudy = await response.json();
+   return data.PatientMainDicomTags?.PatientID;
+
+ } catch (error) {
+
+   throw error;
+ }
+}
+
+/**
+ * Funcion para obtener las series (carpetas) de un estudio dado su ID
  * @param studyId 
  * @returns
  */
@@ -18,10 +42,8 @@ export async function getSeriesByStudyId(studyId: string) {
     });
 
     if (!response.ok) throw new Error(response.statusText);
+
     const data = await response.json();
-    if (!data || !data.Series) {
-      throw new Error('Respuesta inválida: la propiedad Series no está presente');
-    }
     return data.Series;
 
   } catch (error) {
@@ -45,9 +67,6 @@ export async function getInstancesBySeriesId(seriesId: string) {
 
     if (!response.ok) throw new Error(response.statusText);
     const data = await response.json();
-    if (!data) {
-      throw new Error('Respuesta inválida: datos no disponibles');
-    }
     return { Instances: data.Instances || [], mainDicomTags: data.MainDicomTags || {} };
 
   } catch (error) {
@@ -76,11 +95,7 @@ export async function sincronizarDatos() {
       }
     });
 
-    if (!response.ok) {
-      const errorMsg = `Error HTTP ${response.status}: ${response.statusText}`;
-      console.error('❌', errorMsg);
-      throw new Error(errorMsg);
-    }
+    if (!response.ok) throw new Error(response.statusText);
 
     const estudios: DicomStudy[] = await response.json();
     console.log(`📥 Descargados ${estudios.length} estudios. Guardando...`);
@@ -109,29 +124,10 @@ export async function sincronizarDatos() {
     console.log('✅ Sincronización completada con éxito.');
 
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Error desconocido en sincronización';
-    
-    // Detectar errores SSL comunes
-    if (error instanceof Error && error.cause) {
-      const cause = error.cause as { code?: string };
-      if (cause?.code === 'ERR_SSL_PACKET_LENGTH_TOO_LONG') {
-        console.error('❌ Error SSL detectado: El servidor Orthanc probablemente está usando HTTP pero la URL está configurada como HTTPS (o viceversa)');
-        console.error(`❌ Verifica que la URL de Orthanc (${ORTHANC_URL}) use el protocolo correcto (http:// o https://)`);
-        throw new Error(`Error de conexión SSL: Verifica que la URL de Orthanc use el protocolo correcto. URL actual: ${ORTHANC_URL}`);
-      }
-      console.error('❌ Causa del error:', error.cause);
-    }
-    
-    // Detectar errores de conexión
-    if (errorMessage.includes('fetch failed') || errorMessage.includes('ECONNREFUSED') || errorMessage.includes('ENOTFOUND')) {
-      console.error(`❌ Error de conexión: No se pudo conectar a Orthanc en ${ORTHANC_URL}`);
-      console.error('❌ Verifica que el servidor Orthanc esté en ejecución y accesible');
-    }
-    
-    console.error('❌ Error en sincronizarDatos:', errorMessage);
     throw error;
   }
 }
+
 
 /**
  * Función para obtener estudios desde la base de datos local

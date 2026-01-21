@@ -1,0 +1,285 @@
+---
+
+---
+
+<div id="share-modal" class="modal-overlay" aria-hidden="true">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="header-title">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+          <polyline points="16 6 12 2 8 6"></polyline>
+          <line x1="12" y1="2" x2="12" y2="15"></line>
+        </svg>
+        <h2>Compartir Estudio</h2>
+      </div>
+      <button id="share-modal-close" class="modal-close" aria-label="Cerrar">
+        &times;
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>Puedes compartir el enlace a este estudio copiándolo.</p>
+
+      <div class="share-options">
+        <div class="share-item">
+          <strong>Enlace directo:</strong>
+          <div class="link-display">
+            <input type="text" readonly id="share-link-input" />
+            <button id="copy-link-button" class="action-button">
+              Copiar
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <p class="copy-feedback" id="copy-feedback"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  const shareModal = document.getElementById("share-modal");
+  const closeModalButton = document.getElementById("share-modal-close");
+  const copyLinkButton = document.getElementById("copy-link-button");
+  const shareLinkInput = document.getElementById("share-link-input");
+  const copyFeedback = document.getElementById("copy-feedback");
+  const pdfFeedback = document.getElementById("pdf-feedback");
+  const shareurl = window.location.href.replace("viewer", "viewer-lite");
+  shareLinkInput.value = shareurl;
+
+  function openShareModal() {
+    shareModal.setAttribute("aria-hidden", "false");
+  }
+
+  function closeShareModal() {
+    shareModal.setAttribute("aria-hidden", "true");
+    if (copyFeedback) copyFeedback.textContent = "";
+    if (pdfFeedback) pdfFeedback.textContent = "";
+  }
+
+  closeModalButton?.addEventListener("click", closeShareModal);
+  shareModal?.addEventListener("click", (e) => {
+    if (e.target === shareModal) {
+      closeShareModal();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (
+      e.key === "Escape" &&
+      shareModal.getAttribute("aria-hidden") === "false"
+    ) {
+      closeShareModal();
+    }
+  });
+
+  document.getElementById("share-btn")?.addEventListener("click", () => {
+    openShareModal();
+  });
+
+  copyLinkButton?.addEventListener("click", async () => {
+    if (shareLinkInput && copyFeedback) {
+      try {
+        await navigator.clipboard.writeText(shareLinkInput.value);
+        copyFeedback.textContent = "¡Enlace copiado!";
+        copyFeedback.style.color = "#4CAF50";
+      } catch (err) {
+        console.error("Error al copiar el enlace:", err);
+        copyFeedback.textContent = "Error al copiar.";
+        copyFeedback.style.color = "#FF4444";
+      }
+      setTimeout(() => (copyFeedback.textContent = ""), 3000);
+    }
+  });
+</script>
+
+<style>
+  /* Estilos base del modal, similares a HelpModal */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.3s ease,
+      visibility 0.3s ease;
+  }
+
+  .modal-overlay[aria-hidden="false"] {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .modal-content {
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+  }
+
+  .modal-overlay[aria-hidden="false"] .modal-content {
+    transform: translateY(0);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background-color: #2a2a2a;
+    border-bottom: 1px solid #333;
+    color: #fff;
+  }
+
+  .modal-header .header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .modal-header h2 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #aaa;
+    cursor: pointer;
+    padding: 0 0.5rem;
+    line-height: 1;
+    transition: color 0.2s ease;
+  }
+
+  .modal-close:hover {
+    color: #fff;
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    color: #e0e0e0;
+    font-size: 0.95rem;
+  }
+
+  .modal-body p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+
+  .share-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .share-item strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    color: #fff;
+  }
+
+  .link-display {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .link-display input[type="text"] {
+    flex-grow: 1;
+    padding: 0.75rem;
+    border: 1px solid #444;
+    color: #0f0f0f;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-family: monospace;
+    cursor: text;
+  }
+
+  .action-button {
+    padding: 0.75rem 1rem;
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background-color 0.2s ease;
+  }
+
+  .action-button:hover {
+    background-color: #1d4ed8;
+  }
+
+  .copy-feedback,
+  .pdf-feedback {
+    font-size: 0.85rem;
+    height: 1.2em; /* Reserve space */
+    color: #4caf50; /* Green for success */
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .modal-content {
+      width: 95%;
+      margin: 1rem;
+    }
+    .modal-header h2 {
+      font-size: 1.25rem;
+    }
+    .modal-body {
+      padding: 1rem;
+    }
+    .share-options {
+      flex-direction: column;
+    }
+  }
+</style>

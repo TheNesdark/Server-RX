@@ -19,9 +19,7 @@ async function runSync() {
     try {
         await sincronizarDatos();
     } catch (error) {
-        // Log del error pero no lanzarlo para evitar que afecte el middleware
         console.error('❌ Error en sincronización:', error);
-        // No relanzar el error para que el middleware continúe funcionando
     } finally {
         globalState.isSyncing = false;
     }
@@ -44,8 +42,13 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
     // Permitir acceso a login, logout y recursos estáticos (favicon, css, js públicos)
     const isPublicAsset = url.pathname.startsWith('/_astro') || url.pathname.includes('.') || url.pathname === '/favicon.svg';
     const isAuthPage = url.pathname === '/login' || url.pathname === '/logout';
+    
+    // Permitir acceso al viewer lite y sus recursos de imagen sin sesión iniciada
+    // Se implementará validación por cédula dentro de la página viewer-lite
+    const isViewerLite = url.pathname.startsWith('/viewer-lite/');
+    const isLiteApi = url.pathname.startsWith('/api/orthanc/instances/') && (url.pathname.endsWith('/preview') || url.pathname.endsWith('/rendered'));
 
-    if (isPublicAsset || isAuthPage) {
+    if (isPublicAsset || isAuthPage || isViewerLite || isLiteApi) {
         return next();
     }
 

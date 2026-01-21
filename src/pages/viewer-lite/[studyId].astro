@@ -1,45 +1,89 @@
 ---
+// src/pages/viewer-lite/[studyId].astro
 import ThumbnailSidebar from "@/components/viewer/ThumbnailSidebar";
-import { getSeriesByStudyId, getInstancesBySeriesId } from "@/libs/orthanc/Orthanc";
+import { getSeriesByStudyId, getInstancesBySeriesId, GetDNIbyStudieID } from "@/libs/orthanc/Orthanc";
 import type { ThumbnailInfo } from "@/types";
 
 const { studyId } = Astro.params;
+
 if (!studyId) {
-  return Astro.redirect("/");
+  return new Response("No se proporcionó un ID de estudio", { status: 400 });
 }
 
-const seriesIds = await getSeriesByStudyId(studyId);
+// 1. Obtener la cedula del paciente
+const DNI = await GetDNIbyStudieID(studyId);
+if (!DNI) {
+  return new Response("Estudio no encontrado con ese DNI", { status: 404 });
+}
 
-// Pre-obtener la información para el Sidebar
-const seriesData: ThumbnailInfo[] = (
-  await Promise.all(
-    seriesIds.map(async (id: string) => {
-      try {
-        const { Instances, mainDicomTags } = await getInstancesBySeriesId(id);
+const cookieName = `auth_lite_${studyId}`;
+let isAuthorized = false;
+let errorMsg = "";
 
-        return {
-          id,
-          instances: Instances || [],
-          previewUrl:
-            Instances && Instances.length > 0
-              ? `/api/orthanc/instances/${Instances[0]}/preview?viewport=256`
-              : "/no-image.svg",
-          modality: mainDicomTags?.Modality || "N/A",
-          bodyPart: mainDicomTags?.BodyPartExamined || "N/A",
-        } as ThumbnailInfo;
-      } catch (error) {
-        console.error(`Error cargando serie ${id}:`, error);
-        return {
-          id,
-          instances: [],
-          previewUrl: "/no-image.svg",
-          modality: "Error",
-          bodyPart: "Error",
-        } as ThumbnailInfo;
-      }
-    }),
-  )
-).filter((series) => series.instances.length > 0);
+// 2. Manejar la validación (POST o Cookie)
+if (Astro.request.method === "POST") {
+  const formData = await Astro.request.formData();
+  const cedula = formData.get("cedula");
+  
+  if (cedula === DNI) {
+    Astro.cookies.set(cookieName, DNI, { 
+      path: `/viewer-lite/${studyId}`, 
+      maxAge: 60 * 60 * 4,
+      httpOnly: true,
+      sameSite: "strict",
+      secure: true,
+      domain: Astro.url.hostname,
+      expires: new Date(Date.now() + 60 * 60 * 4 * 1000),
+      encode: String
+    });
+
+    isAuthorized = true;
+  } else {
+    errorMsg = "La cédula ingresada no coincide con el estudio.";
+  }
+} else {
+  const authCookie = Astro.cookies.get(cookieName);
+  if (authCookie?.value === DNI ) {
+    isAuthorized = true;
+  }
+}
+
+// --- Lógica original del Viewer si está autorizado ---
+let seriesData: ThumbnailInfo[] = []; // Inicializar para evitar errores si no está autorizado
+
+if (isAuthorized) { // Solo obtener datos si está autorizado
+  const seriesIds = await getSeriesByStudyId(studyId);
+
+  seriesData = (
+    await Promise.all(
+      seriesIds.map(async (id: string) => {
+        try {
+          const { Instances, mainDicomTags } = await getInstancesBySeriesId(id);
+
+          return {
+            id,
+            instances: Instances || [],
+            previewUrl:
+              Instances && Instances.length > 0
+                ? `/api/orthanc/instances/${Instances[0]}/preview?viewport=256`
+                : "/no-image.svg",
+            modality: mainDicomTags?.Modality || "N/A",
+            bodyPart: mainDicomTags?.BodyPartExamined || "N/A",
+          } as ThumbnailInfo;
+        } catch (error) {
+          console.error(`Error cargando serie ${id}:`, error);
+          return {
+            id,
+            instances: [],
+            previewUrl: "/no-image.svg",
+            modality: "Error",
+            bodyPart: "Error",
+          } as ThumbnailInfo;
+        }
+      }),
+    )
+  ).filter((series) => series.instances.length > 0);
+}
 ---
 
 <!doctype html>
@@ -48,83 +92,84 @@ const seriesData: ThumbnailInfo[] = (
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DICOM Viewer Lite</title>
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
-    />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" />
   </head>
   <body>
-    <div class="viewer-container">
-      <!-- El Sidebar interactúa con el Store -->
-      <ThumbnailSidebar client:load series={seriesData} />
-      
-      <div class="main-viewer" id="viewer-viewport">
-        <!-- Loader opcional -->
-        <div id="loader" style="display: none; color: white;">Cargando...</div>
-        <img id="renderedImage" src="" alt="DICOM" style="display: none;" />
+    {!isAuthorized ? (
+      <div class="login-container">
+        <div class="login-box">
+          <h2>Acceso al Estudio</h2>
+          <p>Por favor, ingrese la cédula del paciente para ver las imágenes.</p>
+          <form method="POST">
+            <input 
+              type="text" 
+              name="cedula" 
+              placeholder="Cédula / ID de Paciente" 
+              required 
+              autofocus
+            />
+            {errorMsg && <p class="error">{errorMsg}</p>}
+            <button type="submit">Ver Estudio</button>
+          </form>
+        </div>
       </div>
-    </div>
+    ) : (
+      <div class="viewer-container">
+        <ThumbnailSidebar client:load series={seriesData} />
+        <div class="main-viewer" id="viewer-viewport">
+          <div id="loader" style="display: none; color: white;">Cargando...</div>
+          <img id="renderedImage" src="" alt="DICOM" style="display: none;" />
+        </div>
+      </div>
+    )}
 
-    <!-- Pasamos la data al cliente -->
-    <div id="series-metadata" data-series={JSON.stringify(seriesData)}></div>
+    {isAuthorized && (
+      <>
+        <div id="series-metadata" data-series={JSON.stringify(seriesData)}></div>
+        <script>
+          import { activeSeriesId } from '@/stores/dicomStore';
 
+          const renderedImage = document.getElementById('renderedImage') as HTMLImageElement;
+          const loader = document.getElementById('loader');
+          const seriesMetadataEl = document.getElementById('series-metadata');
+          const seriesData = seriesMetadataEl ? JSON.parse(seriesMetadataEl.dataset.series || '[]') : [];
 
-    <script>
-      import { activeSeriesId } from '@/stores/dicomStore';
-
-      const renderedImage = document.getElementById('renderedImage') as HTMLImageElement;
-      const loader = document.getElementById('loader');
-      const seriesMetadataEl = document.getElementById('series-metadata');
-      const seriesData = seriesMetadataEl ? JSON.parse(seriesMetadataEl.dataset.series || '[]') : [];
-
-      // Función para actualizar la imagen renderizada
-      async function updateRenderedImage(instanceId: string) {
-        if (!instanceId || !renderedImage) return;
-
-        // 1. Ocultar imagen anterior y mostrar loader
-        renderedImage.style.display = "none";
-        renderedImage.src = ""; // Limpiar memoria visual
-        if (loader) loader.style.display = "block";
-
-        // 2. Crear URL usando 'RENDERED' para alta calidad (DICOM Windowing real)
-        // Puedes ajustar quality=90 para comprimir un poco el JPEG transferido
-        const nuevaURL = `/api/orthanc/instances/${instanceId}/rendered?quality=90`;
-
-        // 3. Pre-cargar la imagen en memoria antes de mostrarla
-        const imgPreloader = new Image();
-        imgPreloader.onload = () => {
-            renderedImage.src = nuevaURL;
-            if (loader) loader.style.display = "none";
-            renderedImage.style.display = "block";
-        };
-        imgPreloader.onerror = () => {
-             console.error("Error cargando imagen");
-             if (loader) loader.style.display = "none";
-        }
-        imgPreloader.src = nuevaURL;
-      }
-
-      // Escuchar cambios en el Nano Store
-      activeSeriesId.subscribe((id) => {
-        if (id) {
-          const series = seriesData.find((s: any) => s.id === id);
-          if (series && series.instances && series.instances.length > 0) {
-            // Cargar la primera instancia de la serie seleccionada
-            updateRenderedImage(series.instances[0]);
+          async function updateRenderedImage(instanceId: string) {
+            if (!instanceId || !renderedImage) return;
+            renderedImage.style.display = "none";
+            if (loader) loader.style.display = "block";
+            const nuevaURL = `/api/orthanc/instances/${instanceId}/rendered?quality=90`;
+            const imgPreloader = new Image();
+            imgPreloader.onload = () => {
+                renderedImage.src = nuevaURL;
+                if (loader) loader.style.display = "none";
+                renderedImage.style.display = "block";
+            };
+            imgPreloader.onerror = () => {
+                 console.error("Error cargando imagen");
+                 if (loader) loader.style.display = "none";
+            }
+            imgPreloader.src = nuevaURL;
           }
-        }
-      });
 
-      // Inicializar si el store está vacío pero hay datos
-      // Nota: .get() es síncrono en Nano Stores
-      if (seriesData.length > 0 && !activeSeriesId.get()) {
-        activeSeriesId.set(seriesData[0].id);
-      }
-    </script>
+          activeSeriesId.subscribe((id) => {
+            if (id) {
+              const series = seriesData.find((s: any) => s.id === id);
+              if (series && series.instances && series.instances.length > 0) {
+                updateRenderedImage(series.instances[0]);
+              }
+            }
+          });
+
+          if (seriesData.length > 0 && !activeSeriesId.get()) {
+            activeSeriesId.set(seriesData[0].id);
+          }
+        </script>
+      </>
+    )}
 
     <style is:global>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      
       body {
         font-family: "Roboto", sans-serif;
         background: #0f0f0f;
@@ -134,27 +179,49 @@ const seriesData: ThumbnailInfo[] = (
         display: flex;
         flex-direction: column;
       }
-
-      .viewer-container {
-        display: flex;
-        flex: 1;
-        overflow: hidden;
-      }
-
-      .main-viewer {
-        flex: 1;
-        background: #000;
+      .login-container {
         display: flex;
         align-items: center;
         justify-content: center;
-        position: relative;
+        height: 100vh;
+        background: #000;
       }
-
-      #renderedImage {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain; /* Mantiene la proporción médica */
+      .login-box {
+        background: #1a1a1a;
+        padding: 2rem;
+        border-radius: 8px;
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+        border: 1px solid #333;
       }
+      .login-box h2 { margin-bottom: 1rem; }
+      .login-box p { margin-bottom: 1.5rem; color: #ccc; font-size: 0.9rem; }
+      .login-box input {
+        width: 100%;
+        padding: 0.8rem;
+        margin-bottom: 1rem;
+        background: #000;
+        border: 1px solid #444;
+        color: white;
+        border-radius: 4px;
+      }
+      .login-box button {
+        width: 100%;
+        padding: 0.8rem;
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .login-box button:hover { background: #1d4ed8; }
+      .error { color: #ff4444; font-size: 0.8rem; margin-bottom: 1rem; }
+      
+      .viewer-container { display: flex; flex: 1; overflow: hidden; }
+      .main-viewer { flex: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; }
+      #renderedImage { max-width: 100%; max-height: 100%; object-fit: contain; }
     </style>
   </body>
 </html>

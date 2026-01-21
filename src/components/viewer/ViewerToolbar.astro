@@ -205,6 +205,21 @@
     </div>
 
     <div class="toolbar-right">
+        <button class="tool-btn" title="Compartir" id="share-btn">
+            <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <span>Compartir</span>
+        </button>
         <button class="tool-btn" title="Ayuda" id="modal-open">
             <svg
                 width="20"
@@ -236,6 +251,15 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.getElementById("share-btn")?.addEventListener("click", () => {
+        const shareurl = window.location.href.replace("viewer", "viewer-lite")
+        navigator.clipboard.writeText(shareurl);
+    });
+</script>
+
+
 
 <style>
     .toolbar {

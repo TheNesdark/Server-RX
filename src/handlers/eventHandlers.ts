@@ -50,6 +50,10 @@ const handleShapeOptionClick = (app: App, drawBtn: HTMLElement, drawMenu: HTMLEl
     };
 };
 
+
+
+
+
 export function setupToolButtons(app: App): void {
     document.querySelectorAll(".tool-btn").forEach((btn) => {
         btn.addEventListener("click", function (this: HTMLElement) {

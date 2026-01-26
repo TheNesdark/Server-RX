@@ -5,14 +5,14 @@ import preact from '@astrojs/preact';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import vercel from '@astrojs/vercel';
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   output: 'server',
 
-  adapter: node({
-    mode: 'standalone',
-  }),
+  adapter: vercel(),
 
   vite: {
     resolve: {

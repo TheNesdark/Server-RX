@@ -12,6 +12,7 @@ if (!studyId) {
 
 // 1. Obtener la cedula del paciente
 const DNI = await GetDNIbyStudieID(studyId);
+
 if (!DNI) {
   return new Response("Estudio no encontrado con ese DNI", { status: 404 });
 }
@@ -25,13 +26,16 @@ if (Astro.request.method === "POST") {
   const formData = await Astro.request.formData();
   const cedula = formData.get("cedula");
   
-  if (cedula === DNI) {
+  const normalizedCedula = String(cedula).trim().toUpperCase();
+  const normalizedDNI = String(DNI).trim().toUpperCase();
+
+  if (normalizedCedula === normalizedDNI) {
     Astro.cookies.set(cookieName, DNI, { 
       path: `/viewer-lite/${studyId}`, 
       maxAge: 60 * 60 * 4,
       httpOnly: true,
       sameSite: "strict",
-      secure: true,
+      secure: import.meta.env.PROD,
       domain: Astro.url.hostname,
       expires: new Date(Date.now() + 60 * 60 * 4 * 1000),
       encode: String

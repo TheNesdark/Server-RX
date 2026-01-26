@@ -2,35 +2,31 @@ import type { APIRoute } from 'astro';
 import { ORTHANC_URL, ORTHANC_AUTH } from '@/config/orthanc';
 
 export const GET: APIRoute = async ({ params, url }) => {
-  if (!params?.instanceId) {
-    return new Response(JSON.stringify({ error: 'instanceId es requerido' }), { 
-      status: 400,
-      headers: { 'Content-Type': 'application/json' }
-    });
+  const instanceid = params.instanceId;
+
+  if (!instanceid) {
+    return new Response("Se requiere un instanceID", { status: 400 });
   }
 
-  const viewport = url.searchParams.get('viewport') || '256';
-
   try {
-    const response = await fetch(`${ORTHANC_URL}/instances/${params.instanceId}/preview?viewport=${viewport}`, {
+    const response = await fetch(`${ORTHANC_URL}/instances/${instanceid}/preview`, {
       headers: { 'Authorization': ORTHANC_AUTH }
     });
     
     if (!response.ok) {
-      return new Response(null, { status: response.status });
+      throw new Error(response.statusText);
     }
     
     const data = await response.arrayBuffer();
-    const contentType = response.headers.get('content-type') || 'image/jpeg';
     
     return new Response(data, {
       headers: { 
-        'Content-Type': contentType,
+        'Content-Type': 'image/jpeg',
         'Cache-Control': 'public, max-age=86400'
       }
     });
   } catch (error) {
     console.error('Error en API preview:', error);
-    return new Response(null, { status: 500 });
+    return new Response("Error en la api", { status: 500 });
   }
 };

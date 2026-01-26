@@ -2,32 +2,22 @@ import type { APIRoute } from 'astro';
 import { ORTHANC_URL, ORTHANC_AUTH } from '@/config/orthanc';
 
 export const GET: APIRoute = async ({ params }) => {
-  if (!params?.studyId) {
-    return new Response(JSON.stringify({ error: 'studyId es requerido' }), { 
-      status: 400,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
+  const studyID = params.studyId
 
+  if (!studyID) { 
+    return new Response("Se requiere un studyID", { status: 400 });
+  }
   try {
-    const response = await fetch(`${ORTHANC_URL}/studies/${params.studyId}`, {
+    const response = await fetch(`${ORTHANC_URL}/studies/${studyID}`, {
       headers: { 'Authorization': ORTHANC_AUTH }
     });
     
     if (!response.ok) {
-      return new Response(null, { status: response.status });
+      throw new Error(response.statusText)
     }
     
-    let data;
-    try {
-      data = await response.json();
-    } catch (jsonError) {
-      console.error('Error parseando JSON en API studies:', jsonError);
-      return new Response(JSON.stringify({ error: 'Respuesta inválida del servidor' }), { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
+    const data = await response.json();
+
     return new Response(JSON.stringify(data), {
       headers: { 
         'Content-Type': 'application/json',
@@ -35,8 +25,7 @@ export const GET: APIRoute = async ({ params }) => {
       }
     });
   } catch (error) {
-    const studyId = params?.studyId || 'desconocido';
-    console.error(`Error en API studies ${studyId}:`, error);
-    return new Response(null, { status: 500 });
+    console.error(`Error en API studies ${studyID}:`, error);
+    return new Response("Error en la api", { status: 500 });
   }
 };

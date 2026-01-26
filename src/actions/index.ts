@@ -1,6 +1,8 @@
 import { createToken } from '@/libs/auth/auth';
 import { defineAction, ActionError } from 'astro:actions';
+import { ADMIN_PASSWORD, ADMIN_USERNAME } from '@/config/orthanc'
 import { z } from 'astro:schema';
+
 
 export const server = {
   login: defineAction({
@@ -13,9 +15,6 @@ export const server = {
     handler: async (input, context) => {
       const { cookies } = context;
       const { username, password } = input;
-      
-      const ADMIN_USERNAME = import.meta.env.ADMIN_USERNAME || 'admin';
-      const ADMIN_PASSWORD = import.meta.env.ADMIN_PASSWORD || 'admin123';
 
       if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
         const token = await createToken({ username });

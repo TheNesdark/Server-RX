@@ -4,24 +4,23 @@ import ThumbnailSidebar from "@/components/viewer/ThumbnailSidebar";
 import { getSeriesByStudyId, getInstancesBySeriesId, GetDNIbyStudieID } from "@/libs/orthanc/Orthanc";
 import type { ThumbnailInfo } from "@/types";
 
+// 1. Obtener el studyId de los parámetros de la URL
 const { studyId } = Astro.params;
-
 if (!studyId) {
   return new Response("No se proporcionó un ID de estudio", { status: 400 });
 }
 
-// 1. Obtener la cedula del paciente
+// 2. Obtener la cedula del paciente de ese estudio
 const DNI = await GetDNIbyStudieID(studyId);
-
 if (!DNI) {
-  return new Response("Estudio no encontrado con ese DNI", { status: 404 });
+  return new Response("No existe ese estudio", { status: 404 });
 }
 
+// 3. Manejar la autenticación mediante cookie y formulario
 const cookieName = `auth_lite_${studyId}`;
 let isAuthorized = false;
 let errorMsg = "";
 
-// 2. Manejar la validación (POST o Cookie)
 if (Astro.request.method === "POST") {
   const formData = await Astro.request.formData();
   const cedula = formData.get("cedula");
@@ -35,10 +34,7 @@ if (Astro.request.method === "POST") {
       maxAge: 60 * 60 * 4,
       httpOnly: true,
       sameSite: "strict",
-      secure: import.meta.env.PROD,
-      domain: Astro.url.hostname,
-      expires: new Date(Date.now() + 60 * 60 * 4 * 1000),
-      encode: String
+      secure: import.meta.env.PROD
     });
 
     isAuthorized = true;
@@ -52,41 +48,42 @@ if (Astro.request.method === "POST") {
   }
 }
 
-// --- Lógica original del Viewer si está autorizado ---
-let seriesData: ThumbnailInfo[] = []; // Inicializar para evitar errores si no está autorizado
+// 4. Si está autorizado, obtener los datos de las series e instancias
 
-if (isAuthorized) { // Solo obtener datos si está autorizado
+const createErrorSeries = (id: string): ThumbnailInfo => ({
+  id,
+  instances: [],
+  previewUrl: "/no-image.svg",
+  modality: "Error",
+  bodyPart: "Error",
+});
+
+const fetchSeriesData = async (seriesId: string): Promise<ThumbnailInfo> => {
+  try {
+    const { Instances = [], mainDicomTags } = await getInstancesBySeriesId(seriesId);
+    const hasInstances = Instances.length > 0;
+
+    return {
+      id: seriesId,
+      instances: Instances,
+      previewUrl: hasInstances
+        ? `/api/orthanc/instances/${Instances[0]}/preview`
+        : "/no-image.svg",
+      modality: mainDicomTags?.Modality ?? "N/A",
+      bodyPart: mainDicomTags?.BodyPartExamined ?? "N/A",
+    };
+  } catch (error) {
+    console.error(`[Viewer-Lite] Error cargando serie ${seriesId}:`, error);
+    return createErrorSeries(seriesId);
+  }
+};
+
+let seriesData: ThumbnailInfo[] = [];
+
+if (isAuthorized) {
   const seriesIds = await getSeriesByStudyId(studyId);
-
-  seriesData = (
-    await Promise.all(
-      seriesIds.map(async (id: string) => {
-        try {
-          const { Instances, mainDicomTags } = await getInstancesBySeriesId(id);
-
-          return {
-            id,
-            instances: Instances || [],
-            previewUrl:
-              Instances && Instances.length > 0
-                ? `/api/orthanc/instances/${Instances[0]}/preview?viewport=256`
-                : "/no-image.svg",
-            modality: mainDicomTags?.Modality || "N/A",
-            bodyPart: mainDicomTags?.BodyPartExamined || "N/A",
-          } as ThumbnailInfo;
-        } catch (error) {
-          console.error(`Error cargando serie ${id}:`, error);
-          return {
-            id,
-            instances: [],
-            previewUrl: "/no-image.svg",
-            modality: "Error",
-            bodyPart: "Error",
-          } as ThumbnailInfo;
-        }
-      }),
-    )
-  ).filter((series) => series.instances.length > 0);
+  const allSeries = await Promise.all(seriesIds.map(fetchSeriesData));
+  seriesData = allSeries.filter((series) => series.instances.length > 0);
 }
 ---
 

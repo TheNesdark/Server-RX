@@ -29,13 +29,8 @@ export async function GET(request: Request) {
         'Content-Type': 'application/json'
       }
     });
-  } catch (error: unknown) {
+  } catch (error) {
     console.error('Error en la búsqueda de estudios:', error);
-    return new Response(JSON.stringify({ error: 'Error en la búsqueda de estudios' }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    return new Response("Error en la api", { status: 500});
   }
 }

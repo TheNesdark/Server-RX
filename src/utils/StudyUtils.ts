@@ -1,6 +1,5 @@
 import type { Study, FormattedStudy } from "@/types";
 
-
 export function FormatStudy(study: Study): FormattedStudy {
     const patientName = study.patientName
         ? study.patientName.replace(/[^\p{L}0-9\s]/gu, ' ').trim()
@@ -9,14 +8,16 @@ export function FormatStudy(study: Study): FormattedStudy {
     let studyDate = "Fecha Desconocida";
     if (study.studyDate && study.studyDate.length === 8) {
         try {
-            const year = study.studyDate.substring(0, 4);
-            const month = study.studyDate.substring(4, 6);
-            const day = study.studyDate.substring(6, 8);
+            const year = parseInt(study.studyDate.substring(0, 4));
+            const month = parseInt(study.studyDate.substring(4, 6));
+            const day = parseInt(study.studyDate.substring(6, 8));
             
-            if (year && month && day && 
-                parseInt(month) >= 1 && parseInt(month) <= 12 &&
-                parseInt(day) >= 1 && parseInt(day) <= 31) {
-                studyDate = `${year}/${month}/${day}`;
+            // Validar con Date
+            const dateObj = new Date(year, month - 1, day);
+            if (dateObj.getFullYear() === year && 
+                dateObj.getMonth() === month - 1 && 
+                dateObj.getDate() === day) {
+                studyDate = `${year}/${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}`;
             }
         } catch (error) {
             console.warn('Error parsing study date:', study.studyDate, error);
@@ -48,7 +49,7 @@ export function base64Encode(str: string): string {
     throw new Error('No se puede codificar en base64: btoa y Buffer no están disponibles');
   }
 
-  export function formatCountdown(exp: number) {
+export function formatCountdown(exp: number) {
     const now = Math.floor(Date.now() / 1000);
     const timeLeft = exp - now;
   
@@ -63,4 +64,6 @@ export function base64Encode(str: string): string {
     return [hours, minutes, seconds]
       .map(v => v.toString().padStart(2, "0"))
       .join(":");
-  }
+
+
+}

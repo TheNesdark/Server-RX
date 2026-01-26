@@ -63,17 +63,7 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
         return redirect('/login');
     }
 
-    let payload;
-    try {
-        payload = await verifyToken(authToken);
-    } catch (err) {
-        console.error('❌ Error verificando token:', err);
-        cookies.delete('auth_token', { path: '/' });
-        if (url.pathname.startsWith('/api/')) {
-            return new Response(JSON.stringify({ error: 'Sesión inválida' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
-        }
-        return redirect('/login?error=invalid');
-    }
+    const payload = await verifyToken(authToken);
 
     if (!payload) {
         cookies.delete('auth_token', { path: '/' });

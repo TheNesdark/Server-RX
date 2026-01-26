@@ -22,8 +22,8 @@ export async function GetDNIbyStudieID(studyId: string) {
    return data.PatientMainDicomTags?.PatientID;
 
  } catch (error) {
-
-   throw error;
+    console.log("Error al obtener el DNI", error)
+    return null
  }
 }
 
@@ -47,7 +47,8 @@ export async function getSeriesByStudyId(studyId: string) {
     return data.Series;
 
   } catch (error) {
-    throw error;
+    console.log("Error al obtener las series", error)
+    throw new Error("Error al obtener las series");
   }
 }
 
@@ -66,11 +67,13 @@ export async function getInstancesBySeriesId(seriesId: string) {
     });
 
     if (!response.ok) throw new Error(response.statusText);
+
     const data = await response.json();
     return { Instances: data.Instances || [], mainDicomTags: data.MainDicomTags || {} };
 
   } catch (error) {
-    throw error;
+    console.log("Error al obtener las instancias", error)
+    throw new Error("Error al obtener las instancias")
   }
 }
 
@@ -124,7 +127,7 @@ export async function sincronizarDatos() {
     console.log('✅ Sincronización completada con éxito.');
 
   } catch (error) {
-    throw error;
+    console.log("Error al sincronizar los datos:", error);
   }
 }
 

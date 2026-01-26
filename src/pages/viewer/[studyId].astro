@@ -10,7 +10,9 @@ import styles from "@/styles/ViewerPage.module.css";
 import "@/styles/ViewerPage.global.css";
 
 const { studyId } = Astro.params;
-if (!studyId) {
+// Validar formato UUID o alfanumérico
+const validIdPattern = /^[a-zA-Z0-9-]+$/;
+if (!studyId || !validIdPattern.test(studyId)) {
   return Astro.redirect("/");
 }
 

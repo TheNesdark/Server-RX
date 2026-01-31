@@ -2,7 +2,7 @@
 
 ---
 
-<div id="share-modal" class="modal-overlay" aria-hidden="true">
+<div id="share-modal" class="modal-overlay">
   <div class="modal-content">
     <div class="modal-header">
       <div class="header-title">
@@ -22,97 +22,164 @@
         </svg>
         <h2>Compartir Estudio</h2>
       </div>
-      <button id="share-modal-close" class="modal-close" aria-label="Cerrar">
-        &times;
-      </button>
+      <div class="header-actions">
+        <button id="share-modal-print" class="modal-print" aria-label="Imprimir">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+          </svg>
+        </button>
+        <button id="share-modal-close" class="modal-close" aria-label="Cerrar">
+          &times;
+        </button>
+      </div>
     </div>
     <div class="modal-body">
-      <p>Puedes compartir el enlace a este estudio copiándolo.</p>
-
       <div class="share-options">
-        <div class="share-item">
-          <strong>Enlace directo:</strong>
-          <div class="link-display">
-            <input type="text" readonly id="share-link-input" />
-            <button id="copy-link-button" class="action-button">
-              Copiar
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path
-                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
-                ></path>
-              </svg>
-            </button>
+        <div class="share-card" id="printable-card">
+          <div class="card-content-wrapper">
+            <div class="card-side qr-side">
+              <span class="card-link-label">Escanee este QR</span>
+              <canvas id="qr-canvas"></canvas>
+            </div>
+            <div class="card-divider">
+              <span class="divider-line"></span>
+            </div>
+            <div class="card-side link-side">
+              <span class="card-link-label">o ingrese a este link</span>
+              <div class="url-display">
+                <code id="share-card-url-text">Cargando enlace...</code>
+              </div>
+            </div>
           </div>
-          <p class="copy-feedback" id="copy-feedback"></p>
         </div>
       </div>
     </div>
-  </div>
 </div>
 
-<script type="module">
+<script>
+  import qrcode from "qrcode";
+  import printJS from "print-js";
   const shareModal = document.getElementById("share-modal");
   const closeModalButton = document.getElementById("share-modal-close");
-  const copyLinkButton = document.getElementById("copy-link-button");
-  const shareLinkInput = document.getElementById("share-link-input");
-  const copyFeedback = document.getElementById("copy-feedback");
-  const pdfFeedback = document.getElementById("pdf-feedback");
+  const printModalButton = document.getElementById("share-modal-print");
+  const shareCardUrlText = document.getElementById("share-card-url-text");
+  const qrCanvas = document.getElementById("qr-canvas") as HTMLCanvasElement;
+  
   const shareurl = window.location.href.replace("viewer", "viewer-lite");
-  shareLinkInput.value = shareurl;
+  if (shareCardUrlText) shareCardUrlText.textContent = shareurl;
 
-  function openShareModal() {
-    shareModal.setAttribute("aria-hidden", "false");
-  }
-
-  function closeShareModal() {
-    shareModal.setAttribute("aria-hidden", "true");
-    if (copyFeedback) copyFeedback.textContent = "";
-    if (pdfFeedback) pdfFeedback.textContent = "";
-  }
-
-  closeModalButton?.addEventListener("click", closeShareModal);
-  shareModal?.addEventListener("click", (e) => {
-    if (e.target === shareModal) {
-      closeShareModal();
-    }
-  });
-
-  document.addEventListener("keydown", (e) => {
-    if (
-      e.key === "Escape" &&
-      shareModal.getAttribute("aria-hidden") === "false"
-    ) {
-      closeShareModal();
-    }
-  });
-
-  document.getElementById("share-btn")?.addEventListener("click", () => {
-    openShareModal();
-  });
-
-  copyLinkButton?.addEventListener("click", async () => {
-    if (shareLinkInput && copyFeedback) {
-      try {
-        await navigator.clipboard.writeText(shareLinkInput.value);
-        copyFeedback.textContent = "¡Enlace copiado!";
-        copyFeedback.style.color = "#4CAF50";
-      } catch (err) {
-        console.error("Error al copiar el enlace:", err);
-        copyFeedback.textContent = "Error al copiar.";
-        copyFeedback.style.color = "#FF4444";
+  // Generar QR
+  if (qrCanvas) {
+    qrcode.toCanvas(qrCanvas, shareurl, {
+      width: 140,
+      margin: 1,
+      color: {
+        dark: "#000000",
+        light: "#ffffff"
       }
-      setTimeout(() => (copyFeedback.textContent = ""), 3000);
+    }, (error) => {
+      if (error) console.error("Error al generar QR:", error);
+    });
+  }
+
+  closeModalButton?.addEventListener("click", () => {
+    if (shareModal) {
+      shareModal.classList.remove('active');
     }
+  });
+
+  // Cerrar al hacer clic fuera del contenido
+  window.addEventListener("click", (event) => {
+    if (event.target === shareModal) {
+      shareModal?.classList.remove("active");
+    }
+  });
+
+  // Cerrar con tecla Escape
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && shareModal?.classList.contains("active")) {
+      shareModal?.classList.remove("active");
+    }
+  });
+
+  printModalButton?.addEventListener("click", () => {
+    printJS({
+      printable: 'printable-card',
+      type: 'html',
+      style: `
+        @page { size: auto; margin: 0mm; }
+        #printable-card { 
+          padding: 60px; 
+          background: white !important; 
+          font-family: system-ui, -apple-system, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+        }
+        .card-content-wrapper { 
+          display: flex !important; 
+          flex-direction: row !important;
+          align-items: flex-start !important; 
+          justify-content: center !important; 
+          gap: 40px !important;
+          margin-top: 20px !important;
+        }
+        .card-side { 
+          flex: 1 !important; 
+          display: flex !important; 
+          flex-direction: column !important; 
+          align-items: center !important;
+          text-align: center !important;
+        }
+        .card-link-label { 
+          display: block !important;
+          font-size: 12px !important; 
+          font-weight: 700 !important; 
+          color: #666 !important; 
+          text-transform: uppercase !important; 
+          letter-spacing: 0.05em !important;
+          margin-bottom: 20px !important;
+        }
+        .qr-side canvas { 
+          display: block !important;
+          border: 1px solid #eee !important; 
+          width: 160px !important; 
+          height: 160px !important;
+          border-radius: 4px !important;
+        }
+        .card-divider { 
+          display: block !important;
+          border-left: 1px dashed #ccc !important; 
+          height: 180px !important; 
+          margin: 0 10px !important;
+        }
+        .url-display { 
+          display: block !important;
+          background-color: #f3f4f6 !important; 
+          border: 1px solid #e5e7eb !important; 
+          padding: 15px !important; 
+          border-radius: 8px !important; 
+          color: #4b5563 !important; 
+          font-family: monospace !important; 
+          font-size: 13px !important; 
+          word-break: break-all !important; 
+          line-height: 1.5 !important;
+          width: 100% !important;
+        }
+        .divider-line { display: none !important; }
+      `,
+      scanStyles: false
+    });
   });
 </script>
 
@@ -125,38 +192,28 @@
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
+    display: none;
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition:
-      opacity 0.3s ease,
-      visibility 0.3s ease;
   }
 
-  .modal-overlay[aria-hidden="false"] {
-    opacity: 1;
-    visibility: visible;
+  .modal-overlay.active {
+    display: flex;
   }
 
   .modal-content {
-    background-color: #1e1e1e;
-    border-radius: 8px;
-    width: 90%;
+    background-color: #ffffff;
+    border-radius: 12px;
+    width: 95%;
     max-width: 600px;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     transform: translateY(-20px);
     transition: transform 0.3s ease;
-  }
-
-  .modal-overlay[aria-hidden="false"] .modal-content {
-    transform: translateY(0);
   }
 
   .modal-header {
@@ -164,28 +221,52 @@
     justify-content: space-between;
     align-items: center;
     padding: 1rem 1.5rem;
-    background-color: #2a2a2a;
-    border-bottom: 1px solid #333;
-    color: #fff;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    color: #1a1a1a;
   }
 
   .modal-header .header-title {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    color: #1a1a1a;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .modal-print {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+
+  .modal-print:hover {
+    color: #1a1a1a;
+    transform: scale(1.1);
   }
 
   .modal-header h2 {
-    font-size: 1.5rem;
-    font-weight: 500;
+    font-size: 1.25rem;
+    font-weight: 600;
     margin: 0;
   }
 
   .modal-close {
     background: none;
     border: none;
-    font-size: 2rem;
-    color: #aaa;
+    font-size: 1.75rem;
+    color: #999;
     cursor: pointer;
     padding: 0 0.5rem;
     line-height: 1;
@@ -193,93 +274,144 @@
   }
 
   .modal-close:hover {
-    color: #fff;
+    color: #1a1a1a;
   }
 
   .modal-body {
     padding: 1.5rem;
     overflow-y: auto;
-    color: #e0e0e0;
-    font-size: 0.95rem;
-  }
-
-  .modal-body p {
-    margin-bottom: 1rem;
-    line-height: 1.6;
+    color: #1a1a1a;
   }
 
   .share-options {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-    margin-top: 1.5rem;
   }
 
-  .share-item strong {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-size: 1.1rem;
-    color: #fff;
+  /* Estilos de la Tarjeta */
+  .share-card {
+    background: #ffffff;
+    padding: 1rem;
+    color: #1a1a1a;
+    position: relative;
   }
 
-  .link-display {
+  .card-content-wrapper {
     display: flex;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .link-display input[type="text"] {
-    flex-grow: 1;
-    padding: 0.75rem;
-    border: 1px solid #444;
-    color: #0f0f0f;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    font-family: monospace;
-    cursor: text;
-  }
-
-  .action-button {
-    padding: 0.75rem 1rem;
-    background-color: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: bold;
-    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    transition: background-color 0.2s ease;
+    justify-content: center;
+    gap: 2rem;
   }
 
-  .action-button:hover {
-    background-color: #1d4ed8;
+  .card-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  .copy-feedback,
-  .pdf-feedback {
-    font-size: 0.85rem;
-    height: 1.2em; /* Reserve space */
-    color: #4caf50; /* Green for success */
+  .qr-side canvas {
+    max-width: 140px;
+    height: auto !important;
+    border-radius: 4px;
+    border: 1px solid #eee;
+  }
+
+  .card-divider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 120px;
+    justify-content: center;
+  }
+
+  .divider-line {
+    width: 0;
+    border-left: 1px dashed #ccc;
+    height: 100%;
+  }
+
+  .link-side {
     text-align: center;
-    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+    max-width: 300px;
   }
 
-  @media (max-width: 768px) {
-    .modal-content {
-      width: 95%;
-      margin: 1rem;
+  .card-link-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+  }
+
+  .url-display {
+    color: #4b5563;
+    background-color: #f3f4f6;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.9rem;
+    word-break: break-all;
+    font-weight: 500;
+    border: 1px solid #e5e7eb;
+    width: 100%;
+    text-align: center;
+  }
+
+  .url-display code {
+    color: inherit;
+  }
+
+  /* Impresión */
+  @media print {
+    body * {
+      visibility: hidden;
     }
-    .modal-header h2 {
-      font-size: 1.25rem;
+    #share-modal, #share-modal * {
+      visibility: hidden;
     }
-    .modal-body {
-      padding: 1rem;
+    #printable-card, #printable-card * {
+      visibility: visible;
     }
-    .share-options {
+    #printable-card {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 12cm;
+      height: 6cm;
+      border: 1px solid #eee;
+      box-shadow: none;
+      visibility: visible;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay {
+      background: none;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .card-content-wrapper {
       flex-direction: column;
+    }
+    .card-divider {
+      flex-direction: row;
+      height: auto;
+      width: 100%;
+      margin: 1.5rem 0;
+    }
+    .divider-line {
+      height: 0;
+      width: 100%;
+      border-top: 1px dashed #ccc;
+      border-left: none;
     }
   }
 </style>

@@ -254,8 +254,10 @@
 
 <script>
     document.getElementById("share-btn")?.addEventListener("click", () => {
-        const shareurl = window.location.href.replace("viewer", "viewer-lite")
-        navigator.clipboard.writeText(shareurl);
+        const shareModal = document.getElementById("share-modal");
+        if (shareModal) {
+            shareModal.classList.add('active');
+        }
     });
 </script>
 

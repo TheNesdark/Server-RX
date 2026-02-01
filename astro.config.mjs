@@ -1,25 +1,14 @@
 // Force reload
 import { defineConfig } from 'astro/config';
-import node from '@astrojs/node';
 import preact from '@astrojs/preact';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-import vercel from '@astrojs/vercel';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+import node from '@astrojs/node';
 
 export default defineConfig({
   output: 'server',
-
-  adapter: vercel(),
-
+  adapter: node({
+    mode: 'standalone',
+  }),
   vite: {
-    resolve: {
-      alias: {
-        "@": path.resolve(__dirname, "./src"),
-      },
-    },
     build: {
       rollupOptions: {
         output: {
@@ -32,5 +21,7 @@ export default defineConfig({
     },
   },
 
-  integrations: [preact()],
+  integrations: [
+    preact()
+  ],
 });

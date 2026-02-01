@@ -1,4 +1,4 @@
-import type { Study, FormattedStudy } from "@/types";
+import type { Study, FormattedStudy, DicomStudy } from "@/types";
 
 export function FormatStudy(study: Study): FormattedStudy {
     const patientName = study.patientName
@@ -24,6 +24,18 @@ export function FormatStudy(study: Study): FormattedStudy {
         }
     }
 
+    let modality = "OT"; // Default to Other
+    if (study.json_completo) {
+        try {
+            const json: DicomStudy = JSON.parse(study.json_completo);
+            if (json.MainDicomTags?.ModalitiesInStudy) {
+                modality = json.MainDicomTags.ModalitiesInStudy;
+            }
+        } catch (e) {
+            console.error("Error parsing json_completo for study", study.id, e);
+        }
+    }
+
     return {
         id: study.id,
         patientName,
@@ -31,7 +43,7 @@ export function FormatStudy(study: Study): FormattedStudy {
         patientSex: study.patientSex || "Sexo Desconocido",
         institution: study.institutionName || "Institución Desconocida",
         studyDate,
-        modality: study.description || "Sin descripción",
+        modality,
     };
 };
 

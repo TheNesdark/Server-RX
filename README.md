@@ -1,51 +1,75 @@
 # Visualizador de Estudios DICOM (vdcom-hlm)
 
-Este es un visor de estudios DICOM desarrollado con Astro, Preact y TypeScript. Permite cargar y visualizar imágenes médicas en formato DICOM.
+Aplicación web moderna para la visualización y gestión de estudios médicos DICOM, integrando un servidor PACS **Orthanc** con una interfaz rápida construida en **Astro** y **Preact**.
 
-## 🚀 Estructura del Proyecto
+## 🚀 Características
 
-Dentro de este proyecto Astro, encontrarás la siguiente estructura de carpetas y archivos:
+*   **Integración con Orthanc:** Sincronización automática de metadatos desde servidor PACS.
+*   **Visor DICOM Avanzado:** Basado en `dwv` con herramientas de manipulación (Zoom, Pan, Niveles de ventana).
+*   **Modo Lite:** Visor ligero para acceso rápido a imágenes renderizadas (JPEG).
+*   **Búsqueda Rápida:** Base de datos local (SQLite) para consultas instantáneas de pacientes y estudios.
+*   **Seguridad:** Sistema de autenticación JWT y control de acceso granular por estudio.
 
-```text
-/
-├── public/               # Assets estáticos (imágenes, scripts)
-├── dist/                 # Directorio de build de producción
-├── src/
-│   ├── components/       # Componentes Astro/Preact reutilizables
-│   ├── layouts/          # Layouts base de Astro
-│   ├── libs/             # Librerías y utilidades (BD, Orthanc)
-│   ├── pages/            # Páginas y rutas de la aplicación
-│   │   ├── api/          # Endpoints de API
-│   │   └── viewer/       # Página del visor
-│   ├── stores/           # Manejo de estado con Nanostores
-│   └── styles/           # Estilos CSS
-├── package.json          # Dependencias y scripts del proyecto
-└── studies.db            # Base de datos SQLite para los estudios
-```
+## 🛠️ Configuración del Entorno
+
+1.  Copia el archivo de ejemplo:
+    ```bash
+    cp .env.example .env
+    ```
+
+2.  Configura las variables de entorno en `.env`:
+    ```ini
+    ORTHANC_URL=http://tu-servidor-orthanc:8042
+    ORTHANC_USERNAME=usuario
+    ORTHANC_PASSWORD=contraseña
+    ADMIN_USERNAME=admin
+    ADMIN_PASSWORD=secreto
+    JWT_SECRET=tu_clave_secreta_jwt
+    CRON_SECRET=secreto_para_cron_jobs
+    ```
 
 ## 🧞 Comandos
 
-Todos los comandos se ejecutan desde la raíz del proyecto, en una terminal:
-
 | Comando | Acción |
-| :------------------------ | :----------------------------------------------- |
-| `npm install` | Instala las dependencias del proyecto. |
-| `npm run dev` | Inicia el servidor de desarrollo local en `localhost:4321`. |
-| `npm run build` | Compila el sitio de producción en el directorio `./dist/`. |
-| `npm run preview` | Previsualiza la compilación localmente antes de desplegar. |
-| `npm run astro ...` | Ejecuta comandos de la CLI de Astro como `astro add`, `astro check`. |
+| :--- | :--- |
+| `npm install` | Instala dependencias. |
+| `npm run dev` | Inicia servidor de desarrollo en `localhost:4321`. |
+| `npm run build` | Compila la aplicación para producción (Node.js standalone). |
+| `npm run preview` | Previsualiza la compilación localmente. |
 
-## 👀 Funcionalidades Principales
+## 🔄 Sincronización de Datos
 
-*   **Visualización de estudios DICOM:** Carga y muestra imágenes DICOM.
-*   **Herramientas de visualización:** Incluye herramientas como Zoom, Pan, y Scroll entre slices.
-*   **Lista de estudios:** Permite navegar y buscar entre los estudios disponibles.
-*   **Base de datos local:** Utiliza SQLite para almacenar información de los estudios.
+La aplicación mantiene una base de datos local (`studies.db`) sincronizada con Orthanc para mejorar el rendimiento.
 
-## 📚 Librerías Utilizadas
+*   **Endpoint de Sincronización:** `GET /api/tasks/sync`
+*   **Automatización:** Configurado para **Vercel Cron** (diario a las 00:00).
+*   **Seguridad del Cron:** Protegido mediante header `Authorization: Bearer <CRON_SECRET>`.
 
-*   **Astro:** Framework de desarrollo web.
-*   **Preact:** Librería para construir interfaces de usuario.
-*   **DWV (DICOM Web Viewer):** Librería para la visualización y manipulación de imágenes DICOM.
-*   **better-sqlite3:** Driver para la base de datos SQLite.
-*   **Nanostores:** Para el manejo de estado.
+## 📂 Estructura del Proyecto
+
+```text
+/
+├── public/               # Assets estáticos
+├── src/
+│   ├── components/       # Componentes UI (Modales, Listas, Toolbar)
+│   ├── config/           # Configuración (Orthanc, DB)
+│   ├── hooks/            # Hooks personalizados (useDicomViewer)
+│   ├── libs/             # Lógica de negocio (Auth, Sync, Orthanc Client)
+│   ├── pages/            # Rutas (Viewer, API endpoints, Login)
+│   │   ├── api/          # Proxy APIs para Orthanc
+│   │   └── viewer/       # Rutas del visor principal y lite
+│   └── styles/           # CSS Global y Módulos
+├── studies.db            # Cache local SQLite
+└── astro.config.mjs      # Configuración Astro (Node Adapter)
+```
+
+## 📦 Despliegue
+
+El proyecto está configurado para ejecutarse como un servidor **Node.js** independiente (`standalone`).
+
+```bash
+npm run build
+node ./dist/server/entry.mjs
+```
+
+Si usas Vercel, el archivo `vercel.json` configura las tareas programadas (Cron Jobs) y redirecciones de túnel para desarrollo local.

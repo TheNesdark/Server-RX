@@ -68,6 +68,7 @@
 </div>
 
 <script>
+  // @ts-ignore
   import qrcode from "qrcode";
   import printJS from "print-js";
   const shareModal = document.getElementById("share-modal");
@@ -88,7 +89,7 @@
         dark: "#000000",
         light: "#ffffff"
       }
-    }, (error) => {
+    }, (error: any) => {
       if (error) console.error("Error al generar QR:", error);
     });
   }

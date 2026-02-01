@@ -10,11 +10,11 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
     const isAuthPage = url.pathname === '/login' || url.pathname === '/logout';
     
     // Permitir acceso al viewer lite y sus recursos de imagen sin sesión iniciada
-    // Se implementará validación por cédula dentro de la página viewer-lite
     const isViewerLite = url.pathname.startsWith('/viewer-lite/');
     const isLiteApi = url.pathname.startsWith('/api/orthanc/instances/') && (url.pathname.endsWith('/preview') || url.pathname.endsWith('/rendered'));
+    const isCronTask = url.pathname === '/api/tasks/sync';
 
-    if (isPublicAsset || isAuthPage || isViewerLite || isLiteApi) {
+    if (isPublicAsset || isAuthPage || isViewerLite || isLiteApi || isCronTask) {
         return next();
     }
 

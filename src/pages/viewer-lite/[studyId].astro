@@ -1,7 +1,7 @@
 ---
 // src/pages/viewer-lite/[studyId].astro
 import ThumbnailSidebar from "@/components/viewer/ThumbnailSidebar";
-import { getSeriesByStudyId, getInstancesBySeriesId, GetDNIbyStudieID } from "@/libs/orthanc/Orthanc";
+import { getSeriesByStudyId, getInstancesBySeriesId, GetDNIbyStudyID } from "@/libs/orthanc/Orthanc";
 import type { ThumbnailInfo } from "@/types";
 
 // 1. Obtener el studyId de los parámetros de la URL
@@ -11,7 +11,7 @@ if (!studyId) {
 }
 
 // 2. Obtener la cedula del paciente de ese estudio
-const DNI = await GetDNIbyStudieID(studyId);
+const DNI = await GetDNIbyStudyID(studyId);
 if (!DNI) {
   return new Response("No existe ese estudio", { status: 404 });
 }

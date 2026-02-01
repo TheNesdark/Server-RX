@@ -57,6 +57,8 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
             return;
         }
 
+        let ignore = false;
+
         let targetPage = currentPage;
         // Si el término de búsqueda cambió, reseteamos a la página 1 inmediatamente
         if (searchTerm !== prevSearchTerm.current) {
@@ -71,13 +73,16 @@ export function useStudies({ initialStudies, initialTotal, initialCurrentPage }:
 
         debounceTimer.current = window.setTimeout(async () => {
             try {
-                await performSearch(searchTerm, targetPage);
+                if (!ignore) {
+                    await performSearch(searchTerm, targetPage);
+                }
             } catch (error) {
                 console.error('Error in debounced search:', error);
             }
         }, DEBOUNCE_DELAY);
 
         return () => {
+            ignore = true;
             if (debounceTimer.current) clearTimeout(debounceTimer.current);
         };
     }, [searchTerm, currentPage]);

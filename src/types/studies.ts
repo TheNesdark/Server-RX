@@ -6,6 +6,7 @@ export interface Study {
     institutionName: string;
     studyDate: string;
     description: string;
+    json_completo?: string;
 }
 
 export interface FormattedStudy {

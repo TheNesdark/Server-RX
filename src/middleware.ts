@@ -1,40 +1,6 @@
-import { sincronizarDatos } from './libs/orthanc/Orthanc';
+
 import type { MiddlewareHandler } from 'astro';
 import { verifyToken } from '@/libs/auth/auth';
-
-// Estado global para evitar re-inicializaciones por HMR en desarrollo
-interface GlobalSyncState {
-    isSyncing?: boolean;
-    isSyncJobScheduled?: boolean;
-}
-
-const globalState = (globalThis as any) as GlobalSyncState;
-
-const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000;
-
-// Función que ejecuta la sincronización de forma segura
-async function runSync() {
-    if (globalState.isSyncing) return;
-    globalState.isSyncing = true;
-    try {
-        await sincronizarDatos();
-    } catch (error) {
-        console.error('❌ Error en sincronización:', error);
-    } finally {
-        globalState.isSyncing = false;
-    }
-}
-
-if (!globalState.isSyncJobScheduled) {
-    try {
-        globalState.isSyncing = false;
-        runSync().catch(e => console.error('❌ Error en sincronización inicial:', e));
-        setInterval(() => runSync().catch(e => console.error('❌ Error en sincronización periódica:', e)), TWENTY_FOUR_HOURS_IN_MS);
-        globalState.isSyncJobScheduled = true;
-    } catch (error) {
-        console.error('❌ Error configurando sincronización automática:', error);
-    }
-}
 
 export const onRequest: MiddlewareHandler = async (context, next) => {
     const { url, cookies, redirect } = context;

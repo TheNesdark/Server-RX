@@ -8,7 +8,7 @@ import { ORTHANC_URL, ORTHANC_AUTH } from '@/config/orthanc';
 * @param studyId 
 * @returns
 */
-export async function GetDNIbyStudieID(studyId: string) {
+export async function GetDNIbyStudyID(studyId: string) {
  try {
    const response = await fetch(`${ORTHANC_URL}/studies/${studyId}`, {
      method: 'GET',
@@ -78,61 +78,6 @@ export async function getInstancesBySeriesId(seriesId: string) {
 }
 
 /**
- * Funciones de Base de Datos Local y Sincronización
- */
-export async function sincronizarDatos() {
-  console.log('🔄 Iniciando sincronización diaria...');
-
-  // Validar formato de URL (ORTHANC_URL ya está validado en orthanc.ts)
-  try {
-    const url = new URL(ORTHANC_URL);
-    console.log(`📍 Conectando a Orthanc: ${url.protocol}//${url.host}`);
-  } catch (urlError) {
-    throw new Error(`URL de Orthanc inválida: ${ORTHANC_URL}. Debe ser una URL válida (ej: http://localhost:8042)`);
-  }
-
-  try {
-    const response = await fetch(`${ORTHANC_URL}/studies?expand`, {
-      headers: {
-        'Authorization': ORTHANC_AUTH,
-      }
-    });
-
-    if (!response.ok) throw new Error(response.statusText);
-
-    const estudios: DicomStudy[] = await response.json();
-    console.log(`📥 Descargados ${estudios.length} estudios. Guardando...`);
-
-    const insert = db.prepare(`
-      INSERT OR REPLACE INTO studies (id, patient_name, patient_id, patient_sex, institution_name, study_date, description, json_completo)
-      VALUES (@id, @name, @pid, @sex, @iname, @date, @desc, @json)
-    `);
-
-    const transaction = db.transaction((lista: DicomStudy[]) => {
-      for (const est of lista) {
-        insert.run({
-          id: sanitizeString(est.ID, 64),
-          name: sanitizeString(est.PatientMainDicomTags?.PatientName, 255) || 'Sin Nombre',
-          pid: sanitizeString(est.PatientMainDicomTags?.PatientID, 64),
-          sex: sanitizeString(est.PatientMainDicomTags?.PatientSex, 10) || 'Desconocido',
-          iname: sanitizeString(est.MainDicomTags?.InstitutionName, 255) || 'Desconocido',
-          date: sanitizeString(est.MainDicomTags?.StudyDate, 10),
-          desc: sanitizeString(est.MainDicomTags?.StudyDescription, 255) || 'DX',
-          json: JSON.stringify(est)
-        });
-      }
-    });
-
-    transaction(estudios);
-    console.log('✅ Sincronización completada con éxito.');
-
-  } catch (error) {
-    console.log("Error al sincronizar los datos:", error);
-  }
-}
-
-
-/**
  * Función para obtener estudios desde la base de datos local
  * @param limit 
  * @param offset 
@@ -153,7 +98,8 @@ export async function obtenerEstudios(limit: number, offset: number = 0, searchT
         patient_sex as patientSex, 
         institution_name as institutionName, 
         study_date as studyDate, 
-        description 
+        description,
+        json_completo
       FROM studies
     `;
     const searchClause = ' WHERE patient_name LIKE ? OR patient_id LIKE ? OR description LIKE ? OR institution_name LIKE ?';

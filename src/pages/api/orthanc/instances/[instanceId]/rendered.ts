@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { ORTHANC_URL, ORTHANC_AUTH } from '@/config/orthanc';
-import { verifyToken } from '@/libs/auth/auth';
+import { ORTHANC_URL, ORTHANC_AUTH } from '@/config';
+import { verifyToken } from '@/libs/auth';
 
 export const GET: APIRoute = async ({ params, cookies }) => {
     const instanceid = params.instanceId;

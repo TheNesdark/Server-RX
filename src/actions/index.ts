@@ -1,6 +1,6 @@
-import { createToken } from '@/libs/auth/auth';
+import { createToken } from '@/libs/auth';
 import { defineAction, ActionError } from 'astro:actions';
-import { ADMIN_PASSWORD, ADMIN_USERNAME } from '@/config/orthanc'
+import { ADMIN_PASSWORD, ADMIN_USERNAME, PROD} from '@/config'
 import { z } from 'astro:schema';
 
 
@@ -22,7 +22,7 @@ export const server = {
         cookies.set('auth_token', token, {
           path: '/',
           httpOnly: true,
-          secure: import.meta.env.PROD,
+          secure: PROD,
           sameSite: 'strict',
           maxAge: 60 * 60 * 24
         });

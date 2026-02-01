@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { ORTHANC_URL, ORTHANC_AUTH } from '@/config/orthanc';
+import { ORTHANC_URL, ORTHANC_AUTH } from '@/config';
 
 export const GET: APIRoute = async ({ params, url }) => {
   const instanceid = params.instanceId;

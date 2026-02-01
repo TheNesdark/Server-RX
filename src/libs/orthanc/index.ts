@@ -1,7 +1,7 @@
-import db from '../db/db';
-import type { DicomStudy } from '../../types';
-import { sanitizeString } from '@/utils';
-import { ORTHANC_URL, ORTHANC_AUTH } from '@/config/orthanc';
+import db from '../db';
+import type { DicomStudy } from '#/types';
+import { sanitizeString } from '#/utils';
+import { ORTHANC_URL, ORTHANC_AUTH } from '#/config';
 
 /**
 * Funcion para obtener la cédula del paciente a partir del ID del estudio	
@@ -76,6 +76,52 @@ export async function getInstancesBySeriesId(seriesId: string) {
     throw new Error("Error al obtener las instancias")
   }
 }
+
+
+
+export async function sincronizarDatos() {
+  console.log('🔄 Iniciando sincronización diaria...');
+
+  try {
+    const response = await fetch(`${ORTHANC_URL}/studies?expand`, {
+      headers: {
+        'Authorization': ORTHANC_AUTH,
+      }
+    });
+
+    if (!response.ok) throw new Error(response.statusText);
+
+    const estudios: DicomStudy[] = await response.json();
+    console.log(`📥 Descargados ${estudios.length} estudios. Guardando...`);
+
+    const insert = db.prepare(`
+      INSERT OR REPLACE INTO studies (id, patient_name, patient_id, patient_sex, institution_name, study_date, description, json_completo)
+      VALUES (@id, @name, @pid, @sex, @iname, @date, @desc, @json)
+    `);
+
+    const transaction = db.transaction((lista: DicomStudy[]) => {
+      for (const est of lista) {
+        insert.run({
+          id: est.ID,
+          name: est.PatientMainDicomTags?.PatientName && est.PatientMainDicomTags?.PatientName.substring(0, 255) || 'Sin Nombre',
+          pid: est.PatientMainDicomTags?.PatientID && est.PatientMainDicomTags?.PatientID.substring(0, 64),
+          sex: est.PatientMainDicomTags?.PatientSex && est.PatientMainDicomTags?.PatientSex.substring(0, 10) || 'Desconocido',
+          iname: est.MainDicomTags?.InstitutionName && est.MainDicomTags?.InstitutionName.substring(0, 255) || 'Desconocido',
+          date: est.MainDicomTags?.StudyDate && est.MainDicomTags?.StudyDate.substring(0, 10),
+          desc: est.MainDicomTags?.StudyDescription && est.MainDicomTags?.StudyDescription.substring(0, 255) || 'DX',
+          json: JSON.stringify(est)
+        });
+      }
+    });
+
+    transaction(estudios);
+    console.log('✅ Sincronización diaria completada exitosamente.');
+
+  } catch (error) {
+    console.error('❌ Error durante la sincronización diaria:', error);
+  }
+}
+
 
 /**
  * Función para obtener estudios desde la base de datos local

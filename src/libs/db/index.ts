@@ -5,15 +5,13 @@ import { fileURLToPath } from "url";
 let db: Database.Database;
 
 try {
-    // Usar import.meta.url para obtener la ruta del módulo actual (más confiable en Astro)
-    // Fallback a process.cwd() si import.meta.url no está disponible
     let dbPath: string;
     try {
         const __filename = fileURLToPath(import.meta.url);
         const __dirname = path.dirname(__filename);
         // Ir hacia arriba desde src/libs/db hasta la raíz del proyecto
         dbPath = path.join(__dirname, '../../../', "studies.db");
-    } catch {
+    } catch (error) {
         // Fallback para entornos sin import.meta.url
         dbPath = path.join(process.cwd(), "studies.db");
     }

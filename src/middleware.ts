@@ -1,6 +1,6 @@
 
 import type { MiddlewareHandler } from 'astro';
-import { verifyToken } from '@/libs/auth/auth';
+import { verifyToken } from '@/libs/auth';
 
 export const onRequest: MiddlewareHandler = async (context, next) => {
     const { url, cookies, redirect } = context;

@@ -1,7 +1,8 @@
 ---
 // src/pages/viewer-lite/[studyId].astro
 import ThumbnailSidebar from "@/components/viewer/ThumbnailSidebar";
-import { getSeriesByStudyId, getInstancesBySeriesId, GetDNIbyStudyID } from "@/libs/orthanc/Orthanc";
+import { getSeriesByStudyId, getInstancesBySeriesId, GetDNIbyStudyID } from "@/libs/orthanc"
+import { PROD } from "@/config";
 import type { ThumbnailInfo } from "@/types";
 
 // 1. Obtener el studyId de los parámetros de la URL
@@ -34,7 +35,7 @@ if (Astro.request.method === "POST") {
       maxAge: 60 * 60 * 4,
       httpOnly: true,
       sameSite: "strict",
-      secure: import.meta.env.PROD
+      secure: PROD
     });
 
     isAuthorized = true;

@@ -9,11 +9,8 @@
     "dev": "astro dev",
     "dev:ngrok": "concurrently -n \"astro,ngrok\" -c \"blue,green\" \"npm run dev\" \"node scripts/ngrok.mjs\"",
     "build": "astro build",
-    "build:exe": "node scripts/build-exe.mjs",
     "preview": "astro preview",
     "astro": "astro",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage"
   },
   "dependencies": {
@@ -32,7 +29,6 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.6",
-    "@rollup/wasm-node": "^4.57.1",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node-cron": "^3.0.11",
     "concurrently": "^9.2.1",

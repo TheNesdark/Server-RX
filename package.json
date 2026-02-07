@@ -7,11 +7,10 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "dev:ngrok": "concurrently -n \"astro,ngrok\" -c \"blue,green\" \"npm run dev\" \"node scripts/ngrok.mjs\"",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "test:coverage": "vitest --coverage"
+    "compile": "node scripts/build-exe.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^9.5.2",

@@ -30,6 +30,7 @@ A diferencia de versiones anteriores, el proyecto ya **no depende de variables d
 | `npm install` | Instala las dependencias del proyecto. |
 | `npm run dev` | Inicia el servidor de desarrollo en `localhost:4321`. |
 | `npm run build` | Compila la aplicación para producción (Node.js standalone). |
+| `npm run build:exe` | Genera un ejecutable portable en la carpeta `build/`. |
 | `npm run preview` | Previsualiza la versión compilada localmente. |
 
 ## 🔄 Sincronización de Datos
@@ -61,11 +62,31 @@ La aplicación mantiene una base de datos local para mejorar el rendimiento de l
 
 ## 📦 Despliegue
 
-Para desplegar en un entorno de producción con Node.js:
+### Opción A: Con Node.js instalado
 
 ```bash
 npm run build
 node ./dist/server/entry.mjs
 ```
+
+### Opción B: Ejecutable portable (.exe)
+
+Genera un `.exe` auto-contenido que no requiere Node.js instalado en la máquina destino:
+
+```bash
+npm run build:exe
+```
+
+Esto crea una carpeta `build/` portable con la siguiente estructura:
+
+```text
+build/
+├── server-rx.exe      # Ejecutable (doble-click para iniciar)
+├── dist/              # Servidor y assets compilados
+├── node_modules/      # Dependencias de producción
+└── config.json        # Configuración del sistema
+```
+
+Copia la carpeta `build/` completa a cualquier PC con Windows y ejecuta `server-rx.exe`.
 
 Asegúrate de que el puerto configurado esté abierto y que el archivo `config.json` tenga las rutas correctas para el entorno de destino.

@@ -1,0 +1,10 @@
+{
+  "JWT_SECRET": "your-secret-key-here-jhjkhjkkjhjkhjkhkhkjk",
+  "ORTHANC_URL": "http://localhost:8042",
+  "ORTHANC_USERNAME": "orthanc",
+  "ORTHANC_PASSWORD": "orthanc-password",
+  "ADMIN_USERNAME": "admin",
+  "ADMIN_PASSWORD": "admin-password",
+  "DB_PATH": "studies.db",
+  "PROD": false
+}

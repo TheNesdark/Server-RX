@@ -1,29 +1,12 @@
 import Database from "better-sqlite3";
-import path from "path";
-import { fileURLToPath } from "url";
+import { DB_PATH } from "@/config";
 
 let db: Database.Database;
 
 try {
-    let dbPath;
-
-    const isCompiled = !import.meta.url.includes('src'); 
-
-    if (isCompiled) {
-        // Si es el .exe, ponemos la DB justo al lado del archivo ejecutable
-        const exeDir = path.dirname(process.execPath);
-        dbPath = path.join(exeDir, "studies.db");
-    } else {
-        // Si es desarrollo, usamos la ruta relativa tradicional
-        const __filename = fileURLToPath(import.meta.url);
-        const __dirname = path.dirname(__filename);
-        // Ajusta los ../ según qué tan profundo esté este archivo en src/
-        dbPath = path.join(__dirname, "../../", "studies.db"); 
-    }
-
-    console.log("Conectando base de datos en:", dbPath);
+    console.log("Conectando base de datos en:", DB_PATH);
     
-    db = new Database(dbPath);
+    db = new Database(DB_PATH);
     
     // Configuración recomendada para mejor rendimiento en SQLite
     db.pragma('journal_mode = WAL');

@@ -4,72 +4,68 @@ Aplicación web moderna para la visualización y gestión de estudios médicos D
 
 ## 🚀 Características
 
-*   **Integración con Orthanc:** Sincronización automática de metadatos desde servidor PACS.
+*   **Integración con Orthanc:** Conexión directa con servidores PACS Orthanc.
+*   **Gestión Dinámica:** Configuración total del sistema desde el panel administrativo sin editar archivos manuales.
 *   **Visor DICOM Avanzado:** Basado en `dwv` con herramientas de manipulación (Zoom, Pan, Niveles de ventana).
-*   **Modo Lite:** Visor ligero para acceso rápido a imágenes renderizadas (JPEG).
-*   **Búsqueda Rápida:** Base de datos local (SQLite) para consultas instantáneas de pacientes y estudios.
-*   **Seguridad:** Sistema de autenticación JWT y control de acceso granular por estudio.
+*   **Modo Lite:** Visor ligero optimizado para acceso rápido a imágenes renderizadas (JPEG) mediante validación de DNI de paciente.
+*   **Búsqueda Rápida:** Base de datos local (SQLite) sincronizada para consultas instantáneas de pacientes y estudios.
+*   **Seguridad:** Sistema de autenticación JWT para administración y control de acceso por estudio para pacientes.
 
-## 🛠️ Configuración del Entorno
+## 🛠️ Configuración del Sistema
 
-1.  Copia el archivo de ejemplo:
-    ```bash
-    cp .env.example .env
-    ```
+A diferencia de versiones anteriores, el proyecto ya **no depende de variables de entorno (.env)** para su funcionamiento base. Toda la configuración se gestiona a través del archivo `config.json`.
 
-2.  Configura las variables de entorno en `.env`:
-    ```ini
-    ORTHANC_URL=http://tu-servidor-orthanc:8042
-    ORTHANC_USERNAME=usuario
-    ORTHANC_PASSWORD=contraseña
-    ADMIN_USERNAME=admin
-    ADMIN_PASSWORD=secreto
-    JWT_SECRET=tu_clave_secreta_jwt
-    CRON_SECRET=secreto_para_cron_jobs
-    ```
+1.  **Primer Inicio:** El sistema creará un archivo `config.json` por defecto si no existe.
+2.  **Panel Administrativo:** Accede a la ruta `/configuracion` dentro de la aplicación para editar:
+    *   URL y credenciales del Servidor Orthanc.
+    *   Credenciales del Usuario Administrador.
+    *   JWT Secret para la seguridad de sesiones.
+    *   Ruta personalizada de la base de datos SQLite.
+    *   Modo Producción (HTTPS/Secure Cookies).
 
 ## 🧞 Comandos
 
 | Comando | Acción |
 | :--- | :--- |
-| `npm install` | Instala dependencias. |
-| `npm run dev` | Inicia servidor de desarrollo en `localhost:4321`. |
+| `npm install` | Instala las dependencias del proyecto. |
+| `npm run dev` | Inicia el servidor de desarrollo en `localhost:4321`. |
 | `npm run build` | Compila la aplicación para producción (Node.js standalone). |
-| `npm run preview` | Previsualiza la compilación localmente. |
+| `npm run preview` | Previsualiza la versión compilada localmente. |
 
 ## 🔄 Sincronización de Datos
 
-La aplicación mantiene una base de datos local (`studies.db`) sincronizada con Orthanc para mejorar el rendimiento.
+La aplicación mantiene una base de datos local para mejorar el rendimiento de las búsquedas.
 
-*   **Endpoint de Sincronización:** `GET /api/tasks/sync`
-*   **Automatización:** Configurado para **Vercel Cron** (diario a las 00:00).
-*   **Seguridad del Cron:** Protegido mediante header `Authorization: Bearer <CRON_SECRET>`.
+*   **Sincronización Manual:** Disponible desde el botón "Sincronizar" en el panel de **Configuración**.
+*   **Automatización:** La sincronización descarga los metadatos de todos los estudios disponibles en Orthanc y los indexa en el archivo local definido en la configuración (por defecto `studies.db`).
 
 ## 📂 Estructura del Proyecto
 
 ```text
 /
+├── config.json           # CONFIGURACIÓN ACTIVA (No subir a Git)
 ├── public/               # Assets estáticos
 ├── src/
-│   ├── components/       # Componentes UI (Modales, Listas, Toolbar)
-│   ├── config/           # Configuración (Orthanc, DB)
-│   ├── hooks/            # Hooks personalizados (useDicomViewer)
-│   ├── libs/             # Lógica de negocio (Auth, Sync, Orthanc Client)
-│   ├── pages/            # Rutas (Viewer, API endpoints, Login)
-│   │   ├── api/          # Proxy APIs para Orthanc
-│   │   └── viewer/       # Rutas del visor principal y lite
-│   └── styles/           # CSS Global y Módulos
-├── studies.db            # Cache local SQLite
-└── astro.config.mjs      # Configuración Astro (Node Adapter)
+│   ├── actions/          # Acciones de servidor (Login, Config, Sync)
+│   ├── components/       # Componentes UI (Estudios, Visores, Modales)
+│   ├── config/           # Lógica de lectura/escritura de config.json
+│   ├── libs/             # Clientes de base de datos y Orthanc
+│   ├── pages/            # Rutas de la App y Endpoints de API
+│   │   ├── api/          # APIs protegidas de Orthanc y Tareas
+│   │   ├── viewer/       # Visor DICOM completo
+│   │   └── viewer-lite/  # Visor JPEG rápido para pacientes
+│   └── utils/            # Utilidades de seguridad y formato
+├── tsconfig.json         # Configuración de TypeScript y Alias (@/*)
+└── astro.config.mjs      # Configuración de Astro (Node.js SSR)
 ```
 
 ## 📦 Despliegue
 
-El proyecto está configurado para ejecutarse como un servidor **Node.js** independiente (`standalone`).
+Para desplegar en un entorno de producción con Node.js:
 
 ```bash
 npm run build
 node ./dist/server/entry.mjs
 ```
 
-Si usas Vercel, el archivo `vercel.json` configura las tareas programadas (Cron Jobs) y redirecciones de túnel para desarrollo local.
+Asegúrate de que el puerto configurado esté abierto y que el archivo `config.json` tenga las rutas correctas para el entorno de destino.

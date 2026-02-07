@@ -11,6 +11,8 @@ node_modules/
 vscode
 idx
 studies.db
+.db-shm
+.db-wal
 
 # logs
 npm-debug.log*

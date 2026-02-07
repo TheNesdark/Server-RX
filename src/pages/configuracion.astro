@@ -1,0 +1,370 @@
+---
+import Layout from "@/layouts/layout.astro";
+import { actions } from "astro:actions";
+import { readConfig } from "@/config";
+
+const updateResult = Astro.getActionResult(actions.updateConfig);
+const updateError = updateResult?.error?.message;
+const updateSuccess = (updateResult?.data as any)?.success;
+
+const syncResult = Astro.getActionResult(actions.syncNow);
+const syncError = syncResult?.error?.message;
+const syncSuccess = (syncResult?.data as any)?.success;
+const syncTotal = (syncResult?.data as any)?.total;
+
+const config = readConfig();
+---
+
+<Layout title="Configuración">
+    <main class="config-page">
+        <section class="panel">
+            <header class="header">
+                <h1>Configuración</h1>
+                <p class="subtitle">
+                    Edita la configuración del servidor (se guarda en <span
+                        class="mono">config.json</span
+                    >). Algunos cambios pueden requerir reiniciar el servidor.
+                </p>
+            </header>
+
+            {
+                updateSuccess && (
+                    <div class="notice success">
+                        Configuración guardada. Si cambiaste credenciales o JWT,
+                        reinicia el servidor.
+                    </div>
+                )
+            }
+            {updateError && <div class="notice error">{updateError}</div>}
+
+            {
+                syncSuccess && (
+                    <div class="notice success">
+                        Sincronización completada
+                        {typeof syncTotal === "number"
+                            ? `: ${syncTotal} estudios.`
+                            : "."}
+                    </div>
+                )
+            }
+            {syncError && <div class="notice error">{syncError}</div>}
+
+            <form method="POST" action={actions.updateConfig} class="form">
+                <div class="grid">
+                    <div class="field">
+                        <label for="ORTHANC_URL">ORTHANC_URL</label>
+                        <input
+                            id="ORTHANC_URL"
+                            name="ORTHANC_URL"
+                            required
+                            type="url"
+                            value={config.ORTHANC_URL}
+                            placeholder="http://localhost:8042"
+                        />
+                    </div>
+
+                    <div class="field">
+                        <label for="ADMIN_USERNAME">ADMIN_USERNAME</label>
+                        <input
+                            id="ADMIN_USERNAME"
+                            name="ADMIN_USERNAME"
+                            type="text"
+                            value={config.ADMIN_USERNAME}
+                        />
+                    </div>
+
+                    <div class="field">
+                        <label for="ORTHANC_USERNAME">ORTHANC_USERNAME</label>
+                        <input
+                            id="ORTHANC_USERNAME"
+                            name="ORTHANC_USERNAME"
+                            required
+                            type="text"
+                            value={config.ORTHANC_USERNAME}
+                            autocomplete="username"
+                        />
+                    </div>
+
+                    <div class="field">
+                        <label for="JWT_SECRET">JWT_SECRET</label>
+                        <input
+                            id="JWT_SECRET"
+                            name="JWT_SECRET"
+                            type="password"
+                            minlength="32"
+                            placeholder="Deja en blanco para mantener"
+                        />
+                        <p class="help">
+                            Mínimo 32 caracteres. No se muestra el valor actual.
+                        </p>
+                    </div>
+
+                    <div class="field">
+                        <label for="ORTHANC_PASSWORD">ORTHANC_PASSWORD</label>
+                        <input
+                            id="ORTHANC_PASSWORD"
+                            name="ORTHANC_PASSWORD"
+                            type="password"
+                            autocomplete="current-password"
+                            placeholder="Deja en blanco para mantener"
+                        />
+                        <p class="help">
+                            Actualmente: {
+                                config.ORTHANC_PASSWORD
+                                    ? "configurada"
+                                    : "no configurada"
+                            }
+                        </p>
+                    </div>
+
+                    <div class="field">
+                        <label for="ADMIN_PASSWORD">ADMIN_PASSWORD</label>
+                        <input
+                            id="ADMIN_PASSWORD"
+                            name="ADMIN_PASSWORD"
+                            type="password"
+                            placeholder="Deja en blanco para mantener"
+                        />
+                        <p class="help">No se muestra el valor actual.</p>
+                    </div>
+
+                    <div class="field checkbox">
+                        <label class="checkbox-label" for="PROD">
+                            <input
+                                id="PROD"
+                                name="PROD"
+                                type="checkbox"
+                                checked={config.PROD}
+                            />
+                            <span>PROD (cookies secure, etc.)</span>
+                        </label>
+                        <p class="help">
+                            Activa esto solo si sirves sobre HTTPS.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="submit">Guardar</button>
+                </div>
+            </form>
+
+            <div class="divider" role="separator" aria-hidden="true"></div>
+
+            <div class="sync">
+                <h2>Sincronización</h2>
+                <p class="subtitle">
+                    Dispara la sincronización manual con Orthanc y actualiza la
+                    base de datos local.
+                </p>
+                <form method="POST" action={actions.syncNow} class="sync-form">
+                    <button type="submit">Sincronizar ahora</button>
+                </form>
+            </div>
+        </section>
+    </main>
+</Layout>
+
+<style>
+    .config-page {
+        padding: 24px;
+        background: var(--bg-light);
+        min-height: 100vh;
+        width: 100%;
+        overflow-y: auto;
+    }
+
+    .panel {
+        max-width: 980px;
+        margin: 0 auto;
+        background: white;
+        border: 1px solid var(--sidebar-border);
+        border-radius: 18px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .header {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 18px;
+    }
+
+    h1 {
+        font-size: 22px;
+        letter-spacing: -0.02em;
+        margin: 0;
+        color: var(--text-main);
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .subtitle {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 14px;
+    }
+
+    .mono {
+        font-family:
+            ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+            "Liberation Mono", "Courier New", monospace;
+    }
+
+    .notice {
+        border-radius: 14px;
+        padding: 12px 14px;
+        margin-bottom: 14px;
+        border: 1px solid transparent;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .notice.success {
+        background: #ecfdf5;
+        border-color: #10b981;
+        color: #059669;
+    }
+
+    .notice.error {
+        background: #fef2f2;
+        border-color: #ef4444;
+        color: #dc2626;
+    }
+
+    .form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    label {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin: 0;
+        padding: 0;
+        display: block;
+    }
+
+    input {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--sidebar-border);
+        background: white;
+        color: var(--text-main);
+        font-size: 14px;
+        transition: border-color 0.2s;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: var(--hospital-green);
+        box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.15);
+    }
+
+    .help {
+        margin: 0;
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .field.checkbox {
+        grid-column: 1 / -1;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-transform: none;
+        letter-spacing: normal;
+        color: var(--text-main);
+    }
+
+    .checkbox-label input {
+        width: 18px;
+        height: 18px;
+        padding: 0;
+    }
+
+    .actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .divider {
+        height: 1px;
+        background: var(--sidebar-border);
+        margin: 18px 0;
+        opacity: 0.5;
+    }
+
+    .sync {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .sync h2 {
+        font-size: 16px;
+        margin: 0;
+        color: var(--text-main);
+        letter-spacing: -0.01em;
+        font-weight: 700;
+    }
+
+    .sync-form {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    button {
+        padding: 12px 24px;
+        border-radius: 12px;
+        border: none;
+        background: var(--hospital-green);
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    button:hover {
+        background: var(--hospital-green-hover);
+    }
+
+    @media (max-width: 780px) {
+        .panel {
+            padding: 18px;
+        }
+
+        .grid {
+            grid-template-columns: 1fr;
+        }
+
+        .actions {
+            justify-content: stretch;
+        }
+
+        button {
+            width: 100%;
+        }
+    }
+</style>

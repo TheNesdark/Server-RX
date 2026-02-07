@@ -116,9 +116,11 @@ export async function sincronizarDatos() {
 
     transaction(estudios);
     console.log('✅ Sincronización diaria completada exitosamente.');
+    return estudios.length;
 
   } catch (error) {
     console.error('❌ Error durante la sincronización diaria:', error);
+    throw error;
   }
 }
 

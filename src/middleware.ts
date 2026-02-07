@@ -9,12 +9,12 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
     const isPublicAsset = url.pathname.startsWith('/_astro') || url.pathname.includes('.') || url.pathname === '/favicon.svg';
     const isAuthPage = url.pathname === '/login' || url.pathname === '/logout';
     
-    // Permitir acceso al viewer lite y sus recursos de imagen sin sesión iniciada
+    // Permitir acceso al viewer lite y sus recursos de imagen sin sesión iniciada (el handler validará el acceso lite)
     const isViewerLite = url.pathname.startsWith('/viewer-lite/');
-    const isLiteApi = url.pathname.startsWith('/api/orthanc/instances/') && (url.pathname.endsWith('/preview') || url.pathname.endsWith('/rendered'));
+    const isOrthancApi = url.pathname.startsWith('/api/orthanc/');
     const isCronTask = url.pathname === '/api/tasks/sync';
 
-    if (isPublicAsset || isAuthPage || isViewerLite || isLiteApi || isCronTask) {
+    if (isPublicAsset || isAuthPage || isViewerLite || isOrthancApi || isCronTask) {
         return next();
     }
 

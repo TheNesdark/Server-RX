@@ -31,7 +31,7 @@ if (Astro.request.method === "POST") {
 
   if (normalizedCedula === normalizedDNI) {
     Astro.cookies.set(cookieName, DNI, { 
-      path: `/viewer-lite/${studyId}`, 
+      path: "/", 
       maxAge: 60 * 60 * 4,
       httpOnly: true,
       sameSite: "strict",
@@ -154,7 +154,7 @@ if (isAuthorized) {
             imgPreloader.src = nuevaURL;
           }
 
-          activeSeriesId.subscribe((id) => {
+          activeSeriesId.subscribe((id: string) => {
             if (id) {
               const series = seriesData.find((s: any) => s.id === id);
               if (series && series.instances && series.instances.length > 0) {

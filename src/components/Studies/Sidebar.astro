@@ -187,7 +187,7 @@ const pathname = new URL(Astro.request.url).pathname;
 <style>
     /* 1. Layout Principal */
     aside {
-        background: var(--sidebar-bg);
+        background: linear-gradient(180deg, #eef7f7 0%, #e6f2f2 100%);
         border-right: 1px solid var(--sidebar-border);
         width: 250px;
         min-width: 250px;
@@ -197,7 +197,7 @@ const pathname = new URL(Astro.request.url).pathname;
         padding: 0;
         position: relative;
         transition: all 0.3s ease;
-        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+        box-shadow: 6px 0 24px rgba(6, 24, 26, 0.15);
     }
 
     aside.collapsed {
@@ -213,6 +213,8 @@ const pathname = new URL(Astro.request.url).pathname;
         padding: 16px;
         border-bottom: 1px solid var(--sidebar-border);
         gap: 12px;
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(10px);
     }
 
     .sidebar-title {
@@ -247,6 +249,7 @@ const pathname = new URL(Astro.request.url).pathname;
         background: var(--sidebar-hover);
         color: var(--sidebar-text-main);
         border-color: var(--sidebar-accent);
+        transform: translateY(-1px);
     }
 
     .mobile-close {
@@ -292,17 +295,20 @@ const pathname = new URL(Astro.request.url).pathname;
         border-radius: 8px;
         transition: all 0.2s ease;
         justify-content: flex-start;
+        border: 1px solid transparent;
     }
 
     aside a:hover {
         background: var(--sidebar-hover);
         color: var(--sidebar-text-main);
+        border-color: rgba(14, 165, 164, 0.2);
     }
 
     aside a.active {
-        background: var(--sidebar-hover);
+        background: rgba(14, 165, 164, 0.16);
         color: var(--sidebar-text-main);
         font-weight: 700;
+        border-color: rgba(14, 165, 164, 0.3);
     }
 
     aside .icon {
@@ -325,7 +331,7 @@ const pathname = new URL(Astro.request.url).pathname;
     .user-info {
         padding: 16px 24px;
         border-top: 1px solid var(--sidebar-border);
-        background: var(--sidebar-bg);
+        background: rgba(255, 255, 255, 0.5);
         color: var(--sidebar-text-main);
         font-size: 14px;
         transition: padding 0.3s ease;
@@ -351,7 +357,7 @@ const pathname = new URL(Astro.request.url).pathname;
     .sidebar-footer {
         padding: 16px 24px;
         border-top: 1px solid var(--sidebar-border);
-        background: var(--sidebar-bg);
+        background: rgba(255, 255, 255, 0.5);
         flex-shrink: 0;
         transition: padding 0.3s ease;
     }
@@ -404,13 +410,13 @@ const pathname = new URL(Astro.request.url).pathname;
         top: 10px;
         left: 10px;
         z-index: 999;
-        background: var(--sidebar-bg);
-        color: rgb(0, 0, 0);
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--text-main);
         border: none;
         padding: 8px;
         border-radius: 6px;
         cursor: pointer;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 6px 16px rgba(6, 24, 26, 0.2);
     }
 
     .sidebar-overlay {

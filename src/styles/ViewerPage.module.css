@@ -11,7 +11,9 @@
 .mainViewer {
   flex: 1;
   position: relative;
-  background: var(--viewer-bg-secondary);
+  background:
+    radial-gradient(700px circle at 50% 10%, rgba(34, 211, 238, 0.08), transparent 60%),
+    var(--viewer-bg-secondary);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -49,14 +51,14 @@
   backdrop-filter: var(--viewer-backdrop-blur);
   -webkit-backdrop-filter: var(--viewer-backdrop-blur);
   box-shadow: var(--viewer-shadow-lg);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(34, 211, 238, 0.18);
   transition: var(--viewer-transition);
   color: var(--viewer-text-primary);
   font-weight: 400;
 }
 
 .patientInfo:hover {
-  background: rgba(20, 20, 20, 0.95);
+  background: rgba(13, 17, 22, 0.95);
   box-shadow: var(--viewer-shadow-lg), 0 0 0 1px rgba(255, 255, 255, 0.15);
 }
 

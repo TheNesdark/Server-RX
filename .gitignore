@@ -1,5 +1,7 @@
 # build output
 dist/
+build/
+sea-prep.blob
 # generated types
 .astro/
 

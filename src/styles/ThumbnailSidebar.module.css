@@ -1,10 +1,10 @@
 .thumbnailsSidebar {
-    background: #121212;
-    border-right: 1px solid #2a2a2a;
+    background: linear-gradient(180deg, #10161c 0%, #0b0f13 100%);
+    border-right: 1px solid rgba(148, 163, 184, 0.12);
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 6px 0 20px rgba(0, 0, 0, 0.35);
     width: 200px;
     height: 100%;
 }
@@ -19,15 +19,15 @@
 
 .sidebarHeader {
     padding: 14px;
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
     display: flex;
     justify-content: center;
 }
 
 .sidebarToggle {
-    background: rgba(40, 40, 40, 0.7);
-    border: 1px solid #333;
-    color: #ccc;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    color: #d1d5db;
     padding: 10px;
     border-radius: 6px;
     cursor: pointer;
@@ -39,8 +39,8 @@
 }
 
 .sidebarToggle:hover {
-    background: #2a2a2a;
-    border-color: #555;
+    background: rgba(51, 65, 85, 0.7);
+    border-color: rgba(34, 211, 238, 0.35);
     color: #fff;
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -53,7 +53,7 @@
 
     /* Estilos del Scrollbar */
     scrollbar-width: thin; /* Firefox */
-    scrollbar-color: #444 #1a1a1a; /* Firefox */
+    scrollbar-color: rgba(148, 163, 184, 0.5) rgba(2, 6, 23, 0.6); /* Firefox */
 }
 
 .thumbnailsList::-webkit-scrollbar {
@@ -61,24 +61,24 @@
 }
 
 .thumbnailsList::-webkit-scrollbar-track {
-    background: #1a1a1a; /* Color de fondo del track */
+    background: rgba(2, 6, 23, 0.6); /* Color de fondo del track */
     border-radius: 10px;
 }
 
 .thumbnailsList::-webkit-scrollbar-thumb {
-    background-color: #444; /* Color del "pulgar" del scrollbar */
+    background-color: rgba(148, 163, 184, 0.45); /* Color del "pulgar" del scrollbar */
     border-radius: 10px;
-    border: 2px solid #1a1a1a; /* Borde del pulgar */
+    border: 2px solid rgba(2, 6, 23, 0.6); /* Borde del pulgar */
 }
 
 .thumbnailsList::-webkit-scrollbar-thumb:hover {
-    background-color: #555; /* Color del pulgar al pasar el mouse */
+    background-color: rgba(148, 163, 184, 0.7); /* Color del pulgar al pasar el mouse */
 }
 
 .thumbnailItem {
-    background: #1a1a1a;
-    border: 2px solid #333;
-    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 10px;
     padding: 10px;
     margin-bottom: 10px;
     cursor: pointer;
@@ -87,16 +87,16 @@
 }
 
 .thumbnailItem:hover {
-    border-color: #444;
-    background: #1f1f1f;
+    border-color: rgba(34, 211, 238, 0.35);
+    background: rgba(15, 23, 42, 0.9);
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .active {
-    border-color: #0d6efd !important;
-    background: linear-gradient(180deg, #1e3a5f 0%, #1a3452 100%) !important;
-    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.4) !important;
+    border-color: #22d3ee !important;
+    background: linear-gradient(180deg, rgba(34, 211, 238, 0.2) 0%, rgba(14, 165, 164, 0.12) 100%) !important;
+    box-shadow: 0 8px 16px rgba(34, 211, 238, 0.25) !important;
 }
 
 .active:hover {
@@ -107,7 +107,7 @@
 .thumbnailPreview {
     width: 100%;
     aspect-ratio: 1;
-    background: #0a0a0a;
+    background: #050608;
     border-radius: 6px;
     margin-bottom: 10px;
     overflow: hidden;
@@ -126,11 +126,11 @@
 }
 
 .thumbnailTitle {
-    color: #fff;
+    color: #f8fafc;
     font-weight: 500;
     margin-bottom: 4px;
 }
 
 .thumbnailDescription {
-    color: #aaa;
+    color: #94a3b8;
 }

@@ -5,6 +5,6 @@
   "ORTHANC_PASSWORD": "orthanc-password",
   "ADMIN_USERNAME": "admin",
   "ADMIN_PASSWORD": "admin-password",
-  "DB_PATH": "studies.db",
+  "DB_PATH": "db/studies.db",
   "PROD": false
 }

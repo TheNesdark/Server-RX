@@ -167,8 +167,8 @@ const config = readConfig();
 
 <style>
     .config-page {
-        padding: 24px;
-        background: var(--bg-light);
+        padding: 32px 24px;
+        background: transparent;
         min-height: 100vh;
         width: 100%;
         overflow-y: auto;
@@ -177,11 +177,12 @@ const config = readConfig();
     .panel {
         max-width: 980px;
         margin: 0 auto;
-        background: white;
-        border: 1px solid var(--sidebar-border);
-        border-radius: 18px;
-        padding: 24px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        background: var(--card-bg);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        box-shadow: var(--shadow-md);
+        backdrop-filter: blur(12px) saturate(140%);
     }
 
     .header {
@@ -222,15 +223,15 @@ const config = readConfig();
     }
 
     .notice.success {
-        background: #ecfdf5;
-        border-color: #10b981;
-        color: #059669;
+        background: rgba(14, 165, 164, 0.12);
+        border-color: rgba(14, 165, 164, 0.35);
+        color: #0f766e;
     }
 
     .notice.error {
-        background: #fef2f2;
-        border-color: #ef4444;
-        color: #dc2626;
+        background: rgba(239, 68, 68, 0.12);
+        border-color: rgba(239, 68, 68, 0.35);
+        color: #b91c1c;
     }
 
     .form {
@@ -266,17 +267,18 @@ const config = readConfig();
         width: 100%;
         padding: 12px 14px;
         border-radius: 12px;
-        border: 1px solid var(--sidebar-border);
-        background: white;
+        border: 1px solid var(--border-subtle);
+        background: var(--surface);
         color: var(--text-main);
         font-size: 14px;
-        transition: border-color 0.2s;
+        transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
     }
 
     input:focus {
         outline: none;
         border-color: var(--hospital-green);
-        box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.15);
+        box-shadow: 0 0 0 4px var(--ring), var(--shadow-sm);
+        transform: translateY(-1px);
     }
 
     .help {
@@ -311,7 +313,7 @@ const config = readConfig();
 
     .divider {
         height: 1px;
-        background: var(--sidebar-border);
+        background: var(--border-subtle);
         margin: 18px 0;
         opacity: 0.5;
     }
@@ -339,15 +341,18 @@ const config = readConfig();
         padding: 12px 24px;
         border-radius: 12px;
         border: none;
-        background: var(--hospital-green);
+        background: linear-gradient(135deg, var(--hospital-green) 0%, var(--hospital-green-hover) 100%);
         color: white;
         font-weight: 700;
         cursor: pointer;
-        transition: background 0.2s;
+        transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+        box-shadow: var(--shadow-sm);
     }
 
     button:hover {
-        background: var(--hospital-green-hover);
+        transform: translateY(-1px);
+        filter: brightness(1.05);
+        box-shadow: var(--shadow-md);
     }
 
     @media (max-width: 780px) {

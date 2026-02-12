@@ -1,11 +1,12 @@
 import { obtenerEstudios, getTotalEstudios } from "@/libs/orthanc";
+import { STUDIES_PAGE_LIMIT } from "@/config/pagination";
 
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const searchTerm = url.searchParams.get('q') || '';
     const page = parseInt(url.searchParams.get('page') || '1');
-    const limit = 10; // Límite fijo a 10
+    const limit = STUDIES_PAGE_LIMIT;
 
     // Asegurar que page sea un número válido
     const currentPage = isNaN(page) || page < 1 ? 1 : page;

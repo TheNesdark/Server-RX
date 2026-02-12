@@ -28,7 +28,9 @@ export const GET: APIRoute = async ({ params, cookies }) => {
     return new Response(JSON.stringify(data), {
       headers: { 
         'Content-Type': 'application/json',
-        'Cache-Control': 'private, max-age=1800' // 30 min de caché privado
+        'Cache-Control': 'private, no-store, max-age=0',
+        'Pragma': 'no-cache',
+        'Vary': 'Cookie'
       }
     });
   } catch (error) {

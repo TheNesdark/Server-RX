@@ -1,9 +1,9 @@
 ---
 // src/pages/viewer-lite/[studyId].astro
+import { actions } from "astro:actions";
 import ThumbnailSidebar from "@/components/viewer/ThumbnailSidebar";
-import { getSeriesByStudyId, getInstancesBySeriesId, GetDNIbyStudyID } from "@/libs/orthanc"
-import { PROD } from "@/config";
-import type { ThumbnailInfo } from "@/types";
+import { GetDNIbyStudyID } from "@/libs/orthanc"
+import { getViewerLiteSeriesData } from "@/utils/viewerLite.server";
 
 // 1. Obtener el studyId de los parámetros de la URL
 const { studyId } = Astro.params;
@@ -19,73 +19,18 @@ if (!DNI) {
 
 // 3. Manejar la autenticación mediante cookie y formulario
 const cookieName = `auth_lite_${studyId}`;
-let isAuthorized = false;
-let errorMsg = "";
+const verifyResult = Astro.getActionResult(actions.verifyLiteAccess);
+const verifyData = verifyResult?.data as { success?: boolean; studyId?: string } | undefined;
+const errorMsg = verifyResult?.error?.message || "";
 
-if (Astro.request.method === "POST") {
-  const formData = await Astro.request.formData();
-  const cedula = formData.get("cedula");
-  
-  const normalizedCedula = String(cedula).trim().toUpperCase();
-  const normalizedDNI = String(DNI).trim().toUpperCase();
-
-  if (normalizedCedula === normalizedDNI) {
-    Astro.cookies.set(cookieName, DNI, { 
-      path: "/", 
-      maxAge: 60 * 60 * 4,
-      httpOnly: true,
-      sameSite: "strict",
-      secure: PROD
-    });
-
-    isAuthorized = true;
-  } else {
-    errorMsg = "La cédula ingresada no coincide con el estudio.";
-  }
-} else {
-  const authCookie = Astro.cookies.get(cookieName);
-  if (authCookie?.value === DNI ) {
-    isAuthorized = true;
-  }
-}
+const authCookie = Astro.cookies.get(cookieName);
+const isCookieAuthorized =
+  authCookie?.value?.trim().toUpperCase() === String(DNI).trim().toUpperCase();
+const isActionAuthorized = verifyData?.success === true && verifyData.studyId === studyId;
+const isAuthorized = isCookieAuthorized || isActionAuthorized;
 
 // 4. Si está autorizado, obtener los datos de las series e instancias
-
-const createErrorSeries = (id: string): ThumbnailInfo => ({
-  id,
-  instances: [],
-  previewUrl: "/no-image.svg",
-  modality: "Error",
-  bodyPart: "Error",
-});
-
-const fetchSeriesData = async (seriesId: string): Promise<ThumbnailInfo> => {
-  try {
-    const { Instances = [], mainDicomTags } = await getInstancesBySeriesId(seriesId);
-    const hasInstances = Instances.length > 0;
-
-    return {
-      id: seriesId,
-      instances: Instances,
-      previewUrl: hasInstances
-        ? `/api/orthanc/instances/${Instances[0]}/preview`
-        : "/no-image.svg",
-      modality: mainDicomTags?.Modality ?? "N/A",
-      bodyPart: mainDicomTags?.BodyPartExamined ?? "N/A",
-    };
-  } catch (error) {
-    console.error(`[Viewer-Lite] Error cargando serie ${seriesId}:`, error);
-    return createErrorSeries(seriesId);
-  }
-};
-
-let seriesData: ThumbnailInfo[] = [];
-
-if (isAuthorized) {
-  const seriesIds = await getSeriesByStudyId(studyId);
-  const allSeries = await Promise.all(seriesIds.map(fetchSeriesData));
-  seriesData = allSeries.filter((series) => series.instances.length > 0);
-}
+const seriesData = isAuthorized ? await getViewerLiteSeriesData(studyId) : [];
 ---
 
 <!doctype html>
@@ -103,7 +48,8 @@ if (isAuthorized) {
         <div class="login-box">
           <h2>Acceso al Estudio</h2>
           <p>Por favor, ingrese la cédula del paciente para ver las imágenes.</p>
-          <form method="POST">
+          <form method="POST" action={actions.verifyLiteAccess}>
+            <input type="hidden" name="studyId" value={studyId} />
             <input 
               type="text" 
               name="cedula" 
@@ -130,43 +76,9 @@ if (isAuthorized) {
       <>
         <div id="series-metadata" data-series={JSON.stringify(seriesData)}></div>
         <script>
-          import { activeSeriesId } from '@/stores/dicomStore';
+          import { initViewerLite } from '@/utils/viewerLite.client';
 
-          const renderedImage = document.getElementById('renderedImage') as HTMLImageElement;
-          const loader = document.getElementById('loader');
-          const seriesMetadataEl = document.getElementById('series-metadata');
-          const seriesData = seriesMetadataEl ? JSON.parse(seriesMetadataEl.dataset.series || '[]') : [];
-
-          async function updateRenderedImage(instanceId: string) {
-            if (!instanceId || !renderedImage) return;
-            renderedImage.style.display = "none";
-            if (loader) loader.style.display = "block";
-            const nuevaURL = `/api/orthanc/instances/${instanceId}/rendered?quality=90`;
-            const imgPreloader = new Image();
-            imgPreloader.onload = () => {
-                renderedImage.src = nuevaURL;
-                if (loader) loader.style.display = "none";
-                renderedImage.style.display = "block";
-            };
-            imgPreloader.onerror = () => {
-                 console.error("Error cargando imagen");
-                 if (loader) loader.style.display = "none";
-            }
-            imgPreloader.src = nuevaURL;
-          }
-
-          activeSeriesId.subscribe((id: string) => {
-            if (id) {
-              const series = seriesData.find((s: any) => s.id === id);
-              if (series && series.instances && series.instances.length > 0) {
-                updateRenderedImage(series.instances[0]);
-              }
-            }
-          });
-
-          if (seriesData.length > 0 && !activeSeriesId.get()) {
-            activeSeriesId.set(seriesData[0].id);
-          }
+          initViewerLite();
         </script>
       </>
     )}

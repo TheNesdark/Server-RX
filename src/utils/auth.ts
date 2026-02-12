@@ -2,6 +2,8 @@ import { verifyToken } from '@/libs/auth';
 import { ORTHANC_URL, ORTHANC_AUTH } from '@/config';
 import type { AstroCookies } from 'astro';
 
+const normalizeIdentity = (value: string) => value.trim().toUpperCase();
+
 export async function checkApiAuth(id: string, cookies: AstroCookies, type: 'instance' | 'series' | 'study' = 'instance'): Promise<boolean> {
     // 1. Verificar autenticación de Admin
     const authToken = cookies.get('auth_token')?.value;
@@ -26,7 +28,22 @@ export async function checkApiAuth(id: string, cookies: AstroCookies, type: 'ins
 
         if (parentStudyId) {
             const liteCookie = cookies.get(`auth_lite_${parentStudyId}`)?.value;
-            if (liteCookie) return true;
+            if (!liteCookie) return false;
+
+            const studyRes = await fetch(`${ORTHANC_URL}/studies/${parentStudyId}`, {
+                headers: { 'Authorization': ORTHANC_AUTH }
+            });
+
+            if (!studyRes.ok) {
+                return false;
+            }
+
+            const study = await studyRes.json();
+            const studyPatientId = study?.PatientMainDicomTags?.PatientID;
+
+            if (typeof studyPatientId === 'string' && normalizeIdentity(liteCookie) === normalizeIdentity(studyPatientId)) {
+                return true;
+            }
         }
     } catch (error) {
         console.error(`Error verificando auth lite para ${type} ${id}:`, error);

@@ -29,7 +29,9 @@ export const GET: APIRoute = async ({ params, cookies }) => {
     return new Response(data, {
       headers: { 
         'Content-Type': 'application/dicom',
-        'Cache-Control': 'public, max-age=31536000, immutable' // 1 año de caché
+        'Cache-Control': 'private, no-store, max-age=0',
+        'Pragma': 'no-cache',
+        'Vary': 'Cookie'
       }
     });
   } catch (error) {

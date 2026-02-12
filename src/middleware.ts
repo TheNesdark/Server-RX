@@ -12,9 +12,8 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
     // Permitir acceso al viewer lite y sus recursos de imagen sin sesión iniciada (el handler validará el acceso lite)
     const isViewerLite = url.pathname.startsWith('/viewer-lite/');
     const isOrthancApi = url.pathname.startsWith('/api/orthanc/');
-    const isCronTask = url.pathname === '/api/tasks/sync';
 
-    if (isPublicAsset || isAuthPage || isViewerLite || isOrthancApi || isCronTask) {
+    if (isPublicAsset || isAuthPage || isViewerLite || isOrthancApi) {
         return next();
     }
 

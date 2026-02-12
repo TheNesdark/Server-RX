@@ -1,10 +1,10 @@
 {
-  "JWT_SECRET": "your-secret-key-here-jhjkhjkkjhjkhjkhkhkjk",
+  "JWT_SECRET": "RX_2026_JWT_8f2c4b9d6a1e3f7c0d5b8a2e1f4c6d9b",
   "ORTHANC_URL": "http://localhost:8042",
   "ORTHANC_USERNAME": "orthanc",
   "ORTHANC_PASSWORD": "orthanc-password",
   "ADMIN_USERNAME": "admin",
-  "ADMIN_PASSWORD": "admin",
+  "ADMIN_PASSWORD": "RX_Admin_7mQ2xL9vP4tN8k",
   "DB_PATH": "db/studies.db",
   "PROD": false
 }

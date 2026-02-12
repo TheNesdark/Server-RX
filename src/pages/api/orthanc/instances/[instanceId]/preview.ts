@@ -29,7 +29,9 @@ export const GET: APIRoute = async ({ params, cookies }) => {
     return new Response(data, {
       headers: { 
         'Content-Type': 'image/jpeg',
-        'Cache-Control': 'public, max-age=86400'
+        'Cache-Control': 'private, no-store, max-age=0',
+        'Pragma': 'no-cache',
+        'Vary': 'Cookie'
       }
     });
   } catch (error) {

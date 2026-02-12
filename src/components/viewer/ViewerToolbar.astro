@@ -265,67 +265,57 @@
 
 <style>
     .toolbar {
-        background: linear-gradient(180deg, #10161c 0%, #0b0f13 100%);
-        border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-        padding: 12px 16px;
+        background: #111517;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 10px 14px;
         display: flex;
         justify-content: space-between;
-        gap: 12px;
-        box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
+        gap: 10px;
     }
 
     .toolbar-left,
     .toolbar-right {
         display: flex;
-        gap: 8px;
+        gap: 6px;
         align-items: center;
+        flex-wrap: wrap;
     }
 
     .tool-btn {
-        background: rgba(30, 41, 59, 0.7);
-        border: 1px solid rgba(148, 163, 184, 0.2);
-        color: #d1d5db;
-        padding: 8px 12px;
-        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        color: var(--viewer-text-secondary);
+        height: 36px;
+        padding: 0 10px;
+        border-radius: 9px;
         cursor: pointer;
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-size: 13px;
+        gap: 7px;
+        font-size: 12.5px;
         font-weight: 500;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     }
 
     .tool-btn:hover {
-        background: linear-gradient(180deg, rgba(51, 65, 85, 0.7) 0%, rgba(30, 41, 59, 0.9) 100%);
-        border-color: rgba(34, 211, 238, 0.4);
-        color: #fff;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        background: rgba(79, 168, 159, 0.14);
+        border-color: rgba(79, 168, 159, 0.46);
+        color: #eef2f1;
     }
 
     .tool-btn.active {
-        background: linear-gradient(180deg, #0ea5a4 0%, #0f766e 100%);
-        border-color: #0f766e;
-        color: #fff;
-        box-shadow: 0 8px 16px rgba(14, 165, 164, 0.35);
+        background: rgba(79, 168, 159, 0.2);
+        border-color: rgba(79, 168, 159, 0.52);
+        color: #f3f6f5;
     }
 
     .tool-btn.active:hover {
-        background: linear-gradient(180deg, #0f766e 0%, #0b5f59 100%);
-        transform: translateY(-1px);
-        box-shadow: 0 10px 20px rgba(14, 165, 164, 0.45);
+        background: rgba(79, 168, 159, 0.26);
     }
 
     .tool-btn svg {
-        width: 18px;
-        height: 18px;
-        transition: transform 0.2s ease;
-    }
-
-    .tool-btn:hover svg {
-        transform: scale(1.1);
+        width: 16px;
+        height: 16px;
     }
 
     .draw-tool-container {
@@ -337,10 +327,10 @@
     }
 
     .dropdown-arrow {
-        width: 14px !important;
-        height: 14px !important;
-        margin-left: 6px;
-        transition: transform 0.3s ease;
+        width: 13px !important;
+        height: 13px !important;
+        margin-left: 4px;
+        transition: transform 0.2s ease;
     }
 
     .draw-btn.active .dropdown-arrow {
@@ -349,77 +339,70 @@
 
     .draw-shapes-menu {
         position: absolute;
-        top: calc(100% + 6px);
+        top: calc(100% + 4px);
         left: 0;
-        background: #0f1419;
-        border: 1px solid rgba(148, 163, 184, 0.2);
-        border-radius: 8px;
-        padding: 6px;
+        background: #151a1d;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 10px;
+        padding: 5px;
         min-width: 180px;
         display: none;
         flex-direction: column;
-        gap: 4px;
+        gap: 2px;
         z-index: 1000;
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
-        transform-origin: top center;
-        animation: fadeIn 0.2s ease forwards;
+        box-shadow: var(--viewer-shadow-md);
+        transform-origin: top left;
+        animation: fadeIn 0.18s ease forwards;
     }
 
     .draw-shapes-menu.show {
         display: flex;
-
     }
 
     @keyframes fadeIn {
         from {
             opacity: 0;
-            transform: translateY(-10px) scale(0.95);
+            transform: translateY(-6px);
         }
         to {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(0);
         }
     }
 
     .shape-option {
         background: transparent;
         border: none;
-        color: #ccc;
-        padding: 10px 14px;
-        border-radius: 6px;
+        color: var(--viewer-text-secondary);
+        padding: 8px 10px;
+        border-radius: 8px;
         cursor: pointer;
         display: flex;
         align-items: center;
-        gap: 10px;
-        font-size: 13px;
-        transition: all 0.2s ease;
+        gap: 8px;
+        font-size: 12.5px;
+        transition: background-color 0.2s ease, color 0.2s ease;
         text-align: left;
         width: 100%;
     }
 
     .shape-option:hover {
-        background: rgba(30, 41, 59, 0.8);
-        color: #fff;
-        transform: translateX(3px);
+        background: rgba(79, 168, 159, 0.16);
+        color: #f0f5f4;
     }
 
     .shape-option svg {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
         flex-shrink: 0;
     }
 
     .menu-separator {
         height: 1px;
-        background: rgba(148, 163, 184, 0.2);
-        margin: 6px 0;
+        background: rgba(255, 255, 255, 0.12);
+        margin: 5px 0;
     }
 
-    /* ============================================ */
-    /* RESPONSIVE DESIGN - Media Queries */
-    /* ============================================ */
-
-    /* Tablets y pantallas medianas (≤ 1024px) */
     @media (max-width: 1024px) {
         .toolbar {
             padding: 10px 12px;
@@ -428,7 +411,7 @@
         }
 
         .tool-btn {
-            padding: 6px 10px;
+            padding: 0 9px;
             font-size: 12px;
         }
 
@@ -436,13 +419,8 @@
             width: 16px;
             height: 16px;
         }
-
-        .tool-btn span {
-            display: none;
-        }
     }
 
-    /* Tablets pequeñas (≤ 768px) */
     @media (max-width: 768px) {
         .toolbar {
             padding: 8px;
@@ -455,8 +433,8 @@
         }
 
         .tool-btn {
-            padding: 8px;
-            min-width: auto;
+            padding: 0 8px;
+            min-width: 34px;
         }
 
         .tool-btn span {
@@ -472,7 +450,6 @@
         }
     }
 
-    /* Móviles (≤ 480px) */
     @media (max-width: 480px) {
         .toolbar {
             padding: 6px;
@@ -480,17 +457,17 @@
         }
 
         .tool-btn {
-            padding: 6px;
+            padding: 0 7px;
+            height: 34px;
         }
 
         .tool-btn svg {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
         }
 
-        /* Hacer el menú de draw más compacto */
         .draw-shapes-menu {
-            min-width: 150px;
+            min-width: 148px;
             left: auto;
             right: 0;
         }

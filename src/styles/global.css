@@ -3,35 +3,34 @@
 :root {
   --font-sans: "Source Sans 3", "Space Grotesk", sans-serif;
   --font-display: "Space Grotesk", "Source Sans 3", sans-serif;
-  --primary: #0ea5a4;
-  --hospital-green: #0ea5a4;
-  --hospital-green-hover: #0f766e;
-  --hospital-green-light: #99f6e4;
-  --bg-light: #f4fbfb;
-  --bg-dark: #062b2e;
-  --card-bg: rgba(255, 255, 255, 0.88);
-  --text-main: #0b1f24;
-  --text-muted: #3b5b63;
+  --primary: #0f766e;
+  --hospital-green: #0f766e;
+  --hospital-green-hover: #0c5d57;
+  --hospital-green-light: #d7efec;
+  --bg-light: #f4f7f6;
+  --bg-dark: #112023;
+  --card-bg: #ffffff;
+  --text-main: #102022;
+  --text-muted: #5d6f72;
   --error: #ef4444;
-  --sidebar-bg: #e8f6f6;
-  --sidebar-border: #cfe7ea;
-  --sidebar-hover: #dff2f3;
-  --sidebar-text-main: #0b1f24;
-  --sidebar-text-muted: #35545b;
-  --sidebar-accent: #0ea5a4;
+  --sidebar-bg: #f7fbfa;
+  --sidebar-border: #d9e5e3;
+  --sidebar-hover: #edf5f3;
+  --sidebar-text-main: #102022;
+  --sidebar-text-muted: #53676a;
+  --sidebar-accent: #0f766e;
   --surface: #ffffff;
-  --surface-muted: #f2f8f8;
-  --border-subtle: #d4e5e7;
-  --shadow-sm: 0 4px 12px rgba(6, 24, 26, 0.06);
-  --shadow-md: 0 12px 30px rgba(6, 24, 26, 0.12);
-  --shadow-lg: 0 24px 50px rgba(6, 24, 26, 0.18);
-  --ring: rgba(14, 165, 164, 0.2);
+  --surface-muted: #f7faf9;
+  --border-subtle: #d9e4e2;
+  --shadow-sm: 0 2px 8px rgba(16, 32, 34, 0.05);
+  --shadow-md: 0 8px 24px rgba(16, 32, 34, 0.08);
+  --shadow-lg: 0 18px 40px rgba(16, 32, 34, 0.12);
+  --ring: rgba(15, 118, 110, 0.18);
   --gradient-hero:
-    radial-gradient(900px circle at 12% 8%, rgba(14, 165, 164, 0.16), transparent 55%),
-    radial-gradient(900px circle at 90% -10%, rgba(37, 99, 235, 0.12), transparent 50%),
-    linear-gradient(180deg, #f7fcfc 0%, #edf6f7 45%, #f9f6f0 100%);
-  --radius-lg: 18px;
-  --radius-md: 12px;
+    radial-gradient(1200px circle at 100% 0%, rgba(15, 118, 110, 0.06), transparent 45%),
+    linear-gradient(180deg, #f9fbfa 0%, #f3f6f5 100%);
+  --radius-lg: 14px;
+  --radius-md: 10px;
   --radius-sm: 8px;
 }
 
@@ -45,9 +44,11 @@
 
 html {
   font-size: 16px;
+  height: 100%;
 }
 
 body {
+  min-height: 100vh;
   font-family: var(--font-sans);
   color: var(--text-main);
   background: var(--gradient-hero);
@@ -67,10 +68,20 @@ h6 {
   letter-spacing: -0.02em;
 }
 
-/* Scrollbar personalizada */
+a {
+  color: inherit;
+}
+
+input,
+button,
+select,
+textarea {
+  font: inherit;
+}
+
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -78,10 +89,13 @@ h6 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(15, 23, 42, 0.2);
-  border-radius: 4px;
+  background: rgba(93, 111, 114, 0.25);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(15, 23, 42, 0.35);
+  background: rgba(93, 111, 114, 0.45);
+  background-clip: content-box;
 }

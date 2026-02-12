@@ -1,5 +1,4 @@
 ---
-const user = Astro.locals.user;
 const pathname = new URL(Astro.request.url).pathname;
 ---
 
@@ -102,24 +101,6 @@ const pathname = new URL(Astro.request.url).pathname;
         </ul>
     </nav>
 
-    <div class="user-info">
-        {
-            user && (
-                <div class="user-details" data-exp={user?.exp}>
-                    <p class="user-greeting">
-                        Bienvenido,{" "}
-                        <strong class="username">
-                            {user?.username}
-                        </strong>
-                    </p>
-                    <p class="session-info">
-                        Sesión expira en: <span id="session-countdown" />
-                    </p>
-                </div>
-            )
-        }
-    </div>
-
     <div class="sidebar-footer">
         <a href="/logout" class="logout" title="Cerrar Sesión">
             <svg
@@ -140,15 +121,11 @@ const pathname = new URL(Astro.request.url).pathname;
 </aside>
 
 <script>
-    import { formatCountdown } from "@/utils/StudyUtils";
-
     const sidebar = document.getElementById("main-sidebar");
     const toggleButton = document.getElementById("sidebar-toggle");
     const mobileToggle = document.getElementById("mobile-toggle");
     const mobileClose = document.getElementById("mobile-close");
     const overlay = document.getElementById("sidebar-overlay");
-    const countdownElement = document.getElementById("session-countdown");
-    const userDetails = document.querySelector(".user-details") as HTMLElement;
 
     // Toggle para escritorio (colapsar/expandir)
     toggleButton?.addEventListener("click", () => {
@@ -165,23 +142,6 @@ const pathname = new URL(Astro.request.url).pathname;
     mobileToggle?.addEventListener("click", toggleMobileMenu);
     mobileClose?.addEventListener("click", toggleMobileMenu);
     overlay?.addEventListener("click", toggleMobileMenu);
-
-    if (countdownElement && userDetails) {
-        const exp = parseInt(userDetails.dataset.exp || '0', 10);
-
-        const updateUI = () => {
-            const timeText = formatCountdown(exp);
-            countdownElement.textContent = timeText;
-
-            if (timeText === "00:00:00") {
-                clearInterval(interval);
-                window.location.href = "/login?error=expired";
-            }
-        };
-
-        updateUI();
-        const interval = setInterval(updateUI, 1000);
-    }
 </script>
 
 <style>
@@ -327,33 +287,7 @@ const pathname = new URL(Astro.request.url).pathname;
         transition: opacity 0.3s ease;
     }
 
-    /* 4. Información de Usuario */
-    .user-info {
-        padding: 16px 24px;
-        border-top: 1px solid var(--sidebar-border);
-        background: rgba(255, 255, 255, 0.5);
-        color: var(--sidebar-text-main);
-        font-size: 14px;
-        transition: padding 0.3s ease;
-    }
-
-    .user-details {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .user-details p {
-        margin: 0;
-        line-height: 1.4;
-        white-space: nowrap;
-    }
-
-    .user-details strong {
-        color: var(--sidebar-accent);
-    }
-
-    /* 5. Footer y Logout */
+    /* 4. Footer y Logout */
     .sidebar-footer {
         padding: 16px 24px;
         border-top: 1px solid var(--sidebar-border);
@@ -378,10 +312,9 @@ const pathname = new URL(Astro.request.url).pathname;
         color: #ef4444;
     }
 
-    /* 6. Modificadores de Estado (Colapsado) */
+    /* 5. Modificadores de Estado (Colapsado) */
     aside.collapsed .sidebar-title,
     aside.collapsed .nav-text,
-    aside.collapsed .user-info,
     aside.collapsed .logout-text {
         display: none;
     }
@@ -403,7 +336,7 @@ const pathname = new URL(Astro.request.url).pathname;
         padding: 12px 6px;
     }
 
-    /* 7. Diseño Responsivo */
+    /* 6. Diseño Responsivo */
     .mobile-toggle {
         display: none;
         position: fixed;

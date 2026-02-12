@@ -2,11 +2,11 @@
 import Layout from "@/layouts/layout.astro";
 import StudiesList from "@/components/Studies/StudiesList";
 import { obtenerEstudios, getTotalEstudios } from "@/libs/orthanc"
+import { STUDIES_PAGE_LIMIT } from "@/config/pagination";
 import type { Study } from "@/types";
 
 
-const limit = 15;
-const studies = await obtenerEstudios(limit, 0) as Study[];
+const studies = await obtenerEstudios(STUDIES_PAGE_LIMIT, 0) as Study[];
 const totalStudies = await getTotalEstudios();
 ---
 

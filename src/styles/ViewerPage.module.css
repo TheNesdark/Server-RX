@@ -90,25 +90,76 @@
   animation: fadeIn 0.24s ease-out;
 }
 
-.commentPanel {
+.commentDock {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 84px;
+  right: 0;
   z-index: 20;
-  width: min(340px, calc(100% - 32px));
+  display: flex;
+  align-items: flex-start;
+  --comment-panel-width: min(340px, calc(100vw - 56px));
+}
+
+.commentToggle {
+  list-style: none;
+  width: 36px;
+  height: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  background: var(--viewer-overlay-bg);
+  backdrop-filter: var(--viewer-backdrop-blur);
+  -webkit-backdrop-filter: var(--viewer-backdrop-blur);
+  box-shadow: var(--viewer-shadow-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.commentToggle::-webkit-details-marker {
+  display: none;
+}
+
+.commentToggleIcon {
+  color: var(--viewer-text-secondary);
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 0.24s ease;
+}
+
+.commentDock[open] .commentToggleIcon {
+  transform: rotate(180deg);
+}
+
+.commentPanel {
+  display: flex;
+  width: var(--comment-panel-width);
+  max-width: var(--comment-panel-width);
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 12px;
-  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.16);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
   background: var(--viewer-overlay-bg);
   backdrop-filter: var(--viewer-backdrop-blur);
   -webkit-backdrop-filter: var(--viewer-backdrop-blur);
   box-shadow: var(--viewer-shadow-md);
+  overflow: hidden;
+  opacity: 1;
+  transform: translateX(0);
+  transform-origin: right center;
+  transition:
+    max-width 0.24s ease,
+    opacity 0.24s ease,
+    transform 0.24s ease,
+    padding 0.24s ease,
+    border-color 0.24s ease;
 }
 
-.commentPanel h2 {
+.commentTitle {
   margin: 0;
   font-size: 0.82rem;
   font-weight: 700;
@@ -121,6 +172,16 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.commentDock:not([open]) .commentPanel {
+  display: flex;
+  max-width: 0;
+  padding: 0;
+  border-color: transparent;
+  opacity: 0;
+  transform: translateX(0);
+  pointer-events: none;
 }
 
 .commentInput {
@@ -175,10 +236,17 @@
 }
 
 @media (max-width: 768px) {
+  .commentDock {
+    top: 68px;
+    --comment-panel-width: min(290px, calc(100vw - 46px));
+  }
+
+  .commentToggle {
+    width: 34px;
+    height: 46px;
+  }
+
   .commentPanel {
-    top: 10px;
-    right: 10px;
-    width: min(300px, calc(100% - 20px));
     padding: 10px;
   }
 

@@ -1,20 +1,4 @@
-interface RateLimitOptions {
-  windowMs: number;
-  maxAttempts: number;
-  blockDurationMs: number;
-}
-
-interface RateLimitEntry {
-  count: number;
-  windowStartedAt: number;
-  blockedUntil: number;
-}
-
-interface RateLimitResult {
-  allowed: boolean;
-  remaining: number;
-  retryAfterSeconds: number;
-}
+import type { RateLimitEntry, RateLimitOptions, RateLimitResult } from '@/types';
 
 const rateLimitStore = new Map<string, RateLimitEntry>();
 

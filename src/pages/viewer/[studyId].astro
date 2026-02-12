@@ -78,33 +78,40 @@ const initialUpdatedAt = studyCommentEntry.updatedAt;
       <div class={styles.mainViewer}>
         <DicomViewer client:load />
 
-        <aside class={styles.commentPanel} aria-label="Comentario del estudio">
-          <h2>Comentario del estudio</h2>
-          <form
-            id="study-comment-form"
-            class={styles.commentForm}
-            action={`/api/studies/${studyId}/comment`}
-          >
-            <textarea
-              id="study-comment-input"
-              class={styles.commentInput}
-              name="comment"
-              maxlength="2000"
-              placeholder="Escribe una nota del estudio..."
-            >{initialComment}</textarea>
+        <details class={styles.commentDock} aria-label="Comentario del estudio">
+          <summary class={styles.commentToggle}>
+            <span class={styles.commentToggleIcon}>❮</span>
+          </summary>
 
-            <div class={styles.commentFooter}>
-              <span id="study-comment-status" class={styles.commentStatus}>
-                {
-                  initialUpdatedAt
-                    ? `Actualizado: ${initialUpdatedAt}`
-                    : "Sin comentarios guardados"
-                }
-              </span>
-              <button type="submit" class={styles.commentButton}>Guardar</button>
-            </div>
-          </form>
-        </aside>
+          <aside class={styles.commentPanel}>
+            <h2 class={styles.commentTitle}>Comentario del estudio</h2>
+
+            <form
+              id="study-comment-form"
+              class={styles.commentForm}
+              action={`/api/studies/${studyId}/comment`}
+            >
+              <textarea
+                id="study-comment-input"
+                class={styles.commentInput}
+                name="comment"
+                maxlength="2000"
+                placeholder="Escribe una nota del estudio..."
+              >{initialComment}</textarea>
+
+              <div class={styles.commentFooter}>
+                <span id="study-comment-status" class={styles.commentStatus}>
+                  {
+                    initialUpdatedAt
+                      ? `Actualizado: ${initialUpdatedAt}`
+                      : "Sin comentarios guardados"
+                  }
+                </span>
+                <button type="submit" class={styles.commentButton}>Guardar</button>
+              </div>
+            </form>
+          </aside>
+        </details>
       </div>
     </div>
 

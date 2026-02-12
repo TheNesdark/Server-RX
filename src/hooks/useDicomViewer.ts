@@ -7,38 +7,14 @@ import {
     setupDWVEventListeners 
 } from '@/handlers/eventHandlers';
 import type { App } from 'dwv';
-
-// Tipos parciales para DWV (la librería no exporta tipos completos)
-interface DWVApp {
-    reset: () => void;
-    loadURLs: (urls: string[], options: {
-        requestHeaders: Array<{ name: string; value: string }>;
-        withCredentials: boolean;
-        batchSize: number;
-    }) => void;
-    getLayerGroupByDivId: (id: string) => {
-        getActiveViewLayer: () => {
-            getViewController: () => {
-                setWindowLevel: (wl: { center: number; width: number }) => void;
-            };
-        } | null;
-    } | null;
-}
-
-interface DWVModule {
-    App: new () => DWVApp;
-    ViewConfig: new (id: string) => unknown;
-    AppOptions: new (config: Record<string, unknown[]>) => {
-        tools: Record<string, unknown>;
-    };
-    ToolConfig: new () => unknown;
-    WindowLevel: new (center: number, width: number) => { center: number; width: number };
-    toolList: Record<string, unknown>;
-}
+import type { DWVApp, DWVModule } from '@/types';
 
 export function useDicomViewer() {
     const dwvAppRef = useRef<DWVApp | null>(null);
     const dwvModuleRef = useRef<DWVModule | null>(null);
+    const loadingSeriesIdRef = useRef<string | null>(null);
+    const loadedSeriesIdRef = useRef<string | null>(null);
+    const resizeFrameRef = useRef<number | null>(null);
 
     const [windowCenter, setWindowCenter] = useState<number>(0);
     const [windowWidth, setWindowWidth] = useState<number>(0);
@@ -59,7 +35,7 @@ export function useDicomViewer() {
             const viewConfig = new dwvModule.ViewConfig("layerGroup0");
             const options = new dwvModule.AppOptions({ "*": [viewConfig] });
 
-            options.tools = {
+            (options as { tools: Record<string, unknown> }).tools = {
                 Scroll: new dwvModule.ToolConfig(),
                 WindowLevel: new dwvModule.ToolConfig(),
                 ZoomAndPan: new dwvModule.ToolConfig(),
@@ -73,12 +49,12 @@ export function useDicomViewer() {
             dwvApp.init(options);
 
             // Setup de UI
-            setupToolButtons(dwvApp);
-            setupDrawMenu(dwvApp);
-            setupResetButton(dwvApp);
+            setupToolButtons(dwvApp as unknown as App);
+            setupDrawMenu(dwvApp as unknown as App);
+            setupResetButton(dwvApp as unknown as App);
 
             // Setup de Event Listeners de DWV (Centralizados)
-            setupDWVEventListeners(dwvApp, {
+            setupDWVEventListeners(dwvApp as unknown as App, {
                 onWindowLevelChange: (center, width) => {
                     setWindowCenter(center);
                     setWindowWidth(width);
@@ -87,17 +63,54 @@ export function useDicomViewer() {
                     setRange(dataRange);
                     setWindowCenter(wl.center);
                     setWindowWidth(wl.width);
+                    loadedSeriesIdRef.current = loadingSeriesIdRef.current;
+                    loadingSeriesIdRef.current = null;
                     setIsLoaded(true);
                 },
                 onLoadItem: () => {
                 }
             });
 
+            const runResize = () => {
+                if (resizeFrameRef.current !== null) {
+                    cancelAnimationFrame(resizeFrameRef.current);
+                }
+
+                resizeFrameRef.current = requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        dwvApp.onResize?.();
+                    });
+                });
+            };
+
+            const onWindowResize = () => runResize();
+            window.addEventListener('resize', onWindowResize);
+
+            const container = document.getElementById('dwv');
+            let resizeObserver: ResizeObserver | null = null;
+            if (container && typeof ResizeObserver !== 'undefined') {
+                resizeObserver = new ResizeObserver(() => {
+                    runResize();
+                });
+                resizeObserver.observe(container);
+            }
+
+            runResize();
+
             const unsubscribe = activeSeriesId.subscribe((id) => {
                 if (id) loadSeries(id);
             });
 
-            return unsubscribe;
+            return () => {
+                unsubscribe();
+                window.removeEventListener('resize', onWindowResize);
+                resizeObserver?.disconnect();
+
+                if (resizeFrameRef.current !== null) {
+                    cancelAnimationFrame(resizeFrameRef.current);
+                    resizeFrameRef.current = null;
+                }
+            };
         };
 
         let unsubscribeFn: (() => void) | undefined;
@@ -115,6 +128,16 @@ export function useDicomViewer() {
     const loadSeries = async (seriesId: string) => {
         const dwvApp = dwvAppRef.current;
         if (!dwvApp) return;
+
+        if (
+            loadingSeriesIdRef.current === seriesId ||
+            loadedSeriesIdRef.current === seriesId
+        ) {
+            return;
+        }
+
+        loadingSeriesIdRef.current = seriesId;
+        loadedSeriesIdRef.current = null;
 
         dwvApp.reset();
         setIsLoaded(false);
@@ -140,6 +163,7 @@ export function useDicomViewer() {
 
         } catch (error) {
             console.error("Error cargando serie:", error);
+            loadingSeriesIdRef.current = null;
         } 
     };
 
@@ -148,6 +172,7 @@ export function useDicomViewer() {
         if (!dwvApp) return;
 
         const layerGroup = dwvApp.getLayerGroupByDivId('layerGroup0');
+        if (!layerGroup) return;
         const viewLayer = layerGroup.getActiveViewLayer();
 
         if (viewLayer) {

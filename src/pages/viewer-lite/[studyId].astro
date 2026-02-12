@@ -3,6 +3,7 @@
 import { actions } from "astro:actions";
 import ThumbnailSidebar from "@/components/viewer/ThumbnailSidebar";
 import { GetDNIbyStudyID } from "@/libs/orthanc"
+import { getStudyCommentEntry } from "@/libs/db/studyComments";
 import { getViewerLiteSeriesData } from "@/utils/viewerLite.server";
 
 // 1. Obtener el studyId de los parámetros de la URL
@@ -31,6 +32,9 @@ const isAuthorized = isCookieAuthorized || isActionAuthorized;
 
 // 4. Si está autorizado, obtener los datos de las series e instancias
 const seriesData = isAuthorized ? await getViewerLiteSeriesData(studyId) : [];
+const studyCommentEntry = isAuthorized
+  ? getStudyCommentEntry(studyId)
+  : { comment: "", updatedAt: null };
 ---
 
 <!doctype html>
@@ -68,6 +72,30 @@ const seriesData = isAuthorized ? await getViewerLiteSeriesData(studyId) : [];
         <div class="main-viewer" id="viewer-viewport">
           <div id="loader" style="display: none; color: white;">Cargando...</div>
           <img id="renderedImage" src="" alt="DICOM" style="display: none;" />
+
+          <details class="lite-comment-dock">
+            <summary class="lite-comment-toggle">
+              <span class="lite-comment-icon">❮</span>
+            </summary>
+
+            <aside class="lite-comment-panel">
+              <p class="lite-comment-title">Comentario del estudio</p>
+
+              <div class="lite-comment-body">
+                <textarea
+                  class="lite-comment-text"
+                  readonly
+                >{studyCommentEntry.comment || "Sin comentarios guardados."}</textarea>
+                <p class="lite-comment-meta">
+                  {
+                    studyCommentEntry.updatedAt
+                      ? `Actualizado: ${studyCommentEntry.updatedAt}`
+                      : "Sin fecha de actualización"
+                  }
+                </p>
+              </div>
+            </aside>
+          </details>
         </div>
       </div>
     )}
@@ -149,6 +177,133 @@ const seriesData = isAuthorized ? await getViewerLiteSeriesData(studyId) : [];
       .main-viewer { flex: 1; background: #07090a; display: flex; align-items: center; justify-content: center; position: relative; }
       #loader { color: #cbd5d3 !important; }
       #renderedImage { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+      .lite-comment-dock {
+        position: absolute;
+        top: 76px;
+        right: 0;
+        z-index: 20;
+        display: flex;
+        align-items: flex-start;
+        --lite-comment-panel-width: min(320px, calc(100vw - 24px));
+      }
+
+      .lite-comment-toggle {
+        list-style: none;
+        cursor: pointer;
+        width: 34px;
+        height: 48px;
+        border-radius: 10px 0 0 10px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-right: none;
+        background: rgba(13, 17, 19, 0.84);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .lite-comment-toggle::-webkit-details-marker {
+        display: none;
+      }
+
+      .lite-comment-icon {
+        color: #b7c6c4;
+        font-size: 0.95rem;
+        line-height: 1;
+        transition: transform 0.24s ease;
+      }
+
+      .lite-comment-dock[open] .lite-comment-icon {
+        transform: rotate(180deg);
+      }
+
+      .lite-comment-panel {
+        width: var(--lite-comment-panel-width);
+        max-width: var(--lite-comment-panel-width);
+        border-radius: 10px 0 0 10px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-right: none;
+        background: rgba(13, 17, 19, 0.84);
+        backdrop-filter: blur(8px);
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        overflow: hidden;
+        opacity: 1;
+        transform: translateX(0);
+        transform-origin: right center;
+        transition:
+          max-width 0.24s ease,
+          opacity 0.24s ease,
+          transform 0.24s ease,
+          padding 0.24s ease,
+          border-color 0.24s ease;
+      }
+
+      .lite-comment-title {
+        margin: 0;
+        color: #a6b4b2;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .lite-comment-dock:not([open]) .lite-comment-panel {
+        display: flex;
+        max-width: 0;
+        padding: 0;
+        border-color: transparent;
+        opacity: 0;
+        transform: translateX(0);
+        pointer-events: none;
+      }
+
+      .lite-comment-text {
+        width: 100%;
+        min-height: 94px;
+        resize: vertical;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.04);
+        color: #e6eceb;
+        padding: 10px;
+        font-size: 0.83rem;
+        line-height: 1.35;
+      }
+
+      .lite-comment-text:focus {
+        outline: none;
+      }
+
+      .lite-comment-meta {
+        margin: 6px 0 0;
+        font-size: 0.72rem;
+        color: #9fb1af;
+      }
+
+      @media (max-width: 768px) {
+        .lite-comment-dock {
+          top: 64px;
+          --lite-comment-panel-width: min(270px, calc(100vw - 44px));
+        }
+
+        .lite-comment-toggle {
+          width: 32px;
+          height: 44px;
+        }
+
+        .lite-comment-panel {
+          padding: 8px;
+        }
+
+        .lite-comment-text {
+          min-height: 78px;
+          font-size: 0.78rem;
+        }
+      }
     </style>
   </body>
 </html>

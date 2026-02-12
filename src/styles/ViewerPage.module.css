@@ -90,7 +90,112 @@
   animation: fadeIn 0.24s ease-out;
 }
 
+.commentPanel {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  width: min(340px, calc(100% - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: var(--viewer-overlay-bg);
+  backdrop-filter: var(--viewer-backdrop-blur);
+  -webkit-backdrop-filter: var(--viewer-backdrop-blur);
+  box-shadow: var(--viewer-shadow-md);
+}
+
+.commentPanel h2 {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--viewer-text-secondary);
+}
+
+.commentForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.commentInput {
+  width: 100%;
+  min-height: 108px;
+  resize: vertical;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--viewer-text-primary);
+  padding: 10px;
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.commentInput:focus {
+  outline: none;
+  border-color: rgba(79, 168, 159, 0.62);
+  box-shadow: 0 0 0 3px rgba(79, 168, 159, 0.18);
+}
+
+.commentFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.commentStatus {
+  color: var(--viewer-text-secondary);
+  font-size: 0.73rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.commentButton {
+  border: 1px solid rgba(79, 168, 159, 0.5);
+  background: rgba(79, 168, 159, 0.18);
+  color: #eef5f4;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.commentButton:hover {
+  background: rgba(79, 168, 159, 0.28);
+  border-color: rgba(79, 168, 159, 0.75);
+}
+
 @media (max-width: 768px) {
+  .commentPanel {
+    top: 10px;
+    right: 10px;
+    width: min(300px, calc(100% - 20px));
+    padding: 10px;
+  }
+
+  .commentInput {
+    min-height: 84px;
+    font-size: 0.8rem;
+  }
+
+  .commentFooter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .commentButton {
+    width: 100%;
+  }
+
   .patientInfo {
     padding: 10px 12px;
     font-size: 12px;

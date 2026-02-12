@@ -37,6 +37,14 @@ try {
         json_completo TEXT
       )
     `);
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS study_comments (
+        study_id TEXT PRIMARY KEY,
+        comment TEXT NOT NULL DEFAULT '',
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )
+    `);
 } catch (error) {
     console.error("Database initialization failed:", error);
     throw error;

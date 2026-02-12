@@ -5,6 +5,7 @@ import ViewerToolbar from "@/components/viewer/ViewerToolbar.astro";
 import HelpModal from "@/components/modals/HelpModal.astro";
 import ShareModal from "@/components/modals/ShareModal.astro";
 import { getSeriesByStudyId, getInstancesBySeriesId } from "@/libs/orthanc";
+import { getStudyCommentEntry } from "@/libs/db/studyComments";
 import type { ThumbnailInfo } from "@/types";
 import styles from "@/styles/ViewerPage.module.css";
 import "@/styles/ViewerPage.global.css";
@@ -49,6 +50,10 @@ const seriesData: ThumbnailInfo[] = (
   )
 ).filter((series) => series.instances.length > 0);
 
+const studyCommentEntry = getStudyCommentEntry(studyId);
+const initialComment = studyCommentEntry.comment;
+const initialUpdatedAt = studyCommentEntry.updatedAt;
+
 ---
 
 <!doctype html>
@@ -72,6 +77,34 @@ const seriesData: ThumbnailInfo[] = (
       <ThumbnailSidebar client:load series={seriesData} />
       <div class={styles.mainViewer}>
         <DicomViewer client:load />
+
+        <aside class={styles.commentPanel} aria-label="Comentario del estudio">
+          <h2>Comentario del estudio</h2>
+          <form
+            id="study-comment-form"
+            class={styles.commentForm}
+            action={`/api/studies/${studyId}/comment`}
+          >
+            <textarea
+              id="study-comment-input"
+              class={styles.commentInput}
+              name="comment"
+              maxlength="2000"
+              placeholder="Escribe una nota del estudio..."
+            >{initialComment}</textarea>
+
+            <div class={styles.commentFooter}>
+              <span id="study-comment-status" class={styles.commentStatus}>
+                {
+                  initialUpdatedAt
+                    ? `Actualizado: ${initialUpdatedAt}`
+                    : "Sin comentarios guardados"
+                }
+              </span>
+              <button type="submit" class={styles.commentButton}>Guardar</button>
+            </div>
+          </form>
+        </aside>
       </div>
     </div>
 
@@ -88,5 +121,50 @@ const seriesData: ThumbnailInfo[] = (
 				});
 			}
 		</script>
+
+    <script>
+      const commentForm = document.getElementById("study-comment-form");
+      const commentInput = document.getElementById("study-comment-input");
+      const commentStatus = document.getElementById("study-comment-status");
+
+      if (
+        commentForm instanceof HTMLFormElement &&
+        commentInput instanceof HTMLTextAreaElement &&
+        commentStatus instanceof HTMLElement
+      ) {
+        commentForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          const formAction = commentForm.getAttribute("action");
+          if (!formAction) return;
+
+          const comment = commentInput.value || "";
+          commentStatus.textContent = "Guardando...";
+
+          try {
+            const response = await fetch(formAction, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ comment }),
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => null);
+              throw new Error(errorData?.error || "No se pudo guardar el comentario");
+            }
+
+            const data = await response.json();
+            commentStatus.textContent = data?.updatedAt
+              ? `Guardado: ${data.updatedAt}`
+              : "Comentario guardado";
+          } catch (error) {
+            console.error("Error guardando comentario:", error);
+            commentStatus.textContent = "No se pudo guardar";
+          }
+        });
+      }
+    </script>
   </body>
 </html>

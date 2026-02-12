@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import { activeSeriesId } from '@/stores/dicomStore';
-import type { ThumbnailInfo } from '@/types';
+import type { ThumbnailInfo, ThumbnailSidebarProps } from '@/types';
 import styles from '@/styles/ThumbnailSidebar.module.css';
-
-interface ThumbnailSidebarProps {
-    series: ThumbnailInfo[];
-}
 
 export default function ThumbnailSidebar({ series }: ThumbnailSidebarProps) {
     const [collapsed, setCollapsed] = useState(false);

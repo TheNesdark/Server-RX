@@ -1,4 +1,5 @@
 import type { App } from "dwv";
+import type { DrawController } from "@/types";
 
 const SHAPE_TYPES = [
     "Arrow",
@@ -23,11 +24,6 @@ const getDrawController = (app: App): DrawController | undefined => {
     const drawLayer = layerGroup?.getActiveDrawLayer();
     return drawLayer?.getDrawController() as DrawController | undefined;
 };
-
-// Tipo para el drawController de DWV (parcial, ya que DWV no exporta tipos completos)
-interface DrawController {
-    removeAllAnnotationsWithCommand: (command: () => void) => void;
-}
 
 const removeAnnotationsForShape = (app: App, drawController: DrawController, shapeName: string) => {
     app.setToolFeatures({ shapeName });

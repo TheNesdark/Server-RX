@@ -1,9 +1,5 @@
 import { activeSeriesId } from "@/stores/dicomStore";
-
-interface LiteSeriesMetadata {
-  id: string;
-  instances?: string[];
-}
+import type { LiteSeriesMetadata } from "@/types";
 
 const getSeriesMetadata = (): LiteSeriesMetadata[] => {
   const metadataElement = document.getElementById("series-metadata");

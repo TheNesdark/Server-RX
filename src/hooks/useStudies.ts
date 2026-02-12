@@ -1,16 +1,10 @@
 import { useState, useEffect, useMemo, useRef } from 'preact/hooks';
-import type { Study, FormattedStudy } from '@/types';
+import type { FormattedStudy, Study, UseStudiesProps } from '@/types';
 import { STUDIES_PAGE_LIMIT } from '@/config/pagination';
 import { FormatStudy } from '@/utils';
 
 const LIMIT = STUDIES_PAGE_LIMIT;
 const DEBOUNCE_DELAY = 300; // Retraso para la búsqueda (ms)
-
-interface UseStudiesProps {
-    initialStudies: Study[];
-    initialTotal: number;
-    initialCurrentPage: number;
-}
 
 export function useStudies({ initialStudies, initialTotal, initialCurrentPage }: UseStudiesProps) {
     const [searchTerm, setSearchTerm] = useState('');

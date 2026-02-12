@@ -1,10 +1,9 @@
 ---
-interface Props {
-	title: string;
-}
 import Sidebar from '@/components/Studies/Sidebar.astro';
 import '@/styles/global.css';
-const { title } = Astro.props;
+import type { LayoutProps } from '@/types';
+
+const { title } = Astro.props as LayoutProps;
 ---
 
 <!doctype html>

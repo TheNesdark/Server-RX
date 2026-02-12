@@ -145,92 +145,76 @@ const pathname = new URL(Astro.request.url).pathname;
 </script>
 
 <style>
-    /* 1. Layout Principal */
     aside {
-        background: linear-gradient(180deg, #eef7f7 0%, #e6f2f2 100%);
+        background: var(--sidebar-bg);
         border-right: 1px solid var(--sidebar-border);
-        width: 250px;
-        min-width: 250px;
+        width: 248px;
+        min-width: 248px;
         height: 100vh;
         display: flex;
         flex-direction: column;
-        padding: 0;
         position: relative;
-        transition: all 0.3s ease;
-        box-shadow: 6px 0 24px rgba(6, 24, 26, 0.15);
+        transition: width 0.24s ease, transform 0.24s ease;
     }
 
     aside.collapsed {
-        width: 70px;
-        min-width: 70px;
+        width: 72px;
+        min-width: 72px;
     }
 
-    /* 2. Cabecera (Header) */
     .sidebar-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 16px;
-        border-bottom: 1px solid var(--sidebar-border);
         gap: 12px;
-        background: rgba(255, 255, 255, 0.6);
-        backdrop-filter: blur(10px);
+        padding: 14px 14px 14px 16px;
+        border-bottom: 1px solid var(--sidebar-border);
+        background: var(--surface-muted);
     }
 
     .sidebar-title {
         color: var(--sidebar-text-main);
-        font-size: 18px;
+        font-size: 0.95rem;
         font-weight: 600;
         margin: 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.2s ease;
         flex: 1;
     }
 
-    .sidebar-toggle {
-        background: transparent;
-        border: 1px solid var(--sidebar-border);
-        color: var(--sidebar-text-muted);
-        padding: 8px;
-        border-radius: 6px;
-        cursor: pointer;
+    .sidebar-toggle,
+    .mobile-close {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 32px;
-        height: 32px;
-        transition: all 0.2s ease;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        border-radius: 10px;
+        border: 1px solid var(--sidebar-border);
+        background: var(--surface);
+        color: var(--sidebar-text-muted);
+        cursor: pointer;
+        transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
         flex-shrink: 0;
     }
 
-    .sidebar-toggle:hover {
+    .sidebar-toggle:hover,
+    .mobile-close:hover {
         background: var(--sidebar-hover);
+        border-color: rgba(15, 118, 110, 0.35);
         color: var(--sidebar-text-main);
-        border-color: var(--sidebar-accent);
-        transform: translateY(-1px);
     }
 
     .mobile-close {
         display: none;
-        background: transparent;
-        border: 1px solid var(--sidebar-border);
-        color: var(--sidebar-text-main);
-        padding: 8px;
-        border-radius: 6px;
-        cursor: pointer;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        transition: all 0.2s ease;
     }
 
-    /* 3. Menú de Navegación */
     .nav-menu {
         flex: 1;
-        padding: 12px 0;
+        padding: 12px;
         overflow-y: auto;
     }
 
@@ -238,41 +222,41 @@ const pathname = new URL(Astro.request.url).pathname;
         list-style: none;
         padding: 0;
         margin: 0;
-    }
-
-    aside li {
-        margin: 4px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
     }
 
     aside a {
         display: flex;
         align-items: center;
-        padding: 12px 16px;
+        justify-content: flex-start;
+        gap: 10px;
+        padding: 10px 12px;
         color: var(--sidebar-text-muted);
         text-decoration: none;
-        font-size: 14px;
+        font-size: 0.875rem;
         font-weight: 500;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-        justify-content: flex-start;
+        border-radius: 10px;
         border: 1px solid transparent;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     }
 
     aside a:hover {
         background: var(--sidebar-hover);
+        border-color: rgba(15, 118, 110, 0.2);
         color: var(--sidebar-text-main);
-        border-color: rgba(14, 165, 164, 0.2);
     }
 
     aside a.active {
-        background: rgba(14, 165, 164, 0.16);
+        background: rgba(15, 118, 110, 0.12);
+        border-color: rgba(15, 118, 110, 0.35);
         color: var(--sidebar-text-main);
-        font-weight: 700;
-        border-color: rgba(14, 165, 164, 0.3);
+        font-weight: 600;
     }
 
     aside .icon {
-        margin-right: 12px;
+        margin-right: 0;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -284,35 +268,35 @@ const pathname = new URL(Astro.request.url).pathname;
     .nav-text {
         white-space: nowrap;
         overflow: hidden;
-        transition: opacity 0.3s ease;
     }
 
-    /* 4. Footer y Logout */
     .sidebar-footer {
-        padding: 16px 24px;
+        padding: 12px;
         border-top: 1px solid var(--sidebar-border);
-        background: rgba(255, 255, 255, 0.5);
-        flex-shrink: 0;
-        transition: padding 0.3s ease;
+        background: var(--surface-muted);
+        transition: padding 0.24s ease;
     }
 
     .logout {
         display: flex;
         align-items: center;
-        gap: 8px;
-        color: #f87171;
-        text-decoration: none;
-        font-size: 14px;
-        padding: 8px 0;
-        transition: all 0.2s;
         justify-content: flex-start;
+        gap: 8px;
+        padding: 9px 12px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        color: #8f3f3f;
+        font-size: 0.875rem;
+        text-decoration: none;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     }
 
     .logout:hover {
-        color: #ef4444;
+        background: #fff5f5;
+        border-color: #f3d1d1;
+        color: #7f1d1d;
     }
 
-    /* 5. Modificadores de Estado (Colapsado) */
     aside.collapsed .sidebar-title,
     aside.collapsed .nav-text,
     aside.collapsed .logout-text {
@@ -326,43 +310,39 @@ const pathname = new URL(Astro.request.url).pathname;
     aside.collapsed a,
     aside.collapsed .logout {
         justify-content: center;
-    }
-
-    aside.collapsed .icon {
-        margin-right: 0;
+        padding-left: 0;
+        padding-right: 0;
     }
 
     aside.collapsed .sidebar-footer {
-        padding: 12px 6px;
+        padding: 10px 6px;
     }
 
-    /* 6. Diseño Responsivo */
     .mobile-toggle {
         display: none;
         position: fixed;
         top: 10px;
         left: 10px;
         z-index: 999;
-        background: rgba(255, 255, 255, 0.9);
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        border: 1px solid var(--sidebar-border);
+        border-radius: 10px;
+        background: var(--surface);
         color: var(--text-main);
-        border: none;
-        padding: 8px;
-        border-radius: 6px;
         cursor: pointer;
-        box-shadow: 0 6px 16px rgba(6, 24, 26, 0.2);
+        box-shadow: var(--shadow-sm);
     }
 
     .sidebar-overlay {
         display: none;
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0, 0, 0, 0.5);
+        inset: 0;
+        background: rgba(16, 32, 34, 0.28);
         z-index: 999;
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.24s ease;
         pointer-events: none;
     }
 
@@ -386,29 +366,27 @@ const pathname = new URL(Astro.request.url).pathname;
             position: fixed;
             left: 0;
             top: 0;
-            height: 100vh;
             z-index: 1000;
             transform: translateX(-100%);
-            width: 280px;
-            min-width: 280px;
-            box-shadow: none;
+            width: 272px;
+            min-width: 272px;
+            box-shadow: var(--shadow-lg);
         }
 
         aside.mobile-open {
             transform: translateX(0);
-            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
         }
 
         .sidebar-toggle {
-            display: none; /* Ocultamos el toggle de colapsar en móvil */
+            display: none;
         }
 
         .mobile-close {
             display: flex;
         }
 
-        .sidebar-title {
-            font-size: 16px;
+        :global(body.sidebar-open) {
+            overflow: hidden;
         }
     }
 </style>

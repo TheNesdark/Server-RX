@@ -33,10 +33,20 @@ const { title } = Astro.props;
 
 	main {
 		background: transparent;
-		padding: 2rem;
+		padding: clamp(1rem, 2.2vw, 2rem);
 		flex: 1;
 		min-width: 0;
 		overflow-y: auto;
-		transition: margin-left 0.3s ease;
+		overflow-x: hidden;
+	}
+
+	@media (max-width: 768px) {
+		body {
+			height: 100dvh;
+		}
+
+		main {
+			padding-top: 3.75rem;
+		}
 	}
 </style>

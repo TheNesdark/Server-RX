@@ -2,17 +2,15 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    gap: 12px;
+    gap: 14px;
 }
 
 .header {
     background: var(--card-bg);
     border-radius: var(--radius-lg);
-    padding: 28px;
-    margin-bottom: 28px;
-    box-shadow: var(--shadow-md);
     border: 1px solid var(--border-subtle);
-    backdrop-filter: blur(12px) saturate(140%);
+    padding: clamp(1rem, 2.4vw, 1.6rem);
+    box-shadow: var(--shadow-sm);
 }
 
 .headerContent {
@@ -20,32 +18,33 @@
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 16px;
 }
 
 .titleSection {
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 12px;
 }
 
 .logoIcon {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
-    background: linear-gradient(145deg, rgba(14, 165, 164, 0.2), rgba(37, 99, 235, 0.12));
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid rgba(15, 118, 110, 0.25);
+    background: rgba(15, 118, 110, 0.08);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--hospital-green-hover);
-    box-shadow: var(--shadow-sm);
+    color: var(--hospital-green);
 }
 
 .titleSection h1 {
     color: var(--text-main);
     margin: 0;
-    font-size: 1.75rem;
+    font-size: clamp(1.35rem, 2.8vw, 1.7rem);
     font-weight: 700;
+    letter-spacing: -0.02em;
 }
 
 .subtitle {
@@ -57,24 +56,26 @@
 .headerActions {
     display: flex;
     align-items: center;
-    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 12px;
 }
 
 .statsBadge {
-    display: flex;
-    align-items: center;
-    background: rgba(14, 165, 164, 0.12);
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
     border-radius: 999px;
-    padding: 6px 14px;
-    font-size: 0.875rem;
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-muted);
+    padding: 6px 12px;
+    font-size: 0.82rem;
     font-weight: 600;
-    border: 1px solid rgba(14, 165, 164, 0.2);
 }
 
 .statsNumber {
-    color: var(--hospital-green);
+    color: var(--hospital-green-hover);
     font-weight: 700;
-    margin-right: 4px;
 }
 
 .statsLabel {
@@ -83,11 +84,12 @@
 
 .searchContainer {
     position: relative;
+    min-width: min(340px, 72vw);
 }
 
 .searchIcon {
     position: absolute;
-    left: 10px;
+    left: 12px;
     top: 50%;
     transform: translateY(-50%);
     pointer-events: none;
@@ -96,54 +98,51 @@
 
 .searchInput {
     width: 100%;
-    padding: 12px 12px;
-    padding-left: 35px;
-    border: 1.5px solid var(--border-subtle);
-    border-radius: 12px;
+    height: 42px;
+    padding: 0 12px 0 38px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 11px;
     color: var(--text-main);
     background: var(--surface);
-    transition: all 0.2s ease;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .searchInput:focus {
     outline: none;
     border-color: var(--hospital-green);
-    box-shadow: 0 0 0 4px var(--ring), var(--shadow-sm);
+    box-shadow: 0 0 0 3px var(--ring);
 }
 
 .tableContainer {
-    position: relative;
     min-width: 100%;
     background: var(--surface);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
     border: 1px solid var(--border-subtle);
     overflow-x: auto;
-    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
 }
 
 .studiesTable {
     width: 100%;
-    min-width: 800px;
+    min-width: 840px;
     border-collapse: collapse;
 }
 
 .studiesTable th,
 .studiesTable td {
-    padding: 12px 16px;
+    padding: 0.88rem 1rem;
     text-align: left;
-    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    border-bottom: 1px solid #e9eeed;
     vertical-align: middle;
 }
 
 .studiesTable th {
-    background-color: var(--surface-muted);
+    background: var(--surface-muted);
     color: var(--text-muted);
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: 0.73rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
 }
 
 .studyRow {
@@ -151,16 +150,16 @@
 }
 
 .studyRow:hover {
-    background-color: rgba(14, 165, 164, 0.06);
+    background: #f6faf9;
 }
 
 .idCode {
-    font-family: monospace;
-    font-size: 0.75rem;
-    background-color: rgba(14, 165, 164, 0.12);
-    color: var(--hospital-green-hover);
-    padding: 2px 6px;
-    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.76rem;
+    background: var(--surface-muted);
+    color: #2f494d;
+    padding: 0.2rem 0.4rem;
+    border-radius: 6px;
 }
 
 .patientName {
@@ -168,83 +167,151 @@
     color: var(--text-main);
 }
 
+.colId {
+    width: 130px;
+}
+
+.colPatient {
+    min-width: 200px;
+}
+
+.colSex {
+    width: 80px;
+}
+
+.colInstitution {
+    min-width: 180px;
+}
+
+.colDate {
+    width: 115px;
+}
+
+.colModality {
+    width: 120px;
+}
+
+.colActions {
+    width: 190px;
+}
+
 .modalityChip {
     display: inline-flex;
-    padding: 4px 10px;
-    border-radius: 20px;
+    align-items: center;
+    justify-content: center;
+    min-width: 58px;
+    padding: 0.24rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid #d5e3e1;
+    background: #f5f9f8;
+    color: #34575a;
     font-size: 0.7rem;
     font-weight: 700;
-    background-color: rgba(14, 165, 164, 0.12);
-    color: var(--hospital-green-hover);
-    border: 1px solid rgba(14, 165, 164, 0.2);
+    letter-spacing: 0.03em;
+}
+
+.modality-default {
+    background: #f5f7f7;
+    border-color: #dfe6e5;
+    color: #53676a;
+}
+
+.modality-ct,
+.modality-mr {
+    background: #edf7f5;
+    border-color: #cfe6e1;
+    color: #1f5456;
+}
+
+.modality-us,
+.modality-cr,
+.modality-xa {
+    background: #f2f5fb;
+    border-color: #d8e0ef;
+    color: #35506f;
 }
 
 .actionButtonsContainer {
     display: flex;
-    gap: 8px;
+    gap: 7px;
+    flex-wrap: wrap;
 }
 
 .actionBtn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 12px;
+    height: 32px;
+    padding: 0 10px;
     background: var(--surface);
-    color: var(--text-muted);
-    border: 1.5px solid var(--border-subtle);
-    border-radius: 10px;
-    font-size: 0.75rem;
+    color: #2e4a4e;
+    border: 1px solid var(--border-subtle);
+    border-radius: 9px;
+    font-size: 0.74rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-sm);
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
 }
 
 .actionBtn:hover {
-    border-color: var(--hospital-green);
+    border-color: rgba(15, 118, 110, 0.45);
     color: var(--hospital-green-hover);
-    background: var(--surface-muted);
-    transform: translateY(-1px);
+    background: #f1f8f7;
 }
 
 .pagination {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 0;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 4px 2px;
 }
 
 .paginationInfo {
-    font-size: 0.875rem;
+    font-size: 0.86rem;
     color: var(--text-muted);
+}
+
+.paginationControls {
+    display: inline-flex;
+    gap: 8px;
 }
 
 .pageBtn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    background-color: var(--surface);
-    border: 1.5px solid var(--border-subtle);
-    border-radius: 10px;
+    width: 2.25rem;
+    height: 2.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 9px;
     color: var(--text-muted);
-    font-weight: 600;
-    transition: all 0.2s;
+    font-weight: 700;
     cursor: pointer;
-    box-shadow: var(--shadow-sm);
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
 }
 
 .pageBtn:hover:not(:disabled) {
-    border-color: var(--hospital-green);
+    border-color: rgba(15, 118, 110, 0.45);
     color: var(--hospital-green-hover);
-    background: var(--surface-muted);
-    transform: translateY(-1px);
+    background: #f1f8f7;
 }
 
 .pageBtn:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
+}
+
+.emptyStateContainer {
+    display: grid;
+    place-items: center;
+    gap: 6px;
+    min-height: 300px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 20px;
 }
 
 @media (max-width: 768px) {
@@ -252,8 +319,37 @@
         flex-direction: column;
         align-items: stretch;
     }
-    
-    .colSex, .colInstitution {
+
+    .headerActions {
+        justify-content: flex-start;
+    }
+
+    .searchContainer {
+        min-width: 100%;
+    }
+
+    .colSex,
+    .colInstitution {
         display: none;
+    }
+
+    .studiesTable {
+        min-width: 700px;
+    }
+}
+
+@media (max-width: 520px) {
+    .titleSection {
+        align-items: flex-start;
+    }
+
+    .logoIcon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .pagination {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }

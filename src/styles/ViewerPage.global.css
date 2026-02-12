@@ -1,35 +1,30 @@
 /* Variables CSS globales para el viewer */
 :root {
   --viewer-font-sans: "Source Sans 3", "Space Grotesk", sans-serif;
-  --viewer-bg-primary: #0b0f13;
-  --viewer-bg-secondary: #06080a;
-  --viewer-text-primary: #f8fafc;
-  --viewer-text-secondary: #cbd5e1;
-  --viewer-accent: #22d3ee;
-  --viewer-accent-strong: #0ea5a4;
-  --viewer-overlay-bg: rgba(10, 14, 18, 0.88);
-  --viewer-border-radius: 14px;
-  --viewer-shadow-sm: 0 8px 18px rgba(0, 0, 0, 0.35);
-  --viewer-shadow-md: 0 16px 32px rgba(0, 0, 0, 0.4);
-  --viewer-shadow-lg: 0 26px 60px rgba(0, 0, 0, 0.5);
-  --viewer-backdrop-blur: blur(12px);
+  --viewer-bg-primary: #111517;
+  --viewer-bg-secondary: #0b0e10;
+  --viewer-text-primary: #e6eceb;
+  --viewer-text-secondary: #a6b4b2;
+  --viewer-accent: #4fa89f;
+  --viewer-accent-strong: #0f766e;
+  --viewer-overlay-bg: rgba(13, 17, 19, 0.86);
+  --viewer-border-radius: 10px;
+  --viewer-shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.24);
+  --viewer-shadow-md: 0 12px 28px rgba(0, 0, 0, 0.32);
+  --viewer-shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.38);
+  --viewer-backdrop-blur: blur(8px);
   --viewer-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Reset global */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Body principal */
 body {
   font-family: var(--viewer-font-sans);
-  background:
-    radial-gradient(900px circle at 15% -10%, rgba(34, 211, 238, 0.08), transparent 60%),
-    radial-gradient(900px circle at 95% -20%, rgba(14, 165, 164, 0.08), transparent 55%),
-    linear-gradient(180deg, #0c1216 0%, #06080a 100%);
+  background: linear-gradient(180deg, #14191b 0%, #0c1012 100%);
   color: var(--viewer-text-primary);
   overflow: hidden;
   height: 100vh;
@@ -39,21 +34,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar personalizado para navegadores modernos */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.3);
+  background: rgba(166, 180, 178, 0.32);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.45);
+  background: rgba(166, 180, 178, 0.48);
 }

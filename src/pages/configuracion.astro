@@ -92,10 +92,11 @@ const config = readConfig();
                             name="JWT_SECRET"
                             type="password"
                             minlength="32"
+                            value={config.JWT_SECRET}
                             placeholder="Deja en blanco para mantener"
                         />
                         <p class="help">
-                            Mínimo 32 caracteres. No se muestra el valor actual.
+                            Mínimo 32 caracteres.
                         </p>
                     </div>
 
@@ -107,13 +108,10 @@ const config = readConfig();
                             type="password"
                             autocomplete="current-password"
                             placeholder="Deja en blanco para mantener"
+                            value={config.ORTHANC_PASSWORD}
                         />
                         <p class="help">
-                            Actualmente: {
-                                config.ORTHANC_PASSWORD
-                                    ? "configurada"
-                                    : "no configurada"
-                            }
+                            Usa una contraseña fuerte para proteger tu servidor. Si cambias esta
                         </p>
                     </div>
 
@@ -124,8 +122,9 @@ const config = readConfig();
                             name="ADMIN_PASSWORD"
                             type="password"
                             placeholder="Deja en blanco para mantener"
+                            value={config.ADMIN_PASSWORD}
                         />
-                        <p class="help">No se muestra el valor actual.</p>
+                        <p class="help">Escribe una contraseña fuerte para proteger tu administrador.</p>
                     </div>
 
                     <div class="field checkbox">
@@ -167,7 +166,7 @@ const config = readConfig();
 
 <style>
     .config-page {
-        padding: 32px 24px;
+        padding: clamp(1rem, 2.2vw, 2rem);
         background: transparent;
         min-height: 100vh;
         width: 100%;
@@ -175,25 +174,24 @@ const config = readConfig();
     }
 
     .panel {
-        max-width: 980px;
+        max-width: 960px;
         margin: 0 auto;
         background: var(--card-bg);
         border: 1px solid var(--border-subtle);
         border-radius: var(--radius-lg);
-        padding: 28px;
-        box-shadow: var(--shadow-md);
-        backdrop-filter: blur(12px) saturate(140%);
+        padding: clamp(1rem, 2.1vw, 1.6rem);
+        box-shadow: var(--shadow-sm);
     }
 
     .header {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        margin-bottom: 18px;
+        gap: 6px;
+        margin-bottom: 14px;
     }
 
     h1 {
-        font-size: 22px;
+        font-size: clamp(1.3rem, 2.4vw, 1.6rem);
         letter-spacing: -0.02em;
         margin: 0;
         color: var(--text-main);
@@ -214,48 +212,49 @@ const config = readConfig();
     }
 
     .notice {
-        border-radius: 14px;
-        padding: 12px 14px;
-        margin-bottom: 14px;
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-bottom: 10px;
         border: 1px solid transparent;
+        border-left-width: 3px;
         font-size: 14px;
         font-weight: 500;
     }
 
     .notice.success {
-        background: rgba(14, 165, 164, 0.12);
-        border-color: rgba(14, 165, 164, 0.35);
-        color: #0f766e;
+        background: rgba(15, 118, 110, 0.1);
+        border-color: rgba(15, 118, 110, 0.3);
+        color: #115e59;
     }
 
     .notice.error {
-        background: rgba(239, 68, 68, 0.12);
-        border-color: rgba(239, 68, 68, 0.35);
-        color: #b91c1c;
+        background: rgba(239, 68, 68, 0.08);
+        border-color: rgba(239, 68, 68, 0.28);
+        color: #991b1b;
     }
 
     .form {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 14px;
     }
 
     .grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px;
+        gap: 12px;
     }
 
     .field {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 5px;
     }
 
     label {
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 700;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         color: var(--text-muted);
         margin: 0;
@@ -265,20 +264,20 @@ const config = readConfig();
 
     input {
         width: 100%;
-        padding: 12px 14px;
-        border-radius: 12px;
+        height: 42px;
+        padding: 0 12px;
+        border-radius: 10px;
         border: 1px solid var(--border-subtle);
         background: var(--surface);
         color: var(--text-main);
         font-size: 14px;
-        transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+        transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     input:focus {
         outline: none;
         border-color: var(--hospital-green);
-        box-shadow: 0 0 0 4px var(--ring), var(--shadow-sm);
-        transform: translateY(-1px);
+        box-shadow: 0 0 0 3px var(--ring);
     }
 
     .help {
@@ -294,7 +293,7 @@ const config = readConfig();
     .checkbox-label {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         text-transform: none;
         letter-spacing: normal;
         color: var(--text-main);
@@ -314,18 +313,18 @@ const config = readConfig();
     .divider {
         height: 1px;
         background: var(--border-subtle);
-        margin: 18px 0;
-        opacity: 0.5;
+        margin: 16px 0;
+        opacity: 0.8;
     }
 
     .sync {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
     }
 
     .sync h2 {
-        font-size: 16px;
+        font-size: 15px;
         margin: 0;
         color: var(--text-main);
         letter-spacing: -0.01em;
@@ -338,26 +337,24 @@ const config = readConfig();
     }
 
     button {
-        padding: 12px 24px;
-        border-radius: 12px;
+        height: 42px;
+        padding: 0 18px;
+        border-radius: 10px;
         border: none;
-        background: linear-gradient(135deg, var(--hospital-green) 0%, var(--hospital-green-hover) 100%);
+        background: var(--hospital-green);
         color: white;
         font-weight: 700;
         cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
-        box-shadow: var(--shadow-sm);
+        transition: background-color 0.2s ease;
     }
 
     button:hover {
-        transform: translateY(-1px);
-        filter: brightness(1.05);
-        box-shadow: var(--shadow-md);
+        background: var(--hospital-green-hover);
     }
 
     @media (max-width: 780px) {
         .panel {
-            padding: 18px;
+            padding: 14px;
         }
 
         .grid {

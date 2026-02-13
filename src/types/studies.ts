@@ -35,6 +35,7 @@ export interface ThumbnailInfo {
 
 export interface DicomStudy {
     ID: string;
+    Series?: string[];
     PatientMainDicomTags?: {
         PatientName?: string;
         PatientID?: string;

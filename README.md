@@ -6,10 +6,24 @@ Aplicación web moderna para la visualización y gestión de estudios médicos D
 
 * **Integración con Orthanc:** Conexión directa con servidores PACS Orthanc.
 * **Gestión Dinámica:** Configuración total del sistema desde el panel administrativo sin editar archivos manuales.
-* **Visor DICOM Avanzado:** Basado en `dwv` con herramientas de manipulación (Zoom, Pan, Niveles de ventana).
+* **Visor DICOM Avanzado:** Basado en `larvitar` con herramientas de manipulacion, anotacion y overlays clinicos.
 * **Modo Lite:** Visor ligero optimizado para acceso rápido a imágenes renderizadas (JPEG) mediante validación de DNI de paciente.
 * **Búsqueda Rápida:** Base de datos local (SQLite) sincronizada para consultas instantáneas de pacientes y estudios.
 * **Seguridad:** Sistema de autenticación JWT para administración y control de acceso por estudio para pacientes.
+
+## 🩻 Herramientas del visor
+
+El visor principal (`/viewer/[studyId]`) incluye:
+
+* **Zoom & Pan:** Navegacion principal de la radiografia.
+* **Draw:** Anotaciones (flechas, reglas, ROI, angulos y borrado).
+* **Orientation Markers (`OrientationMarkers`):** Referencias anatomicas de orientacion sobre la imagen.
+* **Scale Overlay (`ScaleOverlay`):** Regla visual para referencia de escala.
+* **BorderMagnify:** Lupa de borde para inspeccion puntual.
+* **Rotate:** Rotacion de la imagen.
+* **Reset:** Reinicio de vista y anotaciones.
+
+> Nota: `Floodfill`/segmentacion no esta habilitado en el flujo por defecto para evitar errores de `labelmap` cuando no existe una mascara activa.
 
 ## 🛠️ Configuración del Sistema
 

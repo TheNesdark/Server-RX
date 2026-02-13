@@ -1,16 +1,3 @@
-import type { App } from "dwv";
-import type { DrawController } from "@/types";
-
-const SHAPE_TYPES = [
-    "Arrow",
-    "Ruler", 
-    "Circle",
-    "Ellipse",
-    "Rectangle",
-    "Protractor",
-    "Roi",
-] as const;
-
 /**
  * Sanitiza datos de entrada removiendo caracteres de control y limitando longitud
  */
@@ -19,36 +6,28 @@ export function sanitizeString(input: string | undefined, maxLength: number = 25
     return input.replace(/[\x00-\x1F\x7F-\x9F]/g, '').substring(0, maxLength);
 }
 
-const getDrawController = (app: App): DrawController | undefined => {
-    const layerGroup = app.getLayerGroupByDivId("layerGroup0");
-    const drawLayer = layerGroup?.getActiveDrawLayer();
-    return drawLayer?.getDrawController() as DrawController | undefined;
-};
-
-const removeAnnotationsForShape = (app: App, drawController: DrawController, shapeName: string) => {
-    app.setToolFeatures({ shapeName });
-    drawController.removeAllAnnotationsWithCommand(app.addToUndoStack);
-};
-
 /**
  * Limpia el estado activo de todos los botones de herramientas
  */
 export function clearActiveButtons(): void {
     document
-        .querySelectorAll(".tool-btn")
+    .querySelectorAll(".tool-btn:not([data-overlay-tool='true'])")
         .forEach((b) => b.classList.remove("active"));
 }
 
 /**
  * Limpia todas las anotaciones del visor DICOM
  */
-export function clearAllAnnotations(app: App): void {
-    const drawController = getDrawController(app);
-    if (!drawController) return;
+export function clearAllAnnotations(): void {
+    if (typeof window === 'undefined') {
+        return;
+    }
 
-    SHAPE_TYPES.forEach((shapeName) => {
-        removeAnnotationsForShape(app, drawController, shapeName);
-    });
-
-    app.setTool("None");
+    void import('larvitar')
+        .then(({ clearMeasurements }) => {
+            clearMeasurements();
+        })
+        .catch((error) => {
+            console.warn('No se pudieron limpiar las anotaciones:', error);
+        });
 }

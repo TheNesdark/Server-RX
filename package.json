@@ -18,8 +18,8 @@
     "astro": "^5.16.0",
     "better-sqlite3": "^12.5.0",
     "dotenv": "^17.2.3",
-    "dwv": "^0.35.1",
     "jose": "^6.1.3",
+    "larvitar": "^3.8.5",
     "nanostores": "^1.1.0",
     "node-cron": "^4.2.1",
     "preact": "^10.28.0",
@@ -32,6 +32,7 @@
     "@types/node-cron": "^3.0.11",
     "concurrently": "^9.2.1",
     "esbuild": "^0.27.3",
+    "patch-package": "^8.0.1",
     "pkg": "^5.8.1",
     "postject": "^1.0.0-alpha.6",
     "typescript": "^5.9.3"

@@ -18,7 +18,7 @@
                 <line x1="11" y1="8" x2="11" y2="14"></line>
                 <line x1="8" y1="11" x2="14" y2="11"></line>
             </svg>
-            <span>Zoom & Pan</span>
+            <span>Zoom RX</span>
         </button>
         <div class="draw-tool-container">
             <button class="tool-btn draw-btn" title="Draw" id="draw-dropdown-btn">
@@ -49,7 +49,7 @@
                 </svg>
             </button>
             <div class="draw-shapes-menu" id="draw-menu">
-                <button class="shape-option" data-shape="Arrow">
+                <button class="shape-option" data-shape="ArrowAnnotate">
                     <svg
                         width="16"
                         height="16"
@@ -61,7 +61,7 @@
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                         <polyline points="12 5 19 12 12 19"></polyline>
                     </svg>
-                    <span>Arrow</span>
+                    <span>ArrowAnnotate</span>
                 </button>
                 <button class="shape-option" data-shape="Ruler">
                     <svg
@@ -150,6 +150,19 @@
                     </svg>
                     <span>ROI</span>
                 </button>
+                <button class="shape-option" data-shape="Eraser">
+                    <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path d="M20 20H7L3 16l9-9a2.8 2.8 0 0 1 4 0l4 4a2.8 2.8 0 0 1 0 4l-5 5"></path>
+                    </svg>
+                    <span>Eraser</span>
+                </button>
                 <div class="menu-separator"></div>
                 <button class="shape-option" data-action="clear">
                     <svg
@@ -170,7 +183,7 @@
                 </button>
             </div>
         </div>
-        <button class="tool-btn" title="Floodfill">
+        <button class="tool-btn" title="OrientationMarkers" data-overlay-tool="true">
             <svg
                 width="20"
                 height="20"
@@ -179,11 +192,60 @@
                 stroke="currentColor"
                 stroke-width="2"
             >
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="16"></line>
-                <line x1="8" y1="12" x2="16" y2="12"></line>
+                <circle cx="12" cy="12" r="9"></circle>
+                <line x1="12" y1="3" x2="12" y2="8"></line>
+                <line x1="12" y1="16" x2="12" y2="21"></line>
+                <line x1="3" y1="12" x2="8" y2="12"></line>
+                <line x1="16" y1="12" x2="21" y2="12"></line>
             </svg>
-            <span>Floodfill</span>
+            <span>Orientation</span>
+        </button>
+        <button class="tool-btn" title="ScaleOverlay" data-overlay-tool="true">
+            <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <line x1="4" y1="19" x2="20" y2="19"></line>
+                <line x1="4" y1="15" x2="4" y2="19"></line>
+                <line x1="8" y1="17" x2="8" y2="19"></line>
+                <line x1="12" y1="15" x2="12" y2="19"></line>
+                <line x1="16" y1="17" x2="16" y2="19"></line>
+                <line x1="20" y1="15" x2="20" y2="19"></line>
+            </svg>
+            <span>Escala</span>
+        </button>
+        <button class="tool-btn" title="BorderMagnify">
+            <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+                <rect x="8" y="8" width="6" height="6"></rect>
+            </svg>
+            <span>BorderMagnify</span>
+        </button>
+        <button class="tool-btn" title="Rotate">
+            <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1 2.13-9"></path>
+            </svg>
+            <span>Rotate</span>
         </button>
         <button class="tool-btn" title="Reset">
             <svg
@@ -311,6 +373,19 @@
 
     .tool-btn.active:hover {
         background: rgba(79, 168, 159, 0.26);
+    }
+
+    .tool-btn:disabled {
+        opacity: 0.42;
+        cursor: not-allowed;
+        border-color: rgba(255, 255, 255, 0.1);
+        color: rgba(166, 180, 178, 0.75);
+    }
+
+    .tool-btn:disabled:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: rgba(166, 180, 178, 0.75);
     }
 
     .tool-btn svg {

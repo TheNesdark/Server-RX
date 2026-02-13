@@ -34,60 +34,122 @@
   background: rgba(255, 255, 255, 0.32);
 }
 
-.patientInfo {
+.patientDock {
   position: absolute;
+  top: 146px;
+  right: 0;
+  z-index: 19;
+  display: flex;
+  align-items: flex-start;
+  --patient-panel-width: min(340px, calc(100vw - 56px));
+}
+
+.patientToggle {
+  list-style: none;
+  width: 36px;
+  height: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
   background: var(--viewer-overlay-bg);
-  padding: 12px 14px;
-  font-size: 13px;
-  line-height: 1.5;
-  z-index: 10;
-  border-radius: var(--viewer-border-radius);
+  backdrop-filter: var(--viewer-backdrop-blur);
+  -webkit-backdrop-filter: var(--viewer-backdrop-blur);
+  box-shadow: var(--viewer-shadow-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.patientToggle::-webkit-details-marker {
+  display: none;
+}
+
+.patientToggleIcon {
+  color: var(--viewer-text-secondary);
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 0.24s ease;
+}
+
+.patientDock[open] .patientToggleIcon {
+  transform: rotate(180deg);
+}
+
+.patientPanel {
+  width: var(--patient-panel-width);
+  max-width: var(--patient-panel-width);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  background: var(--viewer-overlay-bg);
   backdrop-filter: var(--viewer-backdrop-blur);
   -webkit-backdrop-filter: var(--viewer-backdrop-blur);
   box-shadow: var(--viewer-shadow-md);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  transition: var(--viewer-transition);
+  overflow: hidden;
+  opacity: 1;
+  transform: translateX(0);
+  transform-origin: right center;
+  transition:
+    max-width 0.24s ease,
+    opacity 0.24s ease,
+    transform 0.24s ease,
+    padding 0.24s ease,
+    border-color 0.24s ease;
+}
+
+.patientTitle {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--viewer-text-secondary);
+}
+
+.patientList {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.patientRow {
+  display: grid;
+  grid-template-columns: minmax(92px, auto) 1fr;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.patientRow dt {
+  margin: 0;
+  font-size: 0.71rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--viewer-text-secondary);
+}
+
+.patientRow dd {
+  margin: 0;
+  font-size: 0.83rem;
+  line-height: 1.35;
   color: var(--viewer-text-primary);
-  font-weight: 400;
+  overflow-wrap: anywhere;
 }
 
-.patientInfo:hover {
-  border-color: rgba(79, 168, 159, 0.38);
-}
-
-.patientInfoTopLeft {
-  top: 16px;
-  left: 16px;
-}
-
-.patientInfoTopRight {
-  top: 16px;
-  right: 16px;
-}
-
-.patientInfoBottomLeft {
-  bottom: 16px;
-  left: 16px;
-}
-
-.patientInfoBottomRight {
-  bottom: 16px;
-  right: 16px;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.patientInfo {
-  animation: fadeIn 0.24s ease-out;
+.patientDock:not([open]) .patientPanel {
+  display: flex;
+  max-width: 0;
+  padding: 0;
+  border-color: transparent;
+  opacity: 0;
+  transform: translateX(0);
+  pointer-events: none;
 }
 
 .commentDock {
@@ -236,6 +298,33 @@
 }
 
 @media (max-width: 768px) {
+  .patientDock {
+    top: 120px;
+    --patient-panel-width: min(290px, calc(100vw - 46px));
+  }
+
+  .patientToggle {
+    width: 34px;
+    height: 46px;
+  }
+
+  .patientPanel {
+    padding: 10px;
+  }
+
+  .patientRow {
+    grid-template-columns: minmax(82px, auto) 1fr;
+    gap: 6px;
+  }
+
+  .patientRow dt {
+    font-size: 0.68rem;
+  }
+
+  .patientRow dd {
+    font-size: 0.79rem;
+  }
+
   .commentDock {
     top: 68px;
     --comment-panel-width: min(290px, calc(100vw - 46px));
@@ -262,21 +351,5 @@
 
   .commentButton {
     width: 100%;
-  }
-
-  .patientInfo {
-    padding: 10px 12px;
-    font-size: 12px;
-    border-radius: 8px;
-  }
-
-  .patientInfoTopLeft,
-  .patientInfoTopRight,
-  .patientInfoBottomLeft,
-  .patientInfoBottomRight {
-    top: 10px;
-    left: 10px;
-    right: auto;
-    bottom: auto;
   }
 }

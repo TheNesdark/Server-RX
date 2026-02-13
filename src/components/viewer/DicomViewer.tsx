@@ -4,7 +4,7 @@ import styles from '@/styles/DicomViewer.module.css';
 const LoadingOverlay = () => (
     <div className={styles.loadingOverlay}>
         <div className={styles.spinner}></div>
-        <div className={styles.loadingText}>Cargando Serie...</div>
+        <div className={styles.loadingText}>Cargando radiografia...</div>
     </div>
 );
 
@@ -47,14 +47,14 @@ export default function DicomViewer() {
     } = useDicomViewer();
 
     return (
-        <div id="dwv" className={styles.dwvContainer}>
+        <div id="dicom-viewer" className={styles.viewerContainer}>
             <div id="layerGroup0" className={styles.layerGroup}></div>
             
             {!isLoaded && <LoadingOverlay />}
 
             <div className={styles.controlsOverlay}>
                 <SliderControl
-                    label="Brillo (Center)"
+                    label="Nivel de gris RX (Center)"
                     min={range.min}
                     max={range.max}
                     value={windowCenter}
@@ -63,7 +63,7 @@ export default function DicomViewer() {
                 />
                 
                 <SliderControl
-                    label="Contraste (Width)"
+                    label="Contraste RX (Width)"
                     min={1}
                     max={range.max - range.min}
                     value={windowWidth}

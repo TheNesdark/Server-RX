@@ -3,6 +3,26 @@ import { activeSeriesId } from '@/stores/dicomStore';
 import type { ThumbnailInfo, ThumbnailSidebarProps } from '@/types';
 import styles from '@/styles/ThumbnailSidebar.module.css';
 
+const NON_RENDERABLE_MODALITIES = new Set([
+    'DOC',
+    'KO',
+    'PR',
+    'RTDOSE',
+    'RTPLAN',
+    'RTSTRUCT',
+    'SEG',
+    'SR',
+]);
+
+const pickInitialSeries = (series: ThumbnailInfo[]) => {
+    const renderable = series.find((item) => {
+        const modality = (item.modality || '').toUpperCase();
+        return modality && !NON_RENDERABLE_MODALITIES.has(modality);
+    });
+
+    return renderable ?? series[0] ?? null;
+};
+
 export default function ThumbnailSidebar({ series }: ThumbnailSidebarProps) {
     const [collapsed, setCollapsed] = useState(false);
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -16,7 +36,10 @@ export default function ThumbnailSidebar({ series }: ThumbnailSidebarProps) {
 
             // Seleccionar la primera serie por defecto si no hay ninguna activa
             if (series.length > 0 && !activeSeriesId.get()) {
-                activeSeriesId.set(series[0].id);
+                const initialSeries = pickInitialSeries(series);
+                if (initialSeries) {
+                    activeSeriesId.set(initialSeries.id);
+                }
             }
 
             return () => {
@@ -77,7 +100,13 @@ export default function ThumbnailSidebar({ series }: ThumbnailSidebarProps) {
                                 loading="lazy"
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
+                                    if (target.dataset.fallbackApplied === '1') {
+                                        target.style.display = 'none';
+                                        return;
+                                    }
+
+                                    target.dataset.fallbackApplied = '1';
+                                    target.src = '/no-image.svg';
                                     console.warn(`Failed to load thumbnail: ${item.previewUrl}`);
                                 }}
                             />

@@ -4,7 +4,7 @@ import DicomViewer from "@/components/viewer/DicomViewer";
 import ViewerToolbar from "@/components/viewer/ViewerToolbar.astro";
 import HelpModal from "@/components/modals/HelpModal.astro";
 import ShareModal from "@/components/modals/ShareModal.astro";
-import { getSeriesByStudyId, getInstancesBySeriesId } from "@/libs/orthanc";
+import { getSeriesByStudyId, getInstancesBySeriesId, getStudyById } from "@/libs/orthanc";
 import { getStudyCommentEntry } from "@/libs/db/studyComments";
 import type { ThumbnailInfo } from "@/types";
 import styles from "@/styles/ViewerPage.module.css";
@@ -18,6 +18,41 @@ if (!studyId || !validIdPattern.test(studyId)) {
 }
 
 const seriesIds = await getSeriesByStudyId(studyId);
+const studyData = await getStudyById(studyId);
+
+const normalizeDicomText = (value?: string | null) => {
+  if (!value) {
+    return "";
+  }
+
+  return value
+    .replace(/\^+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
+const formatDicomDate = (value?: string | null) => {
+  if (!value || !/^\d{8}$/.test(value)) {
+    return "No disponible";
+  }
+
+  return `${value.slice(6, 8)}/${value.slice(4, 6)}/${value.slice(0, 4)}`;
+};
+
+const patientName = normalizeDicomText(studyData?.PatientMainDicomTags?.PatientName) || "No disponible";
+const patientId = normalizeDicomText(studyData?.PatientMainDicomTags?.PatientID) || "No disponible";
+const patientSexCode = normalizeDicomText(studyData?.PatientMainDicomTags?.PatientSex).toUpperCase();
+const patientSex =
+  patientSexCode === "M"
+    ? "Masculino"
+    : patientSexCode === "F"
+      ? "Femenino"
+      : patientSexCode === "O"
+        ? "Otro"
+        : patientSexCode || "No disponible";
+const studyDate = formatDicomDate(studyData?.MainDicomTags?.StudyDate);
+const studyDescription = normalizeDicomText(studyData?.MainDicomTags?.StudyDescription) || "No disponible";
+const institutionName = normalizeDicomText(studyData?.MainDicomTags?.InstitutionName) || "No disponible";
 
 // Pre-obtener la información para el Sidebar
 const seriesData: ThumbnailInfo[] = (
@@ -76,7 +111,44 @@ const initialUpdatedAt = studyCommentEntry.updatedAt;
     <div class={styles.viewerContainer}>
       <ThumbnailSidebar client:load series={seriesData} />
       <div class={styles.mainViewer}>
-        <DicomViewer client:load />
+        <DicomViewer client:only="preact" />
+
+        <details class={styles.patientDock} aria-label="Información del paciente">
+          <summary class={styles.patientToggle}>
+            <span class={styles.patientToggleIcon}>❮</span>
+          </summary>
+
+          <aside class={styles.patientPanel}>
+            <h2 class={styles.patientTitle}>Datos del paciente</h2>
+
+            <dl class={styles.patientList}>
+              <div class={styles.patientRow}>
+                <dt>Nombre</dt>
+                <dd>{patientName}</dd>
+              </div>
+              <div class={styles.patientRow}>
+                <dt>ID</dt>
+                <dd>{patientId}</dd>
+              </div>
+              <div class={styles.patientRow}>
+                <dt>Sexo</dt>
+                <dd>{patientSex}</dd>
+              </div>
+              <div class={styles.patientRow}>
+                <dt>Fecha</dt>
+                <dd>{studyDate}</dd>
+              </div>
+              <div class={styles.patientRow}>
+                <dt>Estudio</dt>
+                <dd>{studyDescription}</dd>
+              </div>
+              <div class={styles.patientRow}>
+                <dt>Institución</dt>
+                <dd>{institutionName}</dd>
+              </div>
+            </dl>
+          </aside>
+        </details>
 
         <details class={styles.commentDock} aria-label="Comentario del estudio">
           <summary class={styles.commentToggle}>

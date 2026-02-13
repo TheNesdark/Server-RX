@@ -27,6 +27,24 @@ export async function GetDNIbyStudyID(studyId: string) {
  }
 }
 
+export async function getStudyById(studyId: string): Promise<DicomStudy | null> {
+  try {
+    const response = await fetch(`${ORTHANC_URL}/studies/${studyId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': ORTHANC_AUTH,
+      }
+    });
+
+    if (!response.ok) throw new Error(response.statusText);
+
+    return await response.json() as DicomStudy;
+  } catch (error) {
+    console.log("Error al obtener el estudio", error)
+    return null
+  }
+}
+
 /**
  * Funcion para obtener las series (carpetas) de un estudio dado su ID
  * @param studyId 

@@ -12,7 +12,7 @@ export default defineConfig({
       rollupOptions: {
         output: {
           manualChunks: {
-            'dwv': ['dwv']
+            'larvitar': ['larvitar']
           }
         }
       },

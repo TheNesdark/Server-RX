@@ -1,21 +1,37 @@
-export interface DWVEventCallbacks {
-    onWindowLevelChange: (center: number, width: number) => void;
-    onLoad: (dataRange: { min: number, max: number }, wl: { center: number, width: number }) => void;
-    onLoadItem: () => void;
-}
+export type ViewerPrimaryTool =
+    | "Pan"
+    | "Zoom"
+    | "ZoomPan"
+    | "Wwwc"
+    | "StackScroll"
+    | "BorderMagnify"
+    | "Rotate";
 
-export interface DataRange {
-    min: number;
-    max: number;
-}
+export type ViewerOverlayTool =
+    | "OrientationMarkers"
+    | "ScaleOverlay";
 
-export interface WindowLevel {
-    center: number;
-    width: number;
+export type ViewerDrawShape =
+    | "Arrow"
+    | "ArrowAnnotate"
+    | "Ruler"
+    | "Circle"
+    | "Ellipse"
+    | "Rectangle"
+    | "Protractor"
+    | "Roi"
+    | "Eraser";
+
+export interface ViewerToolController {
+    activatePrimaryTool: (tool: ViewerPrimaryTool) => void;
+    activateDrawShape: (shape: ViewerDrawShape) => void;
+    toggleOverlayTool: (tool: ViewerOverlayTool) => boolean;
+    clearAnnotations: () => void;
+    resetView: () => void;
 }
 
 export const TOOL_ACTIONS = {
-    "Zoom & Pan": "ZoomAndPan",
-    "Levels": "WindowLevel",
-    "Floodfill": "Floodfill"
+    "Zoom & Pan": "ZoomPan",
+    "BorderMagnify": "BorderMagnify",
+    "Rotate": "Rotate",
 } as const;

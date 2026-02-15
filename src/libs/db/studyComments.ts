@@ -1,13 +1,13 @@
-import db from "@/libs/db";
+import db from "./base";
 import type { SavedStudyCommentEntry, StudyCommentEntry, StudyCommentRow } from "@/types";
 
-const selectStudyCommentStmt = db.prepare(`
+var selectStudyCommentStmt = db.prepare(`
   SELECT comment, updated_at
   FROM study_comments
   WHERE study_id = ?
 `);
 
-const upsertStudyCommentStmt = db.prepare(`
+var upsertStudyCommentStmt = db.prepare(`
   INSERT INTO study_comments (study_id, comment, updated_at)
   VALUES (?, ?, datetime('now'))
   ON CONFLICT(study_id) DO UPDATE SET
@@ -15,23 +15,25 @@ const upsertStudyCommentStmt = db.prepare(`
     updated_at = datetime('now')
 `);
 
-const toStudyCommentEntry = (row?: StudyCommentRow): StudyCommentEntry => ({
-  comment: row?.comment ?? "",
-  updatedAt: row?.updated_at ?? null,
-});
+function toStudyCommentEntry(row?: StudyCommentRow): StudyCommentEntry {
+  return {
+    comment: row?.comment ?? "",
+    updatedAt: row?.updated_at ?? null,
+  };
+}
 
-export const getStudyCommentEntry = (studyId: string): StudyCommentEntry => {
-  const row = selectStudyCommentStmt.get(studyId) as StudyCommentRow | undefined;
+export function getStudyCommentEntry(studyId: string): StudyCommentEntry {
+  var row = selectStudyCommentStmt.get(studyId) as StudyCommentRow | undefined;
   return toStudyCommentEntry(row);
-};
+}
 
-export const saveStudyComment = (studyId: string, comment: string): SavedStudyCommentEntry => {
+export function saveStudyComment(studyId: string, comment: string): SavedStudyCommentEntry {
   upsertStudyCommentStmt.run(studyId, comment);
 
-  const row = selectStudyCommentStmt.get(studyId) as StudyCommentRow | undefined;
+  var row = selectStudyCommentStmt.get(studyId) as StudyCommentRow | undefined;
   if (!row) {
     return {
-      comment,
+      comment: comment,
       updatedAt: new Date().toISOString(),
     };
   }
@@ -40,4 +42,4 @@ export const saveStudyComment = (studyId: string, comment: string): SavedStudyCo
     comment: row.comment,
     updatedAt: row.updated_at,
   };
-};
+}

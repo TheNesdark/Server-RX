@@ -1,4 +1,4 @@
-import { obtenerEstudios, getTotalEstudios } from "@/libs/orthanc";
+import { getLocalStudies, getLocalStudiesCount } from "@/libs/db";
 import { STUDIES_PAGE_LIMIT } from "@/config/pagination";
 
 export async function GET(request: Request) {
@@ -13,8 +13,8 @@ export async function GET(request: Request) {
     const offset = (currentPage - 1) * limit;
 
     const [studies, total] = await Promise.all([
-      obtenerEstudios(limit, offset, searchTerm),
-      getTotalEstudios(searchTerm)
+      getLocalStudies(limit, offset, searchTerm),
+      getLocalStudiesCount(searchTerm)
     ]);
     
     const totalPages = Math.ceil(total / limit);

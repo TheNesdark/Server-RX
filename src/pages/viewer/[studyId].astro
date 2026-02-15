@@ -6,9 +6,9 @@ import HelpModal from "@/components/modals/HelpModal.astro";
 import ShareModal from "@/components/modals/ShareModal.astro";
 import PatientInfo from "@/components/modals/PatientInfo.astro";
 import StudyComments from "@/components/modals/StudyComments.astro";
-import { getStudyById } from "@/libs/orthanc";
+import { orthancFetch } from "@/libs/orthanc";
 import { getStudyCommentEntry } from "@/libs/db/studyComments";
-import type { ThumbnailInfo } from "@/types";
+import type { ThumbnailInfo, DicomStudy } from "@/types";
 import { 
   formatDicomDate, 
   isValidStudyId, 
@@ -26,7 +26,8 @@ if (!isValidStudyId(studyId)) {
   return Astro.redirect("/");
 }
 
-const studyData = await getStudyById(studyId);
+const studyRes = await orthancFetch(`/studies/${studyId}`);
+const studyData = await studyRes.json() as DicomStudy;
 
 const patientName = normalizeDicomText(studyData?.PatientMainDicomTags?.PatientName) || "No disponible";
 const patientId = normalizeDicomText(studyData?.PatientMainDicomTags?.PatientID) || "No disponible";

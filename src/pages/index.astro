@@ -1,13 +1,13 @@
 ---
 import Layout from "@/layouts/layout.astro";
 import StudiesList from "@/components/Studies/StudiesList";
-import { obtenerEstudios, getTotalEstudios } from "@/libs/orthanc"
+import { getLocalStudies, getLocalStudiesCount } from "@/libs/db"
 import { STUDIES_PAGE_LIMIT } from "@/config/pagination";
 import type { Study } from "@/types";
 
 
-const studies = await obtenerEstudios(STUDIES_PAGE_LIMIT, 0) as Study[];
-const totalStudies = await getTotalEstudios();
+const studies = await getLocalStudies(STUDIES_PAGE_LIMIT, 0) as Study[];
+const totalStudies = await getLocalStudiesCount();
 ---
 
 <Layout title="Orthanc Explorer">

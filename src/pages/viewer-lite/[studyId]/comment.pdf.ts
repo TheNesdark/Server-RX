@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { getStudyCommentEntry } from "@/libs/db/studyComments";
-import { GetDNIbyStudyID, getStudyById } from "@/libs/orthanc";
+import { GetDNIbyStudyID, orthancFetch } from "@/libs/orthanc";
+import type { DicomStudy } from "@/types";
 import {
   createStudyCommentPdf,
   createUnauthorizedTextResponse,
@@ -22,7 +23,9 @@ export const GET: APIRoute = async ({ params, cookies }) => {
     return createUnauthorizedTextResponse();
   }
 
-  const studyData = await getStudyById(studyId);
+  const studyRes = await orthancFetch(`/studies/${studyId}`);
+  const studyData = await studyRes.json() as DicomStudy;
+  
   if (!studyData) {
     return new Response("No existe ese estudio", {
       status: 404,

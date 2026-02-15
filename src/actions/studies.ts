@@ -2,6 +2,7 @@ import { defineAction, ActionError } from "astro:actions";
 import { z } from "astro:schema";
 import { PROD } from "@/config";
 import { GetDNIbyStudyID } from "@/libs/orthanc";
+import { createToken } from "@/libs/auth";
 import { getStudyCommentEntry, saveStudyComment } from "@/libs/db/studyComments";
 import { isValidStudyId, sanitizeStudyComment } from "@/utils/client";
 import { consumeRateLimit, getClientIdentifier } from "@/utils/server";
@@ -57,7 +58,14 @@ export const studies = {
         });
       }
 
-      context.cookies.set(`auth_lite_${normalizedStudyId}`, normalizedCedula, {
+      // Crear un JWT firmado que vincula la sesión con el estudio y el DNI
+      const token = await createToken({
+        studyId: normalizedStudyId,
+        dni: normalizedCedula,
+        type: 'lite_access'
+      });
+
+      context.cookies.set(`auth_lite_${normalizedStudyId}`, token, {
         path: "/",
         maxAge: 60 * 60 * 4,
         httpOnly: true,

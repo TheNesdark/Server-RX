@@ -3,6 +3,7 @@
 import { actions } from "astro:actions";
 import ThumbnailSidebar from "@/components/viewer/ThumbnailSidebar";
 import { GetDNIbyStudyID } from "@/libs/orthanc"
+import { verifyToken } from "@/libs/auth";
 import { getStudySeriesData } from "@/utils/server";
 
 // 1. Obtener el studyId de los parámetros de la URL
@@ -17,14 +18,22 @@ if (!DNI) {
   return new Response("No existe ese estudio", { status: 404 });
 }
 
-// 3. Manejar la autenticación mediante cookie y formulario
+// 3. Manejar la autenticación mediante cookie JWT y formulario
 const cookieName = `auth_lite_${studyId}`;
 const verifyResult = Astro.getActionResult(actions.verifyLiteAccess);
 const verifyData = verifyResult?.data as { success?: boolean; studyId?: string } | undefined;
 const errorMsg = verifyResult?.error?.message || "";
 
 const authCookie = Astro.cookies.get(cookieName);
-const isCookieAuthorized = (authCookie?.value ?? "").trim() === String(DNI).trim();
+var isCookieAuthorized = false;
+
+if (authCookie) {
+  const payload = await verifyToken(authCookie.value);
+  if (payload && payload.studyId === studyId && String(payload.dni).trim() === String(DNI).trim()) {
+    isCookieAuthorized = true;
+  }
+}
+
 const isActionAuthorized = verifyData?.success === true && verifyData.studyId === studyId;
 const isAuthorized = isCookieAuthorized || isActionAuthorized;
 

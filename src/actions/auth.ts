@@ -32,9 +32,13 @@ export const auth = {
         });
       }
 
-      if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+      // Comparación segura: Convertimos el username a minúsculas para coincidir
+      if (normalizedUsername === ADMIN_USERNAME.toLowerCase() && password === ADMIN_PASSWORD) {
         clearRateLimit(rateLimitKey);
-        const token = await createToken({ username });
+        const token = await createToken({ 
+          username: normalizedUsername,
+          type: 'admin_session'
+        });
         
         cookies.set("auth_token", token, {
           path: "/",

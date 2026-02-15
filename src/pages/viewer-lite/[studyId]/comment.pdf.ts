@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { getStudyCommentEntry } from "@/libs/db/studyComments";
 import { GetDNIbyStudyID, orthancFetch } from "@/libs/orthanc";
+import { verifyToken } from "@/libs/auth";
 import type { DicomStudy } from "@/types";
 import {
   createStudyCommentPdf,
@@ -23,6 +24,11 @@ export const GET: APIRoute = async ({ params, cookies }) => {
     return createUnauthorizedTextResponse();
   }
 
+  const payload = await verifyToken(authCookieValue);
+  if (!payload || payload.studyId !== studyId) {
+    return createUnauthorizedTextResponse();
+  }
+
   const studyRes = await orthancFetch(`/studies/${studyId}`);
   const studyData = await studyRes.json() as DicomStudy;
   
@@ -36,7 +42,7 @@ export const GET: APIRoute = async ({ params, cookies }) => {
   }
 
   const dni = studyData.PatientMainDicomTags?.PatientID || "";
-  if (!dni || authCookieValue.trim() !== dni.trim()) {
+  if (!dni || String(payload.dni).trim() !== dni.trim()) {
     return createUnauthorizedTextResponse();
   }
 

@@ -5,8 +5,12 @@ import { verifyToken } from '@/libs/auth';
 export const onRequest: MiddlewareHandler = async (context, next) => {
     const { url, cookies, redirect } = context;
 
-    // Permitir acceso a login, logout y recursos estáticos (favicon, css, js públicos)
-    const isPublicAsset = url.pathname.startsWith('/_astro') || url.pathname.includes('.') || url.pathname === '/favicon.svg';
+    // Extensiones de archivos estáticos permitidos sin login
+    const publicExtensions = ['.svg', '.css', '.js', '.png', '.jpg', '.jpeg', '.ico', '.webmanifest'];
+    const isPublicFile = publicExtensions.some(ext => url.pathname.endsWith(ext));
+
+    // Permitir acceso a login, logout y recursos estáticos específicos
+    const isPublicAsset = url.pathname.startsWith('/_astro') || isPublicFile;
     const isAuthPage = url.pathname === '/login' || url.pathname === '/logout';
     
     // Permitir acceso al viewer lite y sus recursos de imagen sin sesión iniciada (el handler validará el acceso lite)

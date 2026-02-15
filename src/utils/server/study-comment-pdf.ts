@@ -4,25 +4,29 @@ import type { StudyCommentPdfInput } from "@/types";
 // --- 2. Constantes de Configuración ---
 const CONFIG = {
   layout: {
-    width: 595.28, // A4
-    height: 841.89, // A4
-    marginTop: 30,
-    marginBottom: 50,
-    marginLeft: 35,
-    marginRight: 35,
-    lineHeight: 14,
+    width: 419.53, // A5
+    height: 595.28, // A5
+    marginTop: 35,
+    marginBottom: 40,
+    marginLeft: 30,
+    marginRight: 30,
+    lineHeight: 13,
   },
   fonts: {
-    titleSize: 11,
+    titleSize: 12,
     headerSize: 9,
     bodySize: 9,
-    smallSize: 8,
+    smallSize: 7,
+    labelSize: 8,
   },
   colors: {
-    primary: rgb(0.28, 0.55, 0.15), // Restaurado verde hospital
-    textBlack: rgb(0, 0, 0),
-    textGray: rgb(0.3, 0.3, 0.3),
+    primary: rgb(0.06, 0.46, 0.43), // #0f766e Esmeralda Hospital
+    primaryLight: rgb(0.92, 0.96, 0.95),
+    textBlack: rgb(0.05, 0.05, 0.05),
+    textGray: rgb(0.4, 0.4, 0.4),
     white: rgb(1, 1, 1),
+    border: rgb(0.85, 0.88, 0.90),
+    lightBg: rgb(0.98, 0.99, 1.0),
   }
 };
 
@@ -68,11 +72,42 @@ class ReportGenerator {
   private fontRegular!: PDFFont;
   private fontBold!: PDFFont;
   private cursorY: number;
+  private pageCount: number = 0;
 
   constructor(doc: PDFDocument) {
     this.doc = doc;
-    this.page = doc.addPage([CONFIG.layout.width, CONFIG.layout.height]);
+    this.page = this.addNewPage();
     this.cursorY = CONFIG.layout.height - CONFIG.layout.marginTop;
+  }
+
+  private addNewPage(): PDFPage {
+    this.pageCount++;
+    const page = this.doc.addPage([CONFIG.layout.width, CONFIG.layout.height]);
+    this.drawPageDecorations(page);
+    return page;
+  }
+
+  private drawPageDecorations(page: PDFPage) {
+    // Borde sutil exterior
+    page.drawRectangle({
+      x: 15,
+      y: 15,
+      width: CONFIG.layout.width - 30,
+      height: CONFIG.layout.height - 30,
+      borderColor: CONFIG.colors.primary,
+      borderWidth: 0.5,
+      opacity: 0.2,
+    });
+
+    // Acento en las esquinas
+    const s = 20;
+    const t = 1.5;
+    // Top Left
+    page.drawLine({ start: { x: 15, y: CONFIG.layout.height - 15 }, end: { x: 15 + s, y: CONFIG.layout.height - 15 }, color: CONFIG.colors.primary, thickness: t });
+    page.drawLine({ start: { x: 15, y: CONFIG.layout.height - 15 }, end: { x: 15, y: CONFIG.layout.height - 15 - s }, color: CONFIG.colors.primary, thickness: t });
+    // Bottom Right
+    page.drawLine({ start: { x: CONFIG.layout.width - 15, y: 15 }, end: { x: CONFIG.layout.width - 15 - s, y: 15 }, color: CONFIG.colors.primary, thickness: t });
+    page.drawLine({ start: { x: CONFIG.layout.width - 15, y: 15 }, end: { x: CONFIG.layout.width - 15, y: 15 + s }, color: CONFIG.colors.primary, thickness: t });
   }
 
   async initFonts() {
@@ -83,9 +118,9 @@ class ReportGenerator {
   // --- Gestión de Espacio ---
   private checkPageBreak(neededHeight: number) {
     if (this.cursorY - neededHeight < CONFIG.layout.marginBottom) {
-      this.page = this.doc.addPage([CONFIG.layout.width, CONFIG.layout.height]);
+      this.page = this.addNewPage();
       this.cursorY = CONFIG.layout.height - CONFIG.layout.marginTop;
-      return true; // Hubo salto de página
+      return true;
     }
     return false;
   }
@@ -95,124 +130,139 @@ class ReportGenerator {
   drawHeader(institutionName?: string) {
     const centerX = CONFIG.layout.width / 2;
     
-    const drawCenteredText = (text: string, y: number, font: PDFFont, size: number) => {
-      const width = font.widthOfTextAtSize(text, size);
-      this.page.drawText(text, {
-        x: centerX - (width / 2),
-        y: y,
-        font: font,
-        size: size,
-        color: CONFIG.colors.textBlack,
-      });
+    // Título de la Institución con estilo
+    const hospitalTitle = (institutionName || "HOSPITAL LOCAL DE MONTELIBANO").toUpperCase();
+    const titleWidth = this.fontBold.widthOfTextAtSize(hospitalTitle, CONFIG.fonts.titleSize);
+    
+    this.page.drawText(hospitalTitle, {
+      x: centerX - (titleWidth / 2),
+      y: this.cursorY,
+      font: this.fontBold,
+      size: CONFIG.fonts.titleSize,
+      color: CONFIG.colors.primary,
+    });
+
+    this.cursorY -= 15;
+
+    const subHeaderStyle = { font: this.fontRegular, size: 8, color: CONFIG.colors.textGray };
+    
+    const drawCenteredSub = (text: string, y: number) => {
+      const w = this.fontRegular.widthOfTextAtSize(text, 8);
+      this.page.drawText(text, { x: centerX - (w / 2), y, ...subHeaderStyle });
     };
 
-    const hospitalTitle = (institutionName || "EMPRESA SOCIAL DEL ESTADO HOSPITAL LOCAL DE MONTELIBANO").toUpperCase();
-    drawCenteredText(hospitalTitle, this.cursorY, this.fontBold, 11);
-    this.cursorY -= 14;
-    drawCenteredText("NIT 812000344-4", this.cursorY, this.fontRegular, 10);
-    this.cursorY -= 13;
-    drawCenteredText("CR 5 23 144 BRR LA LUCHA", this.cursorY, this.fontRegular, 10);
-    this.cursorY -= 13;
-    drawCenteredText("Teléfono: 7626639", this.cursorY, this.fontRegular, 10);
+    drawCenteredSub("NIT 812000344-4  |  CR 5 23 144 BRR LA LUCHA", this.cursorY);
+    this.cursorY -= 10;
+    drawCenteredSub("Teléfono: 7626639  |  Email: contacto@hospitalmontelibano.gov.co", this.cursorY);
     
-    this.cursorY -= 25;
     this.cursorY -= 20;
+
+    // Línea divisoria elegante
+    this.page.drawLine({
+      start: { x: CONFIG.layout.marginLeft, y: this.cursorY },
+      end: { x: CONFIG.layout.width - CONFIG.layout.marginRight, y: this.cursorY },
+      color: CONFIG.colors.border,
+      thickness: 1,
+    });
+
+    this.cursorY -= 25;
   }
 
   drawPatientInfoBox(data: {
     patientName: string;
     patientId: string;
     patientSex: string;
+    patientAge: string;
     studyDate: string;
+    studyTime: string;
     receptionNo?: string;
     institutionName?: string;
   }) {
     const startX = CONFIG.layout.marginLeft;
-    const boxWidth = CONFIG.layout.width - (CONFIG.layout.marginLeft * 2);
-    const boxHeight = 60;
+    const boxWidth = CONFIG.layout.width - (CONFIG.layout.marginLeft + CONFIG.layout.marginRight);
+    const boxHeight = 75;
     
-    // Dibujar el cuadro contenedor
+    // Contenedor con sombra simulada (borde inferior más grueso)
     this.page.drawRectangle({
       x: startX,
       y: this.cursorY - boxHeight,
       width: boxWidth,
       height: boxHeight,
-      borderColor: CONFIG.colors.textBlack,
+      color: CONFIG.colors.lightBg,
+      borderColor: CONFIG.colors.border,
       borderWidth: 1,
     });
 
-    const padding = 8;
-    let currentY = this.cursorY - 15;
-    const col2X = startX + (boxWidth * 0.55);
+    // Cabecera del cuadro
+    const headerHeight = 16;
+    this.page.drawRectangle({
+      x: startX,
+      y: this.cursorY - headerHeight,
+      width: boxWidth,
+      height: headerHeight,
+      color: CONFIG.colors.primaryLight,
+    });
 
-    // Fila 1
-    this.drawField("Usuario:", data.patientName, startX + padding, currentY);
-    this.drawField("No. Recepción:", data.receptionNo || "N/A", col2X, currentY);
-    currentY -= 15;
+    this.page.drawText("INFORMACIÓN DEL PACIENTE Y ESTUDIO", {
+      x: startX + 10,
+      y: this.cursorY - 11,
+      font: this.fontBold,
+      size: 7,
+      color: CONFIG.colors.primary,
+    });
 
-    // Fila 2
-    this.drawField("Sexo:", data.patientSex, startX + padding, currentY);
-    this.drawField("Fecha:", data.studyDate, col2X, currentY);
-    currentY -= 15;
+    const col1 = startX + 10;
+    const col2 = startX + (boxWidth * 0.5) + 5;
+    let y = this.cursorY - 32;
 
-    // Fila 3
-    this.drawField("Identificación:", data.patientId, startX + padding, currentY);
-    this.drawField("Institución:", data.institutionName || "N/A", col2X, currentY);
+    const drawField = (label: string, value: string, x: number, currentY: number) => {
+      this.page.drawText(label, { x, y: currentY, font: this.fontBold, size: 7, color: CONFIG.colors.textGray });
+      this.page.drawText(value, { x: x + 55, y: currentY, font: this.fontRegular, size: 8, color: CONFIG.colors.textBlack });
+    };
+
+    drawField("PACIENTE:", data.patientName, col1, y);
+    drawField("FECHA:", data.studyDate, col2, y);
+    y -= 14;
+    drawField("IDENTIDAD:", data.patientId, col1, y);
+    drawField("HORA:", data.studyTime, col2, y);
+    y -= 14;
+    drawField("SEXO/EDAD:", `${data.patientSex} / ${data.patientAge}`, col1, y);
+    drawField("ACCESO NO:", data.receptionNo || "N/A", col2, y);
 
     this.cursorY -= (boxHeight + 25);
   }
 
-  // Helper para dibujar campos
-  private drawField(label: string, value: string, x: number, y: number) {
-    this.page.drawText(label, {
-      x: x,
-      y: y,
-      font: this.fontBold,
-      size: 9,
-    });
-    
-    const labelWidth = this.fontBold.widthOfTextAtSize(label, 9);
-    
-    this.page.drawText(value, {
-      x: x + labelWidth + 5,
-      y: y,
-      font: this.fontRegular,
-      size: 9,
-    });
-  }
-
   drawSectionTitle(title: string) {
-    const barHeight = 18;
-    this.checkPageBreak(barHeight + 20);
+    this.checkPageBreak(30);
 
-    // Barra verde de fondo restaurada
+    const barWidth = 3;
+    // Acento lateral en lugar de barra completa
     this.page.drawRectangle({
       x: CONFIG.layout.marginLeft,
-      y: this.cursorY - barHeight + 4,
-      width: CONFIG.layout.width - (CONFIG.layout.marginLeft * 2),
-      height: barHeight,
+      y: this.cursorY - 12,
+      width: barWidth,
+      height: 14,
       color: CONFIG.colors.primary,
     });
 
-    // Texto blanco sobre la barra
     this.page.drawText(title, {
-      x: CONFIG.layout.marginLeft + 5,
-      y: this.cursorY - barHeight + 9,
+      x: CONFIG.layout.marginLeft + 8,
+      y: this.cursorY - 10,
       font: this.fontBold,
-      size: CONFIG.fonts.headerSize,
-      color: CONFIG.colors.white,
+      size: 9,
+      color: CONFIG.colors.primary,
     });
 
-    this.cursorY -= 30; // Margen después de la barra
+    this.cursorY -= 25;
   }
 
   drawCommentBody(comment: string) {
-    const maxWidth = CONFIG.layout.width - (CONFIG.layout.marginLeft * 2);
+    const maxWidth = CONFIG.layout.width - (CONFIG.layout.marginLeft + CONFIG.layout.marginRight);
     const lines = wrapText(comment, this.fontRegular, CONFIG.fonts.bodySize, maxWidth);
 
     for (const line of lines) {
       if (this.checkPageBreak(CONFIG.layout.lineHeight)) {
-        // Si hay salto de página, redibujar título de sección o continuar
+        // Continue on next page
       }
       
       this.page.drawText(line, {
@@ -228,12 +278,26 @@ class ReportGenerator {
   }
 
   drawFooter() {
-    // Pie de página (branding pequeño)
-    this.page.drawText("Generado por Sistema de Gestión de Imágenes", {
-      x: CONFIG.layout.marginLeft,
-      y: 20,
+    const text = "Documento generado digitalmente por el Sistema de Gestión de Imágenes RX";
+    const fontSize = 6;
+    const w = this.fontRegular.widthOfTextAtSize(text, fontSize);
+    
+    this.page.drawText(text, {
+      x: (CONFIG.layout.width / 2) - (w / 2),
+      y: 25,
       font: this.fontRegular,
-      size: 6,
+      size: fontSize,
+      color: CONFIG.colors.textGray
+    });
+
+    // Número de página
+    const pageNum = `Página ${this.pageCount}`;
+    const pw = this.fontRegular.widthOfTextAtSize(pageNum, fontSize);
+    this.page.drawText(pageNum, {
+      x: CONFIG.layout.width - CONFIG.layout.marginRight - pw,
+      y: 25,
+      font: this.fontRegular,
+      size: fontSize,
       color: CONFIG.colors.textGray
     });
   }
@@ -257,7 +321,9 @@ export const createStudyCommentPdf = async (input: StudyCommentPdfInput): Promis
     patientName: input.patientName,
     patientId: input.patientId,
     patientSex: input.patientSex,
+    patientAge: input.patientAge,
     studyDate: input.studyDate,
+    studyTime: input.studyTime,
     receptionNo: input.receptionNo,
     institutionName: input.institutionName,
   });

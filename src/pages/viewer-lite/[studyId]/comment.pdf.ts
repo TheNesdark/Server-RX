@@ -6,7 +6,13 @@ import {
   createUnauthorizedTextResponse,
 } from "@/utils/server";
 import { getStudyCommentPdfFileName } from "@/utils/client/study-comment";
-import { normalizeDicomText, formatDicomDate, formatPatientSex } from "@/utils/client";
+import { 
+  normalizeDicomText, 
+  formatDicomDate, 
+  formatPatientSex,
+  calculateAge,
+  formatDicomTime
+} from "@/utils/client";
 
 export const GET: APIRoute = async ({ params, cookies }) => {
   const studyId = params.studyId || "";
@@ -37,7 +43,9 @@ export const GET: APIRoute = async ({ params, cookies }) => {
     patientName: normalizeDicomText(studyData.PatientMainDicomTags?.PatientName) || "Sin Nombre",
     patientId: dni,
     patientSex: formatPatientSex(studyData.PatientMainDicomTags?.PatientSex),
+    patientAge: calculateAge(studyData.PatientMainDicomTags?.PatientBirthDate),
     studyDate: formatDicomDate(studyData.MainDicomTags?.StudyDate),
+    studyTime: formatDicomTime(studyData.MainDicomTags?.StudyTime),
     receptionNo: studyData.MainDicomTags?.AccessionNumber || studyData.MainDicomTags?.StudyID || "N/A",
     institutionName: studyData.MainDicomTags?.InstitutionName || "HOSPITAL LOCAL",
     comment: commentEntry.comment,

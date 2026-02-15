@@ -17,7 +17,9 @@ export interface StudyCommentPdfInput {
   patientName: string;
   patientId: string;
   patientSex: string;
+  patientAge: string;
   studyDate: string;
+  studyTime: string;
   institutionName?: string;
   receptionNo?: string;
   comment: string;

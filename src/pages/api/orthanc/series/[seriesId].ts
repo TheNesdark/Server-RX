@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { ORTHANC_URL, ORTHANC_AUTH } from '@/config';
-import { checkApiAuth } from '@/utils/auth';
+import { checkApiAuth } from '@/utils/server';
 
 export const GET: APIRoute = async ({ params, cookies }) => {
   const serieID = params.seriesId

@@ -45,6 +45,13 @@ try {
         updated_at TEXT NOT NULL DEFAULT (datetime('now'))
       )
     `);
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS sync_metadata (
+        key TEXT PRIMARY KEY,
+        value TEXT
+      )
+    `);
 } catch (error) {
     console.error("Database initialization failed:", error);
     throw error;

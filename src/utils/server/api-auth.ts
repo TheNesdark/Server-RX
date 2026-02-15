@@ -1,8 +1,7 @@
 import { verifyToken } from '@/libs/auth';
 import { ORTHANC_URL, ORTHANC_AUTH } from '@/config';
 import type { AstroCookies } from 'astro';
-
-const normalizeIdentity = (value: string) => value.trim().toUpperCase();
+import { normalizeIdentity } from '../client/identity';
 
 export async function checkApiAuth(id: string, cookies: AstroCookies, type: 'instance' | 'series' | 'study' = 'instance'): Promise<boolean> {
     // 1. Verificar autenticación de Admin

@@ -9,26 +9,30 @@ const createErrorSeries = (id: string): ThumbnailInfo => ({
   bodyPart: "Error",
 });
 
-const fetchSeriesData = async (seriesId: string): Promise<ThumbnailInfo> => {
+const fetchSeriesData = async (seriesId: string, viewport?: number): Promise<ThumbnailInfo> => {
   try {
     const { Instances = [], mainDicomTags } = await getInstancesBySeriesId(seriesId);
     const hasInstances = Instances.length > 0;
 
+    const previewUrl = hasInstances 
+      ? `/api/orthanc/instances/${Instances[0]}/preview${viewport ? `?viewport=${viewport}` : ""}`
+      : "/no-image.svg";
+
     return {
       id: seriesId,
       instances: Instances,
-      previewUrl: hasInstances ? `/api/orthanc/instances/${Instances[0]}/preview` : "/no-image.svg",
+      previewUrl,
       modality: mainDicomTags?.Modality ?? "N/A",
       bodyPart: mainDicomTags?.BodyPartExamined ?? "N/A",
     };
   } catch (error) {
-    console.error(`[Viewer-Lite] Error cargando serie ${seriesId}:`, error);
+    console.error(`[Viewer] Error cargando serie ${seriesId}:`, error);
     return createErrorSeries(seriesId);
   }
 };
 
-export async function getViewerLiteSeriesData(studyId: string): Promise<ThumbnailInfo[]> {
+export async function getStudySeriesData(studyId: string, viewport?: number): Promise<ThumbnailInfo[]> {
   const seriesIds = await getSeriesByStudyId(studyId);
-  const allSeries = await Promise.all(seriesIds.map(fetchSeriesData));
+  const allSeries = await Promise.all(seriesIds.map((id: string) => fetchSeriesData(id, viewport)));
   return allSeries.filter((series) => series.instances && series.instances.length > 0);
 }

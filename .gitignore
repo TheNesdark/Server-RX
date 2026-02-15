@@ -1,8 +1,8 @@
 # build output
 dist/
 build/
-db
-db/
+/db/
+/db
 sea-prep.blob
 # generated types
 .astro/
@@ -29,6 +29,7 @@ pnpm-debug.log*
 .env
 .env.production
 .db
+config.json
 
 # macOS-specific files
 .DS_Store

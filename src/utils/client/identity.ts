@@ -1,0 +1,1 @@
+export const normalizeIdentity = (value: string): string => value.trim().toUpperCase();

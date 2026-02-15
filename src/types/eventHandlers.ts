@@ -8,7 +8,6 @@ export type ViewerPrimaryTool =
     | "Rotate";
 
 export type ViewerOverlayTool =
-    | "OrientationMarkers"
     | "ScaleOverlay";
 
 export type ViewerDrawShape =

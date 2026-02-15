@@ -1,12 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { JWT_SECRET } from '@/config';
 
-
-// Asegúrarse de que la clave existe y tiene una longitud mínima (ej: 32 bytes para HS256)
-if (!JWT_SECRET || JWT_SECRET.length < 32) {
-    throw new Error('JWT_SECRET debe estar definida y tener una longitud mínima de 32 bytes.');
-}
-
 const SECRET = new TextEncoder().encode(JWT_SECRET);
 export async function createToken(payload: Record<string, unknown>) {
   return await new SignJWT(payload)

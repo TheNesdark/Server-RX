@@ -22,6 +22,7 @@
     "larvitar": "^3.8.5",
     "nanostores": "^1.1.0",
     "node-cron": "^4.2.1",
+    "pdf-lib": "^1.17.1",
     "preact": "^10.28.0",
     "print-js": "^1.6.0",
     "qrcode": "^1.5.1"

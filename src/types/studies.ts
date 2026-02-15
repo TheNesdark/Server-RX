@@ -40,6 +40,7 @@ export interface DicomStudy {
         PatientName?: string;
         PatientID?: string;
         PatientSex?: string;
+        PatientBirthDate?: string;
     };
     MainDicomTags?: {
         StudyDate?: string;
@@ -48,6 +49,8 @@ export interface DicomStudy {
         StudyID?: string;
         ModalitiesInStudy?: string;
         InstitutionName?: string;
+        ReferringPhysicianName?: string;
+        StudyTime?: string;
     };
 }
 
@@ -57,4 +60,9 @@ export interface PaginatedStudiesResult {
     page: number;
     limit: number;
     totalPages: number;
+}
+
+export interface OrthancSeriesResponse {
+    ID?: string;
+    Instances?: string[];
 }

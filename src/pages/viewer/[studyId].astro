@@ -4,86 +4,48 @@ import DicomViewer from "@/components/viewer/DicomViewer";
 import ViewerToolbar from "@/components/viewer/ViewerToolbar.astro";
 import HelpModal from "@/components/modals/HelpModal.astro";
 import ShareModal from "@/components/modals/ShareModal.astro";
-import { getSeriesByStudyId, getInstancesBySeriesId, getStudyById } from "@/libs/orthanc";
+import PatientInfo from "@/components/modals/PatientInfo.astro";
+import StudyComments from "@/components/modals/StudyComments.astro";
+import { getStudyById } from "@/libs/orthanc";
 import { getStudyCommentEntry } from "@/libs/db/studyComments";
 import type { ThumbnailInfo } from "@/types";
+import { 
+  formatDicomDate, 
+  isValidStudyId, 
+  normalizeDicomText, 
+  formatPatientSex,
+  calculateAge,
+  formatDicomTime
+} from "@/utils/client";
+import { getStudySeriesData } from "@/utils/server";
 import styles from "@/styles/ViewerPage.module.css";
 import "@/styles/ViewerPage.global.css";
 
 const { studyId } = Astro.params;
-// Validar formato UUID o alfanumérico
-const validIdPattern = /^[a-zA-Z0-9-]+$/;
-if (!studyId || !validIdPattern.test(studyId)) {
+if (!isValidStudyId(studyId)) {
   return Astro.redirect("/");
 }
 
-const seriesIds = await getSeriesByStudyId(studyId);
 const studyData = await getStudyById(studyId);
-
-const normalizeDicomText = (value?: string | null) => {
-  if (!value) {
-    return "";
-  }
-
-  return value
-    .replace(/\^+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-};
-
-const formatDicomDate = (value?: string | null) => {
-  if (!value || !/^\d{8}$/.test(value)) {
-    return "No disponible";
-  }
-
-  return `${value.slice(6, 8)}/${value.slice(4, 6)}/${value.slice(0, 4)}`;
-};
 
 const patientName = normalizeDicomText(studyData?.PatientMainDicomTags?.PatientName) || "No disponible";
 const patientId = normalizeDicomText(studyData?.PatientMainDicomTags?.PatientID) || "No disponible";
-const patientSexCode = normalizeDicomText(studyData?.PatientMainDicomTags?.PatientSex).toUpperCase();
-const patientSex =
-  patientSexCode === "M"
-    ? "Masculino"
-    : patientSexCode === "F"
-      ? "Femenino"
-      : patientSexCode === "O"
-        ? "Otro"
-        : patientSexCode || "No disponible";
+const patientSex = formatPatientSex(studyData?.PatientMainDicomTags?.PatientSex);
+const patientAge = calculateAge(studyData?.PatientMainDicomTags?.PatientBirthDate);
+
 const studyDate = formatDicomDate(studyData?.MainDicomTags?.StudyDate);
-const studyDescription = normalizeDicomText(studyData?.MainDicomTags?.StudyDescription) || "No disponible";
+const studyTime = formatDicomTime(studyData?.MainDicomTags?.StudyTime);
+const studyDescription = 
+  normalizeDicomText(studyData?.MainDicomTags?.StudyDescription) || 
+  normalizeDicomText(studyData?.MainDicomTags?.StudyID) || 
+  "No disponible";
+
 const institutionName = normalizeDicomText(studyData?.MainDicomTags?.InstitutionName) || "No disponible";
+const referringPhysician = normalizeDicomText(studyData?.MainDicomTags?.ReferringPhysicianName);
+const accessionNumber = normalizeDicomText(studyData?.MainDicomTags?.AccessionNumber);
 
 // Pre-obtener la información para el Sidebar
-const seriesData: ThumbnailInfo[] = (
-  await Promise.all(
-    seriesIds.map(async (id: string) => {
-      try {
-        const { Instances, mainDicomTags } = await getInstancesBySeriesId(id);
-
-        return {
-          id,
-          instances: Instances || [],
-          previewUrl:
-            Instances && Instances.length > 0
-              ? `/api/orthanc/instances/${Instances[0]}/preview?viewport=256`
-              : "/no-image.svg",
-          modality: mainDicomTags?.Modality || "N/A",
-          bodyPart: mainDicomTags?.BodyPartExamined || "N/A",
-        } as ThumbnailInfo;
-      } catch (error) {
-        console.error(`Error cargando serie ${id}:`, error);
-        return {
-          id,
-          instances: [],
-          previewUrl: "/no-image.svg",
-          modality: "Error",
-          bodyPart: "Error",
-        } as ThumbnailInfo;
-      }
-    }),
-  )
-).filter((series) => series.instances.length > 0);
+const seriesData = await getStudySeriesData(studyId, 256);
 
 const studyCommentEntry = getStudyCommentEntry(studyId);
 const initialComment = studyCommentEntry.comment;
@@ -113,77 +75,24 @@ const initialUpdatedAt = studyCommentEntry.updatedAt;
       <div class={styles.mainViewer}>
         <DicomViewer client:only="preact" />
 
-        <details class={styles.patientDock} aria-label="Información del paciente">
-          <summary class={styles.patientToggle}>
-            <span class={styles.patientToggleIcon}>❮</span>
-          </summary>
+        <PatientInfo 
+          patientName={patientName}
+          patientId={patientId}
+          patientSex={patientSex}
+          patientAge={patientAge}
+          studyDate={studyDate}
+          studyTime={studyTime}
+          studyDescription={studyDescription}
+          institutionName={institutionName}
+          referringPhysician={referringPhysician}
+          accessionNumber={accessionNumber}
+        />
 
-          <aside class={styles.patientPanel}>
-            <h2 class={styles.patientTitle}>Datos del paciente</h2>
-
-            <dl class={styles.patientList}>
-              <div class={styles.patientRow}>
-                <dt>Nombre</dt>
-                <dd>{patientName}</dd>
-              </div>
-              <div class={styles.patientRow}>
-                <dt>ID</dt>
-                <dd>{patientId}</dd>
-              </div>
-              <div class={styles.patientRow}>
-                <dt>Sexo</dt>
-                <dd>{patientSex}</dd>
-              </div>
-              <div class={styles.patientRow}>
-                <dt>Fecha</dt>
-                <dd>{studyDate}</dd>
-              </div>
-              <div class={styles.patientRow}>
-                <dt>Estudio</dt>
-                <dd>{studyDescription}</dd>
-              </div>
-              <div class={styles.patientRow}>
-                <dt>Institución</dt>
-                <dd>{institutionName}</dd>
-              </div>
-            </dl>
-          </aside>
-        </details>
-
-        <details class={styles.commentDock} aria-label="Comentario del estudio">
-          <summary class={styles.commentToggle}>
-            <span class={styles.commentToggleIcon}>❮</span>
-          </summary>
-
-          <aside class={styles.commentPanel}>
-            <h2 class={styles.commentTitle}>Comentario del estudio</h2>
-
-            <form
-              id="study-comment-form"
-              class={styles.commentForm}
-              action={`/api/studies/${studyId}/comment`}
-            >
-              <textarea
-                id="study-comment-input"
-                class={styles.commentInput}
-                name="comment"
-                maxlength="2000"
-                placeholder="Escribe una nota del estudio..."
-              >{initialComment}</textarea>
-
-              <div class={styles.commentFooter}>
-                <span id="study-comment-status" class={styles.commentStatus}>
-                  {
-                    initialUpdatedAt
-                      ? `Actualizado: ${initialUpdatedAt}`
-                      : "Sin comentarios guardados"
-                  }
-                </span>
-                <button type="submit" class={styles.commentButton}>Guardar</button>
-              </div>
-            </form>
-          </aside>
-        </details>
+        <StudyComments 
+          studyId={studyId}
+          initialComment={initialComment}
+          initialUpdatedAt={initialUpdatedAt}
+        />
       </div>
     </div>
 
@@ -200,50 +109,5 @@ const initialUpdatedAt = studyCommentEntry.updatedAt;
 				});
 			}
 		</script>
-
-    <script>
-      const commentForm = document.getElementById("study-comment-form");
-      const commentInput = document.getElementById("study-comment-input");
-      const commentStatus = document.getElementById("study-comment-status");
-
-      if (
-        commentForm instanceof HTMLFormElement &&
-        commentInput instanceof HTMLTextAreaElement &&
-        commentStatus instanceof HTMLElement
-      ) {
-        commentForm.addEventListener("submit", async (event) => {
-          event.preventDefault();
-
-          const formAction = commentForm.getAttribute("action");
-          if (!formAction) return;
-
-          const comment = commentInput.value || "";
-          commentStatus.textContent = "Guardando...";
-
-          try {
-            const response = await fetch(formAction, {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ comment }),
-            });
-
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => null);
-              throw new Error(errorData?.error || "No se pudo guardar el comentario");
-            }
-
-            const data = await response.json();
-            commentStatus.textContent = data?.updatedAt
-              ? `Guardado: ${data.updatedAt}`
-              : "Comentario guardado";
-          } catch (error) {
-            console.error("Error guardando comentario:", error);
-            commentStatus.textContent = "No se pudo guardar";
-          }
-        });
-      }
-    </script>
   </body>
 </html>

@@ -1,0 +1,236 @@
+---
+interface Props {
+  patientName: string;
+  patientId: string;
+  patientSex: string;
+  patientAge: string;
+  studyDate: string;
+  studyTime: string;
+  studyDescription: string;
+  institutionName: string;
+  referringPhysician?: string;
+  accessionNumber?: string;
+}
+
+const { 
+  patientName, 
+  patientId, 
+  patientSex, 
+  patientAge,
+  studyDate, 
+  studyTime,
+  studyDescription, 
+  institutionName,
+  referringPhysician,
+  accessionNumber
+} = Astro.props;
+---
+
+<details class="patient-dock" aria-label="Información del paciente">
+  <summary class="patient-toggle">
+    <span class="patient-toggle-icon">❮</span>
+  </summary>
+
+  <aside class="patient-panel">
+    <h2 class="patient-title">Datos del paciente</h2>
+
+    <dl class="patient-list">
+      <div class="patient-row">
+        <dt>Nombre</dt>
+        <dd>{patientName}</dd>
+      </div>
+      <div class="patient-row">
+        <dt>ID / Edad</dt>
+        <dd>{patientId} ({patientAge})</dd>
+      </div>
+      <div class="patient-row">
+        <dt>Sexo</dt>
+        <dd>{patientSex}</dd>
+      </div>
+      
+      <div class="separator"></div>
+
+      <div class="patient-row">
+        <dt>Fecha / Hora</dt>
+        <dd>{studyDate} - {studyTime}</dd>
+      </div>
+      <div class="patient-row">
+        <dt>Estudio</dt>
+        <dd>{studyDescription}</dd>
+      </div>
+
+      {accessionNumber && (
+        <div class="patient-row">
+          <dt>Acceso No.</dt>
+          <dd>{accessionNumber}</dd>
+        </div>
+      )}
+
+      {referringPhysician && (
+        <div class="patient-row">
+          <dt>Médico</dt>
+          <dd>{referringPhysician}</dd>
+        </div>
+      )}
+
+      <div class="patient-row">
+        <dt>Institución</dt>
+        <dd>{institutionName}</dd>
+      </div>
+    </dl>
+  </aside>
+</details>
+
+<style>
+.separator {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 4px 0;
+}
+.patient-dock {
+  position: absolute;
+  top: 146px;
+  right: 0;
+  z-index: 210;
+  display: flex;
+  align-items: flex-start;
+  --patient-panel-width: min(340px, calc(100vw - 56px));
+}
+
+.patient-toggle {
+  list-style: none;
+  width: 36px;
+  height: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  background: var(--viewer-overlay-bg);
+  backdrop-filter: var(--viewer-backdrop-blur);
+  -webkit-backdrop-filter: var(--viewer-backdrop-blur);
+  box-shadow: var(--viewer-shadow-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.patient-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.patient-toggle-icon {
+  color: var(--viewer-text-secondary);
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 0.24s ease;
+}
+
+.patient-dock[open] .patient-toggle-icon {
+  transform: rotate(180deg);
+}
+
+.patient-panel {
+  width: var(--patient-panel-width);
+  max-width: var(--patient-panel-width);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  background: var(--viewer-overlay-bg);
+  backdrop-filter: var(--viewer-backdrop-blur);
+  -webkit-backdrop-filter: var(--viewer-backdrop-blur);
+  box-shadow: var(--viewer-shadow-md);
+  overflow: hidden;
+  opacity: 1;
+  transform: translateX(0);
+  transform-origin: right center;
+  transition:
+    max-width 0.24s ease,
+    opacity 0.24s ease,
+    transform 0.24s ease,
+    padding 0.24s ease,
+    border-color 0.24s ease;
+}
+
+.patient-title {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--viewer-text-secondary);
+}
+
+.patient-list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.patient-row {
+  display: grid;
+  grid-template-columns: minmax(92px, auto) 1fr;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.patient-row dt {
+  margin: 0;
+  font-size: 0.71rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--viewer-text-secondary);
+}
+
+.patient-row dd {
+  margin: 0;
+  font-size: 0.83rem;
+  line-height: 1.35;
+  color: var(--viewer-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.patient-dock:not([open]) .patient-panel {
+  display: flex;
+  max-width: 0;
+  padding: 0;
+  border-color: transparent;
+  opacity: 0;
+  transform: translateX(0);
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .patient-dock {
+    top: 120px;
+    --patient-panel-width: min(290px, calc(100vw - 46px));
+  }
+
+  .patient-toggle {
+    width: 34px;
+    height: 46px;
+  }
+
+  .patient-panel {
+    padding: 10px;
+  }
+
+  .patient-row {
+    grid-template-columns: minmax(82px, auto) 1fr;
+    gap: 6px;
+  }
+
+  .patient-row dt {
+    font-size: 0.68rem;
+  }
+
+  .patient-row dd {
+    font-size: 0.79rem;
+  }
+}
+</style>

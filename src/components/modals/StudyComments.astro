@@ -1,0 +1,262 @@
+---
+interface Props {
+  studyId: string;
+  initialComment: string;
+  initialUpdatedAt: string | null;
+}
+
+const { studyId, initialComment, initialUpdatedAt } = Astro.props;
+---
+
+<details class="comment-dock" aria-label="Comentario del estudio">
+  <summary class="comment-toggle">
+    <span class="comment-toggle-icon">❮</span>
+  </summary>
+
+  <aside class="comment-panel">
+    <h2 class="comment-title">Comentario del estudio</h2>
+
+    <form
+      id="study-comment-form"
+      class="comment-form"
+      data-study-id={studyId}
+    >
+      <textarea
+        id="study-comment-input"
+        class="comment-input"
+        name="comment"
+        maxlength="2000"
+        placeholder="Escribe una nota del estudio..."
+      >{initialComment}</textarea>
+
+      <div class="comment-footer">
+        <span id="study-comment-status" class="comment-status">
+          {
+            initialUpdatedAt
+              ? `Actualizado: ${initialUpdatedAt}`
+              : "Sin comentarios guardados"
+          }
+        </span>
+        <button type="submit" class="comment-button">Guardar</button>
+      </div>
+    </form>
+  </aside>
+</details>
+
+<script>
+  import { actions } from "astro:actions";
+
+  const commentForm = document.getElementById("study-comment-form");
+  const commentInput = document.getElementById("study-comment-input");
+  const commentStatus = document.getElementById("study-comment-status");
+
+  if (
+    commentForm instanceof HTMLFormElement &&
+    commentInput instanceof HTMLTextAreaElement &&
+    commentStatus instanceof HTMLElement
+  ) {
+    const studyId = commentForm.getAttribute("data-study-id") || "";
+
+    commentForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const comment = commentInput.value || "";
+      commentStatus.textContent = "Guardando...";
+
+      try {
+        const { data, error } = await actions.saveComment({ 
+          studyId, 
+          comment 
+        });
+
+        if (error) {
+          throw new Error(error.message || "No se pudo guardar el comentario");
+        }
+
+        commentStatus.textContent = data?.updatedAt
+          ? `Guardado: ${data.updatedAt}`
+          : "Comentario guardado";
+      } catch (error) {
+        console.error("Error guardando comentario:", error);
+        commentStatus.textContent = error instanceof Error ? error.message : "No se pudo guardar";
+      }
+    });
+  }
+</script>
+
+<style>
+.comment-dock {
+  position: absolute;
+  top: 84px;
+  right: 0;
+  z-index: 210;
+  display: flex;
+  align-items: flex-start;
+  --comment-panel-width: min(340px, calc(100vw - 56px));
+}
+
+.comment-toggle {
+  list-style: none;
+  width: 36px;
+  height: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  background: var(--viewer-overlay-bg);
+  backdrop-filter: var(--viewer-backdrop-blur);
+  -webkit-backdrop-filter: var(--viewer-backdrop-blur);
+  box-shadow: var(--viewer-shadow-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.comment-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.comment-toggle-icon {
+  color: var(--viewer-text-secondary);
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 0.24s ease;
+}
+
+.comment-dock[open] .comment-toggle-icon {
+  transform: rotate(180deg);
+}
+
+.comment-panel {
+  display: flex;
+  width: var(--comment-panel-width);
+  max-width: var(--comment-panel-width);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  background: var(--viewer-overlay-bg);
+  backdrop-filter: var(--viewer-backdrop-blur);
+  -webkit-backdrop-filter: var(--viewer-backdrop-blur);
+  box-shadow: var(--viewer-shadow-md);
+  overflow: hidden;
+  opacity: 1;
+  transform: translateX(0);
+  transform-origin: right center;
+  transition:
+    max-width 0.24s ease,
+    opacity 0.24s ease,
+    transform 0.24s ease,
+    padding 0.24s ease,
+    border-color 0.24s ease;
+}
+
+.comment-title {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--viewer-text-secondary);
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comment-dock:not([open]) .comment-panel {
+  display: flex;
+  max-width: 0;
+  padding: 0;
+  border-color: transparent;
+  opacity: 0;
+  transform: translateX(0);
+  pointer-events: none;
+}
+
+.comment-input {
+  width: 100%;
+  min-height: 108px;
+  resize: vertical;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--viewer-text-primary);
+  padding: 10px;
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.comment-input:focus {
+  outline: none;
+  border-color: rgba(79, 168, 159, 0.62);
+  box-shadow: 0 0 0 3px rgba(79, 168, 159, 0.18);
+}
+
+.comment-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.comment-status {
+  color: var(--viewer-text-secondary);
+  font-size: 0.73rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comment-button {
+  border: 1px solid rgba(79, 168, 159, 0.5);
+  background: rgba(79, 168, 159, 0.18);
+  color: #eef5f4;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.comment-button:hover {
+  background: rgba(79, 168, 159, 0.28);
+  border-color: rgba(79, 168, 159, 0.75);
+}
+
+@media (max-width: 768px) {
+  .comment-dock {
+    top: 68px;
+    --comment-panel-width: min(290px, calc(100vw - 46px));
+  }
+
+  .comment-toggle {
+    width: 34px;
+    height: 46px;
+  }
+
+  .comment-panel {
+    padding: 10px;
+  }
+
+  .comment-input {
+    min-height: 84px;
+    font-size: 0.8rem;
+  }
+
+  .comment-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .comment-button {
+    width: 100%;
+  }
+}
+</style>

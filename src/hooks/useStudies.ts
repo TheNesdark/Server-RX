@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'preact/hooks';
 import type { FormattedStudy, Study, UseStudiesProps } from '@/types';
 import { STUDIES_PAGE_LIMIT } from '@/config/pagination';
-import { FormatStudy } from '@/utils';
+import { FormatStudy } from '@/utils/client';
 
 const LIMIT = STUDIES_PAGE_LIMIT;
 const DEBOUNCE_DELAY = 300; // Retraso para la búsqueda (ms)

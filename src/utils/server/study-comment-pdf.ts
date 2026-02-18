@@ -33,23 +33,23 @@ const CONFIG = {
  * Divide texto largo en líneas que quepan en un ancho específico
  */
 function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: number): string[] {
-  var paragraphs = text.split(/\r?\n/);
-  var lines: string[] = [];
+  const paragraphs = text.split(/\r?\n/);
+  const lines: string[] = [];
 
-  for (var i = 0; i < paragraphs.length; i++) {
-    var p = paragraphs[i].trim();
+  for (let i = 0; i < paragraphs.length; i++) {
+    const p = paragraphs[i].trim();
     if (!p) {
       lines.push("");
       continue;
     }
 
-    var words = p.split(/\s+/);
-    var currentLine = "";
+    const words = p.split(/\s+/);
+    let currentLine = "";
 
-    for (var j = 0; j < words.length; j++) {
-      var word = words[j];
-      var testLine = currentLine ? currentLine + " " + word : word;
-      var width = font.widthOfTextAtSize(testLine, fontSize);
+    for (let j = 0; j < words.length; j++) {
+      const word = words[j];
+      const testLine = currentLine ? currentLine + " " + word : word;
+      const width = font.widthOfTextAtSize(testLine, fontSize);
 
       if (width <= maxWidth) {
         currentLine = testLine;
@@ -103,18 +103,29 @@ class PDFReport {
   }
 
   async drawHeader(institution?: string) {
-    var instName = (institution || "CENTRO RADIOLÓGICO").toUpperCase();
-    var headerHeight = 50;
-    var logoWidth = 0;
+    const instName = (institution || "CENTRO RADIOLÓGICO").toUpperCase();
+    let logoWidth = 0;
 
-    // Intentar cargar logo
+    // Intentar cargar logo (Rutas para Dev y Prod/EXE)
     try {
-      const logoPath = path.resolve(process.cwd(), "public/assets/logo.png");
-      if (fs.existsSync(logoPath)) {
+      const possiblePaths = [
+        path.resolve(process.cwd(), "public/assets/logo.png"),
+        path.resolve(process.cwd(), "dist/client/assets/logo.png"),
+        path.resolve(process.cwd(), "assets/logo.png")
+      ];
+      
+      let logoPath = "";
+      for (const p of possiblePaths) {
+        if (fs.existsSync(p)) {
+          logoPath = p;
+          break;
+        }
+      }
+
+      if (logoPath) {
         const logoBytes = fs.readFileSync(logoPath);
         const logoImage = await this.doc.embedPng(logoBytes);
         
-        // Ajustar logo a un alto fijo de 40 unidades manteniendo proporción
         const logoScale = 40 / logoImage.height;
         const logoDims = {
           width: logoImage.width * logoScale,
@@ -133,8 +144,7 @@ class PDFReport {
       console.error("Error cargando logo en PDF:", e);
     }
 
-    // Calcular X del texto (si hay logo, dejar espacio)
-    var textX = CONFIG.layout.margin + (logoWidth > 0 ? logoWidth + 15 : 0);
+    const textX = CONFIG.layout.margin + (logoWidth > 0 ? logoWidth + 15 : 0);
     
     // Institución (Alineado verticalmente con el logo)
     this.page.drawText(instName, {
@@ -154,8 +164,8 @@ class PDFReport {
     });
 
     // Fecha de emisión (Derecha)
-    var now = new Date().toLocaleDateString();
-    var nowWidth = this.fontRegular.widthOfTextAtSize("Emisión: " + now, 9);
+    const now = new Date().toLocaleDateString();
+    const nowWidth = this.fontRegular.widthOfTextAtSize("Emisión: " + now, 9);
     this.page.drawText("Emisión: " + now, {
       x: CONFIG.layout.width - CONFIG.layout.margin - nowWidth,
       y: this.y - 18,
@@ -167,8 +177,8 @@ class PDFReport {
     this.y -= 70;
 
     // Título Principal
-    var title = "INFORME DE ESTUDIO RADIOLÓGICO";
-    var tw = this.fontBold.widthOfTextAtSize(title, CONFIG.fonts.title);
+    const title = "INFORME DE ESTUDIO RADIOLÓGICO";
+    const tw = this.fontBold.widthOfTextAtSize(title, CONFIG.fonts.title);
     this.page.drawText(title, {
       x: (CONFIG.layout.width / 2) - (tw / 2),
       y: this.y,
@@ -181,11 +191,11 @@ class PDFReport {
   }
 
   drawPatientTable(data: StudyCommentPdfInput) {
-    var startY = this.y;
-    var tableWidth = CONFIG.layout.width - (CONFIG.layout.margin * 2);
-    var rowHeight = 20;
-    var rows = 4;
-    var totalHeight = rowHeight * rows;
+    const startY = this.y;
+    const tableWidth = CONFIG.layout.width - (CONFIG.layout.margin * 2);
+    const rowHeight = 20;
+    const rows = 4;
+    const totalHeight = rowHeight * rows;
 
     // Fondo para la tabla
     this.page.drawRectangle({
@@ -198,10 +208,10 @@ class PDFReport {
       borderWidth: 1
     });
 
-    var drawRow = (label1: string, val1: string, label2: string, val2: string, rowIndex: number) => {
-      var rowY = startY - (rowHeight * rowIndex) - 14;
-      var col1 = CONFIG.layout.margin + 10;
-      var col2 = CONFIG.layout.margin + (tableWidth / 2) + 10;
+    const drawRow = (label1: string, val1: string, label2: string, val2: string, rowIndex: number) => {
+      const rowY = startY - (rowHeight * rowIndex) - 14;
+      const col1 = CONFIG.layout.margin + 10;
+      const col2 = CONFIG.layout.margin + (tableWidth / 2) + 10;
 
       this.page.drawText(label1, { x: col1, y: rowY, font: this.fontBold, size: CONFIG.fonts.label, color: CONFIG.colors.brand });
       this.page.drawText(val1 || "N/A", { x: col1 + 70, y: rowY, font: this.fontRegular, size: CONFIG.fonts.body });
@@ -229,11 +239,11 @@ class PDFReport {
 
     this.y -= 25;
 
-    var contentWidth = CONFIG.layout.width - (CONFIG.layout.margin * 2);
-    var text = comment || "Sin hallazgos reportados en el sistema.";
-    var lines = wrapText(text, this.fontRegular, CONFIG.fonts.body, contentWidth);
+    const contentWidth = CONFIG.layout.width - (CONFIG.layout.margin * 2);
+    const text = comment || "Sin hallazgos reportados en el sistema.";
+    const lines = wrapText(text, this.fontRegular, CONFIG.fonts.body, contentWidth);
 
-    for (var i = 0; i < lines.length; i++) {
+    for (let i = 0; i < lines.length; i++) {
       this.checkNewPage(CONFIG.layout.lineHeight);
       
       this.page.drawText(lines[i], {
@@ -249,8 +259,8 @@ class PDFReport {
   }
 
   drawFooter() {
-    var footerText = "Este documento es un informe digital generado automáticamente. No reemplaza el criterio médico definitivo.";
-    var fw = this.fontRegular.widthOfTextAtSize(footerText, CONFIG.fonts.footer);
+    const footerText = "Este documento es un informe digital generado automáticamente. No reemplaza el criterio médico definitivo.";
+    const fw = this.fontRegular.widthOfTextAtSize(footerText, CONFIG.fonts.footer);
     
     this.page.drawText(footerText, {
       x: (CONFIG.layout.width / 2) - (fw / 2),
@@ -263,8 +273,8 @@ class PDFReport {
 }
 
 export async function createStudyCommentPdf(input: StudyCommentPdfInput): Promise<Uint8Array> {
-  var pdfDoc = await PDFDocument.create();
-  var report = new PDFReport(pdfDoc);
+  const pdfDoc = await PDFDocument.create();
+  const report = new PDFReport(pdfDoc);
   
   await report.setupFonts();
   

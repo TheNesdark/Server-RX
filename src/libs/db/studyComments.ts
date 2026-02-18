@@ -1,13 +1,13 @@
 import db from "./base";
 import type { SavedStudyCommentEntry, StudyCommentEntry, StudyCommentRow } from "@/types";
 
-var selectStudyCommentStmt = db.prepare(`
+const selectStudyCommentStmt = db.prepare(`
   SELECT comment, updated_at
   FROM study_comments
   WHERE study_id = ?
 `);
 
-var upsertStudyCommentStmt = db.prepare(`
+const upsertStudyCommentStmt = db.prepare(`
   INSERT INTO study_comments (study_id, comment, updated_at)
   VALUES (?, ?, datetime('now'))
   ON CONFLICT(study_id) DO UPDATE SET
@@ -23,14 +23,14 @@ function toStudyCommentEntry(row?: StudyCommentRow): StudyCommentEntry {
 }
 
 export function getStudyCommentEntry(studyId: string): StudyCommentEntry {
-  var row = selectStudyCommentStmt.get(studyId) as StudyCommentRow | undefined;
+  const row = selectStudyCommentStmt.get(studyId) as StudyCommentRow | undefined;
   return toStudyCommentEntry(row);
 }
 
 export function saveStudyComment(studyId: string, comment: string): SavedStudyCommentEntry {
   upsertStudyCommentStmt.run(studyId, comment);
 
-  var row = selectStudyCommentStmt.get(studyId) as StudyCommentRow | undefined;
+  const row = selectStudyCommentStmt.get(studyId) as StudyCommentRow | undefined;
   if (!row) {
     return {
       comment: comment,
@@ -41,5 +41,6 @@ export function saveStudyComment(studyId: string, comment: string): SavedStudyCo
   return {
     comment: row.comment,
     updatedAt: row.updated_at,
+
   };
 }

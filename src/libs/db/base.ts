@@ -3,15 +3,15 @@ import fs from "node:fs";
 import path from "node:path";
 import { DB_PATH } from "@/config";
 
-var db: Database.Database;
+let db: Database.Database;
 
 try {
-  var resolvedDbPath = DB_PATH === ":memory:"
+  const resolvedDbPath = DB_PATH === ":memory:"
     ? DB_PATH
     : (path.isAbsolute(DB_PATH) ? DB_PATH : path.resolve(process.cwd(), DB_PATH));
 
   if (resolvedDbPath !== ":memory:") {
-    var dbDir = path.dirname(resolvedDbPath);
+    const dbDir = path.dirname(resolvedDbPath);
 
     if (!fs.existsSync(dbDir)) {
       fs.mkdirSync(dbDir, { recursive: true });

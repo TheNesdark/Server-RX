@@ -2,6 +2,7 @@ import { verifyToken } from '@/libs/auth';
 import { ORTHANC_URL, ORTHANC_AUTH } from '@/config';
 import type { AstroCookies } from 'astro';
 import { normalizeIdentity } from '../client/identity';
+import db from '@/libs/db/base';
 
 export async function checkApiAuth(id: string, cookies: AstroCookies, type: 'instance' | 'series' | 'study' = 'instance'): Promise<boolean> {
     // 1. Verificar autenticación de Admin
@@ -16,6 +17,7 @@ export async function checkApiAuth(id: string, cookies: AstroCookies, type: 'ins
         let parentStudyId = '';
         
         if (type === 'instance') {
+            // OPTIMIZACIÓN: Intentar buscar en la DB local primero si está disponible la relación
             const res = await fetch(`${ORTHANC_URL}/instances/${id}`, { headers: { 'Authorization': ORTHANC_AUTH } });
             if (res.ok) parentStudyId = (await res.json()).ParentStudy;
         } else if (type === 'series') {

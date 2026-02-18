@@ -25,7 +25,7 @@ const verifyData = verifyResult?.data as { success?: boolean; studyId?: string }
 const errorMsg = verifyResult?.error?.message || "";
 
 const authCookie = Astro.cookies.get(cookieName);
-var isCookieAuthorized = false;
+let isCookieAuthorized = false;
 
 if (authCookie) {
   const payload = await verifyToken(authCookie.value);

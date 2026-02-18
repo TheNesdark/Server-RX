@@ -8,7 +8,7 @@ let isProcessing = false;
 export async function startOrthancWatcher() {
     console.log('👀 Observador de Orthanc activo.');
 
-    var lastSeq = -1; // -1 indica que aún no hemos leído la DB al arrancar
+    let lastSeq = -1; // -1 indica que aún no hemos leído la DB al arrancar
 
     setInterval(async function() {
         // @ts-ignore
@@ -17,8 +17,8 @@ export async function startOrthancWatcher() {
 
         try {
             // 1. Obtener la posición actual de la base de datos (Fuente única de verdad)
-            var dbSeqStr = getSyncMetadata('last_change_seq');
-            var dbSeq = dbSeqStr ? parseInt(dbSeqStr, 10) : 0;
+            const dbSeqStr = getSyncMetadata('last_change_seq');
+            let dbSeq = dbSeqStr ? parseInt(dbSeqStr, 10) : 0;
 
             // El watcher simplemente sigue a la base de datos
             if (lastSeq === -1 || dbSeq > lastSeq) {
@@ -26,26 +26,26 @@ export async function startOrthancWatcher() {
             }
 
             // 2. Pedimos cambios desde nuestra última posición conocida
-            var response = await orthancFetch(`/changes?since=${lastSeq}&limit=100`);
-            var data = await response.json();
-            var changes = data.Changes;
+            const response = await orthancFetch(`/changes?since=${lastSeq}&limit=100`);
+            const data = await response.json();
+            const changes = data.Changes;
             
             if (!changes || changes.length === 0) {
                 isProcessing = false;
                 return;
             }
 
-            for (var i = 0; i < changes.length; i++) {
-                var change = changes[i];
+            for (let i = 0; i < changes.length; i++) {
+                const change = changes[i];
                 // Actualizamos lastSeq cambio a cambio para no perder progreso en caso de error
                 lastSeq = change.Seq;
 
                 if (change.ChangeType === 'StableStudy' || change.ChangeType === 'NewStudy') {
-                    var exists = checkStudyExists(change.ID);
+                    const exists = checkStudyExists(change.ID);
                     
                     try {
-                        var studyRes = await orthancFetch(`/studies/${change.ID}`);
-                        var study = await studyRes.json();
+                        const studyRes = await orthancFetch(`/studies/${change.ID}`);
+                        const study = await studyRes.json();
                         
                         upsertLocalStudy(study);
                         
@@ -64,8 +64,8 @@ export async function startOrthancWatcher() {
 
             // SEGURIDAD: Antes de guardar, verificamos que no estemos bajando la secuencia 
             // que pudo haber sido actualizada por una sincronización manual.
-            var currentDbSeqStr = getSyncMetadata('last_change_seq');
-            var currentDbSeq = currentDbSeqStr ? parseInt(currentDbSeqStr, 10) : 0;
+            const currentDbSeqStr = getSyncMetadata('last_change_seq');
+            const currentDbSeq = currentDbSeqStr ? parseInt(currentDbSeqStr, 10) : 0;
             
             if (lastSeq > currentDbSeq) {
                 setSyncMetadata('last_change_seq', lastSeq.toString());

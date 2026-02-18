@@ -1,4 +1,5 @@
 import { orthancFetch } from "@/libs/orthanc";
+import { getLocalStudyById, getLocalSeriesById } from "@/libs/db";
 import type { ThumbnailInfo } from "@/types";
 
 const createErrorSeries = (id: string): ThumbnailInfo => ({
@@ -11,8 +12,14 @@ const createErrorSeries = (id: string): ThumbnailInfo => ({
 
 const fetchSeriesData = async (seriesId: string, viewport?: number): Promise<ThumbnailInfo> => {
   try {
-    const response = await orthancFetch(`/series/${seriesId}`);
-    const data = await response.json();
+    // Intentar obtener de la DB local primero
+    let data = getLocalSeriesById(seriesId);
+
+    if (!data) {
+      const response = await orthancFetch(`/series/${seriesId}`);
+      data = await response.json();
+    }
+
     const Instances = data.Instances || [];
     const mainDicomTags = data.MainDicomTags || {};
     
@@ -36,8 +43,13 @@ const fetchSeriesData = async (seriesId: string, viewport?: number): Promise<Thu
 };
 
 export async function getStudySeriesData(studyId: string, viewport?: number): Promise<ThumbnailInfo[]> {
-  const response = await orthancFetch(`/studies/${studyId}`);
-  const data = await response.json();
+  let data = getLocalStudyById(studyId);
+
+  if (!data) {
+    const response = await orthancFetch(`/studies/${studyId}`);
+    data = await response.json();
+  }
+
   const seriesIds = data.Series || [];
   
   const allSeries = await Promise.all(seriesIds.map((id: string) => fetchSeriesData(id, viewport)));

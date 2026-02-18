@@ -4,284 +4,249 @@ import path from "node:path";
 import type { StudyCommentPdfInput } from "@/types";
 
 /**
- * CONFIGURACIÓN DE DISEÑO (A4)
+ * CONFIGURACIÓN DE DISEÑO PROFESIONAL (A4)
  */
-const CONFIG = {
-  layout: {
-    width: 595.28,  // A4 Width
-    height: 841.89, // A4 Height
-    margin: 50,     // Margen uniforme
-    lineHeight: 14,
-  },
-  fonts: {
-    title: 16,
-    subtitle: 12,
-    body: 10,
-    label: 9,
-    footer: 8,
-  },
+const DESIGN = {
+  size: { width: 595.28, height: 841.89 },
+  margin: { top: 40, bottom: 60, left: 50, right: 50 },
   colors: {
-    brand: rgb(0.12, 0.58, 0.38), // Verde médico (basado en el logo)
-    darkText: rgb(0.1, 0.1, 0.1),
-    mutedText: rgb(0.4, 0.4, 0.4),
-    bgLight: rgb(0.97, 0.99, 0.98),
-    border: rgb(0.8, 0.85, 0.82),
-  }
+    primary: rgb(0.05, 0.45, 0.35),   // Verde médico profundo
+    secondary: rgb(0.4, 0.4, 0.4),   // Gris para texto secundario
+    text: rgb(0.15, 0.15, 0.15),      // Gris casi negro para texto principal
+    background: rgb(0.98, 0.99, 0.98), // Fondo muy suave
+    border: rgb(0.85, 0.88, 0.86),    // Bordes sutiles
+  },
+  lineHeight: 14,
 };
 
-/**
- * Divide texto largo en líneas que quepan en un ancho específico
- */
-function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: number): string[] {
-  const paragraphs = text.split(/\r?\n/);
-  const lines: string[] = [];
-
-  for (let i = 0; i < paragraphs.length; i++) {
-    const p = paragraphs[i].trim();
-    if (!p) {
-      lines.push("");
-      continue;
-    }
-
-    const words = p.split(/\s+/);
-    let currentLine = "";
-
-    for (let j = 0; j < words.length; j++) {
-      const word = words[j];
-      const testLine = currentLine ? currentLine + " " + word : word;
-      const width = font.widthOfTextAtSize(testLine, fontSize);
-
-      if (width <= maxWidth) {
-        currentLine = testLine;
-      } else {
-        lines.push(currentLine);
-        currentLine = word;
-      }
-    }
-    lines.push(currentLine);
-  }
-  return lines;
-}
-
-class PDFReport {
+class MedicalPDF {
   private doc: PDFDocument;
-  private page: PDFPage;
-  private fontBold!: PDFFont;
+  private page!: PDFPage;
   private fontRegular!: PDFFont;
-  private y: number;
+  private fontBold!: PDFFont;
+  private cursorY: number;
 
   constructor(doc: PDFDocument) {
     this.doc = doc;
-    this.page = this.doc.addPage([CONFIG.layout.width, CONFIG.layout.height]);
-    this.y = CONFIG.layout.height - CONFIG.layout.margin;
+    this.cursorY = 0;
   }
 
-  async setupFonts() {
-    this.fontBold = await this.doc.embedFont(StandardFonts.HelveticaBold);
+  async init() {
     this.fontRegular = await this.doc.embedFont(StandardFonts.Helvetica);
+    this.fontBold = await this.doc.embedFont(StandardFonts.HelveticaBold);
+    this.addNewPage();
   }
 
-  private checkNewPage(needed: number) {
-    if (this.y - needed < CONFIG.layout.margin) {
-      this.page = this.doc.addPage([CONFIG.layout.width, CONFIG.layout.height]);
-      this.y = CONFIG.layout.height - CONFIG.layout.margin;
-      this.drawDecorations();
-      return true;
-    }
-    return false;
+  private addNewPage() {
+    this.page = this.doc.addPage([DESIGN.size.width, DESIGN.size.height]);
+    this.cursorY = DESIGN.size.height - DESIGN.margin.top;
+    this.drawPageDecorations();
   }
 
-  private drawDecorations() {
-    // Línea de cabecera sutil
-    this.page.drawLine({
-      start: { x: CONFIG.layout.margin, y: CONFIG.layout.height - 35 },
-      end: { x: CONFIG.layout.width - CONFIG.layout.margin, y: CONFIG.layout.height - 35 },
-      color: CONFIG.colors.brand,
-      thickness: 0.5,
-      opacity: 0.3
+  private drawPageDecorations() {
+    // Línea lateral decorativa
+    this.page.drawRectangle({
+      x: 0,
+      y: 0,
+      width: 5,
+      height: DESIGN.size.height,
+      color: DESIGN.colors.primary,
     });
+  }
+
+  private checkSpace(needed: number) {
+    if (this.cursorY - needed < DESIGN.margin.bottom) {
+      this.addNewPage();
+    }
   }
 
   async drawHeader(institution?: string) {
-    const instName = (institution || "CENTRO RADIOLÓGICO").toUpperCase();
-    let logoWidth = 0;
-
-    // Intentar cargar logo (Rutas para Dev y Prod/EXE)
+    // --- Logo ---
+    let logoOffset = 0;
     try {
-      const possiblePaths = [
-        path.resolve(process.cwd(), "public/assets/logo.png"),
-        path.resolve(process.cwd(), "dist/client/assets/logo.png"),
-        path.resolve(process.cwd(), "assets/logo.png")
+      const logoPaths = [
+        path.join(process.cwd(), "public/assets/logo.png"),
+        path.join(process.cwd(), "dist/client/assets/logo.png"),
+        path.join(process.cwd(), "assets/logo.png")
       ];
-      
-      let logoPath = "";
-      for (const p of possiblePaths) {
-        if (fs.existsSync(p)) {
-          logoPath = p;
-          break;
-        }
-      }
+      const logoPath = logoPaths.find(p => fs.existsSync(p));
 
       if (logoPath) {
         const logoBytes = fs.readFileSync(logoPath);
-        const logoImage = await this.doc.embedPng(logoBytes);
-        
-        const logoScale = 40 / logoImage.height;
-        const logoDims = {
-          width: logoImage.width * logoScale,
-          height: 40
-        };
-        logoWidth = logoDims.width;
-        
-        this.page.drawImage(logoImage, {
-          x: CONFIG.layout.margin,
-          y: this.y - 40,
-          width: logoDims.width,
-          height: logoDims.height,
+        const logoImg = await this.doc.embedPng(logoBytes);
+        const scale = 45 / logoImg.height;
+        this.page.drawImage(logoImg, {
+          x: DESIGN.margin.left,
+          y: this.cursorY - 45,
+          width: logoImg.width * scale,
+          height: 45,
         });
+        logoOffset = (logoImg.width * scale) + 15;
       }
-    } catch (e) {
-      console.error("Error cargando logo en PDF:", e);
-    }
+    } catch (e) { console.warn("Logo no disponible"); }
 
-    const textX = CONFIG.layout.margin + (logoWidth > 0 ? logoWidth + 15 : 0);
-    
-    // Institución (Alineado verticalmente con el logo)
-    this.page.drawText(instName, {
+    // --- Texto Institución ---
+    const textX = DESIGN.margin.left + logoOffset;
+    this.page.drawText((institution || "CENTRO RADIOLÓGICO").toUpperCase(), {
       x: textX,
-      y: this.y - 18,
+      y: this.cursorY - 15,
       font: this.fontBold,
-      size: CONFIG.fonts.subtitle,
-      color: CONFIG.colors.brand
+      size: 14,
+      color: DESIGN.colors.primary,
     });
-
     this.page.drawText("Servicio de Diagnóstico por Imágenes", {
       x: textX,
-      y: this.y - 32,
+      y: this.cursorY - 30,
       font: this.fontRegular,
       size: 9,
-      color: CONFIG.colors.mutedText
+      color: DESIGN.colors.secondary,
     });
 
-    // Fecha de emisión (Derecha)
-    const now = new Date().toLocaleDateString();
-    const nowWidth = this.fontRegular.widthOfTextAtSize("Emisión: " + now, 9);
-    this.page.drawText("Emisión: " + now, {
-      x: CONFIG.layout.width - CONFIG.layout.margin - nowWidth,
-      y: this.y - 18,
+    // --- Fecha (Derecha) ---
+    const dateStr = `Emisión: ${new Date().toLocaleDateString("es-AR")}`;
+    this.page.drawText(dateStr, {
+      x: DESIGN.size.width - DESIGN.margin.right - this.fontRegular.widthOfTextAtSize(dateStr, 9),
+      y: this.cursorY - 15,
       font: this.fontRegular,
       size: 9,
-      color: CONFIG.colors.mutedText
+      color: DESIGN.colors.secondary,
     });
 
-    this.y -= 70;
-
-    // Título Principal
-    const title = "INFORME DE ESTUDIO RADIOLÓGICO";
-    const tw = this.fontBold.widthOfTextAtSize(title, CONFIG.fonts.title);
+    this.cursorY -= 75;
+    
+    // --- Título del Documento ---
+    const title = "INFORME DE RESULTADOS";
+    const titleWidth = this.fontBold.widthOfTextAtSize(title, 18);
     this.page.drawText(title, {
-      x: (CONFIG.layout.width / 2) - (tw / 2),
-      y: this.y,
+      x: (DESIGN.size.width / 2) - (titleWidth / 2),
+      y: this.cursorY,
       font: this.fontBold,
-      size: CONFIG.fonts.title,
-      color: CONFIG.colors.darkText
+      size: 18,
+      color: DESIGN.colors.text,
     });
-
-    this.y -= 30;
+    
+    this.cursorY -= 35;
   }
 
-  drawPatientTable(data: StudyCommentPdfInput) {
-    const startY = this.y;
-    const tableWidth = CONFIG.layout.width - (CONFIG.layout.margin * 2);
-    const rowHeight = 20;
-    const rows = 4;
-    const totalHeight = rowHeight * rows;
-
-    // Fondo para la tabla
+  drawPatientBox(data: StudyCommentPdfInput) {
+    const boxWidth = DESIGN.size.width - DESIGN.margin.left - DESIGN.margin.right;
+    const boxHeight = 85;
+    
+    // Fondo de la caja
     this.page.drawRectangle({
-      x: CONFIG.layout.margin,
-      y: this.y - totalHeight,
-      width: tableWidth,
-      height: totalHeight,
-      color: CONFIG.colors.bgLight,
-      borderColor: CONFIG.colors.border,
-      borderWidth: 1
+      x: DESIGN.margin.left,
+      y: this.cursorY - boxHeight,
+      width: boxWidth,
+      height: boxHeight,
+      color: DESIGN.colors.background,
+      borderColor: DESIGN.colors.border,
+      borderWidth: 1,
     });
 
-    const drawRow = (label1: string, val1: string, label2: string, val2: string, rowIndex: number) => {
-      const rowY = startY - (rowHeight * rowIndex) - 14;
-      const col1 = CONFIG.layout.margin + 10;
-      const col2 = CONFIG.layout.margin + (tableWidth / 2) + 10;
-
-      this.page.drawText(label1, { x: col1, y: rowY, font: this.fontBold, size: CONFIG.fonts.label, color: CONFIG.colors.brand });
-      this.page.drawText(val1 || "N/A", { x: col1 + 70, y: rowY, font: this.fontRegular, size: CONFIG.fonts.body });
-
-      this.page.drawText(label2, { x: col2, y: rowY, font: this.fontBold, size: CONFIG.fonts.label, color: CONFIG.colors.brand });
-      this.page.drawText(val2 || "N/A", { x: col2 + 70, y: rowY, font: this.fontRegular, size: CONFIG.fonts.body });
+    const drawField = (label: string, value: string, x: number, y: number) => {
+      this.page.drawText(label, { x, y, font: this.fontBold, size: 9, color: DESIGN.colors.primary });
+      const labelWidth = this.fontBold.widthOfTextAtSize(label, 9);
+      this.page.drawText(value || "N/A", { x: x + labelWidth + 5, y, font: this.fontRegular, size: 10, color: DESIGN.colors.text });
     };
 
-    drawRow("PACIENTE:", data.patientName, "ID:", data.patientId, 0);
-    drawRow("SEXO:", data.patientSex, "EDAD:", data.patientAge, 1);
-    drawRow("ESTUDIO:", data.studyDate, "HORA:", data.studyTime, 2);
-    drawRow("REF:", data.receptionNo || "S/N", "INST.:", data.institutionName || "Local", 3);
+    const row1 = this.cursorY - 20;
+    const row2 = this.cursorY - 40;
+    const row3 = this.cursorY - 60;
+    const row4 = this.cursorY - 80;
+    const col2 = DESIGN.margin.left + (boxWidth / 2);
 
-    this.y -= totalHeight + 40;
+    drawField("PACIENTE:", data.patientName, DESIGN.margin.left + 15, row1);
+    drawField("ID:", data.patientId, col2, row1);
+    
+    drawField("SEXO:", data.patientSex, DESIGN.margin.left + 15, row2);
+    drawField("EDAD:", data.patientAge, col2, row2);
+    
+    drawField("FECHA ESTUDIO:", data.studyDate, DESIGN.margin.left + 15, row3);
+    drawField("HORA:", data.studyTime, col2, row3);
+    
+    drawField("REFERENCIA:", data.receptionNo || "S/N", DESIGN.margin.left + 15, row4);
+    drawField("INSTITUCIÓN:", data.institutionName || "Local", col2, row4);
+
+    this.cursorY -= boxHeight + 40;
   }
 
-  drawFindings(comment: string) {
-    this.page.drawText("HALLAZGOS Y CONCLUSIONES:", {
-      x: CONFIG.layout.margin,
-      y: this.y,
+  drawFindings(text?: string) {
+    const title = "HALLAZGOS Y CONCLUSIONES";
+    this.page.drawText(title, {
+      x: DESIGN.margin.left,
+      y: this.cursorY,
       font: this.fontBold,
-      size: CONFIG.fonts.subtitle,
-      color: CONFIG.colors.brand
+      size: 12,
+      color: DESIGN.colors.primary,
+    });
+    
+    this.page.drawLine({
+      start: { x: DESIGN.margin.left, y: this.cursorY - 5 },
+      end: { x: DESIGN.margin.left + 160, y: this.cursorY - 5 },
+      color: DESIGN.colors.primary,
+      thickness: 1.5,
     });
 
-    this.y -= 25;
+    this.cursorY -= 30;
 
-    const contentWidth = CONFIG.layout.width - (CONFIG.layout.margin * 2);
-    const text = comment || "Sin hallazgos reportados en el sistema.";
-    const lines = wrapText(text, this.fontRegular, CONFIG.fonts.body, contentWidth);
+    const content = text || "No se registran hallazgos adicionales para este estudio.";
+    const maxWidth = DESIGN.size.width - DESIGN.margin.left - DESIGN.margin.right;
+    
+    const paragraphs = content.split(/\r?\n/);
+    for (const p of paragraphs) {
+      if (!p.trim()) {
+        this.cursorY -= 10;
+        continue;
+      }
 
-    for (let i = 0; i < lines.length; i++) {
-      this.checkNewPage(CONFIG.layout.lineHeight);
+      const words = p.split(/\s+/);
+      let line = "";
+
+      for (const word of words) {
+        const testLine = line ? `${line} ${word}` : word;
+        const width = this.fontRegular.widthOfTextAtSize(testLine, 11);
+
+        if (width > maxWidth) {
+          this.checkSpace(DESIGN.lineHeight);
+          this.page.drawText(line, { x: DESIGN.margin.left, y: this.cursorY, font: this.fontRegular, size: 11 });
+          this.cursorY -= DESIGN.lineHeight + 2;
+          line = word;
+        } else {
+          line = testLine;
+        }
+      }
       
-      this.page.drawText(lines[i], {
-        x: CONFIG.layout.margin,
-        y: this.y,
-        font: this.fontRegular,
-        size: CONFIG.fonts.body,
-        color: CONFIG.colors.darkText
-      });
-
-      this.y -= CONFIG.layout.lineHeight;
+      if (line) {
+        this.checkSpace(DESIGN.lineHeight);
+        this.page.drawText(line, { x: DESIGN.margin.left, y: this.cursorY, font: this.fontRegular, size: 11 });
+        this.cursorY -= DESIGN.lineHeight + 5;
+      }
     }
   }
 
   drawFooter() {
-    const footerText = "Este documento es un informe digital generado automáticamente. No reemplaza el criterio médico definitivo.";
-    const fw = this.fontRegular.widthOfTextAtSize(footerText, CONFIG.fonts.footer);
+    const footerText = "Este documento es un informe médico digital. La interpretación final corresponde al médico tratante.";
+    const width = this.fontRegular.widthOfTextAtSize(footerText, 8);
     
     this.page.drawText(footerText, {
-      x: (CONFIG.layout.width / 2) - (fw / 2),
+      x: (DESIGN.size.width / 2) - (width / 2),
       y: 30,
       font: this.fontRegular,
-      size: CONFIG.fonts.footer,
-      color: CONFIG.colors.mutedText
+      size: 8,
+      color: DESIGN.colors.secondary,
     });
   }
 }
 
 export async function createStudyCommentPdf(input: StudyCommentPdfInput): Promise<Uint8Array> {
-  const pdfDoc = await PDFDocument.create();
-  const report = new PDFReport(pdfDoc);
+  const doc = await PDFDocument.create();
+  const report = new MedicalPDF(doc);
   
-  await report.setupFonts();
-  
+  await report.init();
   await report.drawHeader(input.institutionName);
-  report.drawPatientTable(input);
+  report.drawPatientBox(input);
   report.drawFindings(input.comment);
   report.drawFooter();
 
-  return await pdfDoc.save();
+  return await doc.save();
 }

@@ -7,7 +7,7 @@ import ShareModal from "@/components/modals/ShareModal.astro";
 import PatientInfo from "@/components/modals/PatientInfo.astro";
 import StudyComments from "@/components/modals/StudyComments.astro";
 import { orthancFetch } from "@/libs/orthanc";
-import { getStudyCommentEntry } from "@/libs/db/studyComments";
+import { getStudyCommentEntry, getLocalStudyById } from "@/libs/db";
 import type { ThumbnailInfo, DicomStudy } from "@/types";
 import { 
   formatDicomDate, 
@@ -22,12 +22,22 @@ import styles from "@/styles/ViewerPage.module.css";
 import "@/styles/ViewerPage.global.css";
 
 const { studyId } = Astro.params;
-if (!isValidStudyId(studyId)) {
+if (!studyId || !isValidStudyId(studyId)) {
   return Astro.redirect("/");
 }
 
-const studyRes = await orthancFetch(`/studies/${studyId}`);
-const studyData = await studyRes.json() as DicomStudy;
+// Intentar obtener desde la DB local primero
+let studyData = getLocalStudyById(studyId);
+
+if (!studyData) {
+  try {
+    const studyRes = await orthancFetch(`/studies/${studyId}`);
+    studyData = await studyRes.json() as DicomStudy;
+  } catch (e) {
+    console.error(`Error cargando estudio ${studyId}:`, e);
+    return Astro.redirect("/");
+  }
+}
 
 const patientName = normalizeDicomText(studyData?.PatientMainDicomTags?.PatientName) || "No disponible";
 const patientId = normalizeDicomText(studyData?.PatientMainDicomTags?.PatientID) || "No disponible";
@@ -60,7 +70,7 @@ const initialUpdatedAt = studyCommentEntry.updatedAt;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DICOM Viewer - Visor Médico</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/assets/logo.png" />
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap"

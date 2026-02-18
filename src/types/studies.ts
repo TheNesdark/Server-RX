@@ -52,6 +52,7 @@ export interface DicomStudy {
         ReferringPhysicianName?: string;
         StudyTime?: string;
     };
+    ParentStudy?: string;
 }
 
 export interface PaginatedStudiesResult {

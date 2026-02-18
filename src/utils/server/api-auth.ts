@@ -2,7 +2,7 @@ import { verifyToken } from '@/libs/auth';
 import { ORTHANC_URL, ORTHANC_AUTH } from '@/config';
 import type { AstroCookies } from 'astro';
 import { normalizeIdentity } from '../client/identity';
-import db from '@/libs/db/base';
+import { getParentStudyId } from '@/libs/db/studies';
 
 export async function checkApiAuth(id: string, cookies: AstroCookies, type: 'instance' | 'series' | 'study' = 'instance'): Promise<boolean> {
     // 1. Verificar autenticación de Admin
@@ -14,15 +14,18 @@ export async function checkApiAuth(id: string, cookies: AstroCookies, type: 'ins
 
     // 2. Verificar autenticación Lite (estudiante/paciente)
     try {
-        let parentStudyId = '';
-        
-        if (type === 'instance') {
-            // OPTIMIZACIÓN: Intentar buscar en la DB local primero si está disponible la relación
-            const res = await fetch(`${ORTHANC_URL}/instances/${id}`, { headers: { 'Authorization': ORTHANC_AUTH } });
-            if (res.ok) parentStudyId = (await res.json()).ParentStudy;
-        } else if (type === 'series') {
-            const res = await fetch(`${ORTHANC_URL}/series/${id}`, { headers: { 'Authorization': ORTHANC_AUTH } });
-            if (res.ok) parentStudyId = (await res.json()).ParentStudy;
+        let parentStudyId: string | null = '';
+
+        if (type === 'instance' || type === 'series') {
+            // OPTIMIZACIÓN: Buscar en DB local primero
+            parentStudyId = getParentStudyId(id, type);
+
+            if (!parentStudyId) {
+                const res = await fetch(`${ORTHANC_URL}/${type === 'instance' ? 'instances' : 'series'}/${id}`, {
+                    headers: { 'Authorization': ORTHANC_AUTH }
+                });
+                if (res.ok) parentStudyId = (await res.json()).ParentStudy;
+            }
         } else if (type === 'study') {
             parentStudyId = id;
         }

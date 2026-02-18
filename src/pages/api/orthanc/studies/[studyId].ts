@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { ORTHANC_URL, ORTHANC_AUTH } from '@/config';
 import { checkApiAuth } from '@/utils/server';
+import { getLocalStudyById } from '@/libs/db';
 
 export const GET: APIRoute = async ({ params, cookies }) => {
   const studyID = params.studyId
@@ -15,6 +16,20 @@ export const GET: APIRoute = async ({ params, cookies }) => {
         return new Response("No autorizado", { status: 401 });
     }
 
+    // Intentar obtener desde la DB local
+    const localData = getLocalStudyById(studyID);
+    if (localData) {
+      return new Response(JSON.stringify(localData), {
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'private, no-store, max-age=0',
+          'Pragma': 'no-cache',
+          'Vary': 'Cookie'
+        }
+      });
+    }
+
+    // Fallback a Orthanc
     const response = await fetch(`${ORTHANC_URL}/studies/${studyID}`, {
       headers: { 'Authorization': ORTHANC_AUTH }
     });

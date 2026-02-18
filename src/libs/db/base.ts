@@ -24,6 +24,7 @@ try {
     
     // Configuración recomendada para mejor rendimiento en SQLite
     db.pragma('journal_mode = WAL');
+    db.pragma('foreign_keys = ON');
 
     db.exec(`
       CREATE TABLE IF NOT EXISTS studies (
@@ -39,6 +40,33 @@ try {
     `);
 
     db.exec(`
+      CREATE TABLE IF NOT EXISTS series (
+        id TEXT PRIMARY KEY,
+        study_id TEXT,
+        series_number TEXT,
+        modality TEXT,
+        json_completo TEXT,
+        FOREIGN KEY (study_id) REFERENCES studies(id) ON DELETE CASCADE
+      )
+    `);
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS instances (
+        id TEXT PRIMARY KEY,
+        series_id TEXT,
+        study_id TEXT,
+        instance_number TEXT,
+        json_completo TEXT,
+        FOREIGN KEY (study_id) REFERENCES studies(id) ON DELETE CASCADE,
+        FOREIGN KEY (series_id) REFERENCES series(id) ON DELETE CASCADE
+      )
+    `);
+
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_series_study ON series(study_id)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_instances_series ON instances(series_id)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_instances_study ON instances(study_id)`);
+
+    db.exec(`
       CREATE TABLE IF NOT EXISTS study_comments (
         study_id TEXT PRIMARY KEY,
         comment TEXT NOT NULL DEFAULT '',
@@ -52,6 +80,10 @@ try {
         value TEXT
       )
     `);
+
+    // Migraciones rápidas
+    try { db.exec("ALTER TABLE series ADD COLUMN json_completo TEXT"); } catch(e) {}
+    try { db.exec("ALTER TABLE instances ADD COLUMN json_completo TEXT"); } catch(e) {}
 } catch (error) {
     console.error("Database initialization failed:", error);
     throw error;

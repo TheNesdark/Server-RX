@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { getStudyCommentEntry } from "@/libs/db/studyComments";
+import { getStudyCommentEntry, getLocalStudyById } from "@/libs/db";
 import { GetDNIbyStudyID, orthancFetch } from "@/libs/orthanc";
 import { verifyToken } from "@/libs/auth";
 import type { DicomStudy } from "@/types";
@@ -29,8 +29,17 @@ export const GET: APIRoute = async ({ params, cookies }) => {
     return createUnauthorizedTextResponse();
   }
 
-  const studyRes = await orthancFetch(`/studies/${studyId}`);
-  const studyData = await studyRes.json() as DicomStudy;
+  // Intentar obtener desde la DB local primero
+  let studyData = getLocalStudyById(studyId);
+
+  if (!studyData) {
+    try {
+      const studyRes = await orthancFetch(`/studies/${studyId}`);
+      studyData = await studyRes.json() as DicomStudy;
+    } catch (e) {
+      studyData = null as any;
+    }
+  }
   
   if (!studyData) {
     return new Response("No existe ese estudio", {

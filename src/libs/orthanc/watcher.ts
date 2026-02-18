@@ -1,4 +1,9 @@
-import db, { upsertLocalStudy, deleteLocalStudy, checkStudyExists, setSyncMetadata, getSyncMetadata } from '../db';
+import { 
+    syncFullStudy,
+    deleteLocalStudy, 
+    setSyncMetadata, 
+    getSyncMetadata
+} from '../db';
 import { orthancFetch } from './index';
 import type { DicomStudy } from '@/types';
 
@@ -37,23 +42,26 @@ export async function startOrthancWatcher() {
 
             for (let i = 0; i < changes.length; i++) {
                 const change = changes[i];
-                // Actualizamos lastSeq cambio a cambio para no perder progreso en caso de error
                 lastSeq = change.Seq;
 
                 if (change.ChangeType === 'StableStudy' || change.ChangeType === 'NewStudy') {
-                    const exists = checkStudyExists(change.ID);
-                    
                     try {
-                        const studyRes = await orthancFetch(`/studies/${change.ID}`);
-                        const study = await studyRes.json();
+                        const [studyRes, seriesRes, instancesRes] = await Promise.all([
+                            orthancFetch(`/studies/${change.ID}`),
+                            orthancFetch(`/studies/${change.ID}/series?expand`),
+                            orthancFetch(`/studies/${change.ID}/instances?expand`)
+                        ]);
+
+                        const [study, series, instances] = await Promise.all([
+                            studyRes.json(),
+                            seriesRes.json(),
+                            instancesRes.json()
+                        ]);
                         
-                        upsertLocalStudy(study);
-                        
-                        if (!exists) {
-                            console.log(`[Watcher] ✨ ${change.ChangeType === 'NewStudy' ? 'Nuevo' : 'Estable'}: ${study.PatientMainDicomTags?.PatientName || 'S/N'}`);
-                        }
+                        syncFullStudy(study, series, instances);
+                        console.log(`[Watcher] ✅ Sincronizado completo: ${study.PatientMainDicomTags?.PatientName || 'S/N'}`);
                     } catch (e) {
-                        // El estudio pudo ser borrado rápidamente
+                        console.error(`[Watcher] Error sincronizando estudio ${change.ID}:`, e);
                     }
                 } 
                 else if (change.ChangeType === 'DeletedStudy') {

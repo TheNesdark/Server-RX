@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { ORTHANC_URL, ORTHANC_AUTH } from '@/config';
 import { checkApiAuth } from '@/utils/server';
+import { getLocalInstanceById } from '@/libs/db';
 
 export const GET: APIRoute = async ({ params, cookies }) => {
     const instanceid = params.instanceId;
@@ -13,6 +14,19 @@ export const GET: APIRoute = async ({ params, cookies }) => {
 
     if (!isAuthorized) {
         return new Response("No autorizado", { status: 401 });
+    }
+
+    // Intentar obtener desde la DB local
+    const localData = getLocalInstanceById(instanceid);
+    if (localData) {
+      return new Response(JSON.stringify(localData), {
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'private, no-store, max-age=0',
+          'Pragma': 'no-cache',
+          'Vary': 'Cookie'
+        }
+      });
     }
 
     const response = await fetch(`${ORTHANC_URL}/instances/${instanceid}`, {

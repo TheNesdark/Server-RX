@@ -28,7 +28,7 @@ const updateRenderedImage = async (
   }
 
   renderedImage.style.display = "none";
-  if (loader) loader.style.display = "block";
+  if (loader) loader.style.display = "flex";
 
   const nextUrl = `/api/orthanc/instances/${instanceId}/rendered?quality=90`;
   const imagePreloader = new Image();

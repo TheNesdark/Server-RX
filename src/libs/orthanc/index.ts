@@ -1,4 +1,10 @@
-import db, { bulkUpsertLocalStudies, setSyncMetadata } from '../db';
+import db, { 
+  bulkUpsertLocalStudies, 
+  bulkUpsertLocalSeries, 
+  bulkUpsertLocalInstances, 
+  setSyncMetadata,
+  getLocalStudyById
+} from '../db';
 import type { DicomStudy } from '@/types';
 import { ORTHANC_URL, ORTHANC_AUTH } from '@/config';
 import { startOrthancWatcher } from './watcher';
@@ -39,6 +45,13 @@ export async function orthancFetch(path: string, options: RequestInit = {}) {
 */
 export async function GetDNIbyStudyID(studyId: string) {
  try {
+   // Primero intentamos desde la DB local
+   const localStudy = getLocalStudyById(studyId);
+   if (localStudy) {
+     return localStudy.PatientMainDicomTags?.PatientID;
+   }
+
+   // Si no está en la DB, pedimos a Orthanc
    const response = await orthancFetch(`/studies/${studyId}`);
    const data: DicomStudy = await response.json();
    return data.PatientMainDicomTags?.PatientID;
@@ -57,12 +70,27 @@ export async function sincronizarDatos() {
   console.log('🔄 Iniciando sincronización completa...');
   try {
     // 1. Sincronizar estudios
-    const response = await orthancFetch(`/studies?expand`);
-    const estudios: DicomStudy[] = await response.json();
-    
+    console.log('📦 Obteniendo estudios...');
+    const studyRes = await orthancFetch(`/studies?expand`);
+    const estudios: DicomStudy[] = await studyRes.json();
     bulkUpsertLocalStudies(estudios);
+    console.log(`✅ ${estudios.length} estudios sincronizados.`);
 
-    // 2. Actualizar la secuencia de cambios al último valor absoluto de Orthanc
+    // 2. Sincronizar series
+    console.log('📦 Obteniendo series...');
+    const seriesRes = await orthancFetch(`/series?expand`);
+    const series = await seriesRes.json();
+    bulkUpsertLocalSeries(series);
+    console.log(`✅ ${series.length} series sincronizadas.`);
+
+    // 3. Sincronizar instancias
+    console.log('📦 Obteniendo instancias...');
+    const instancesRes = await orthancFetch(`/instances?expand`);
+    const instances = await instancesRes.json();
+    bulkUpsertLocalInstances(instances);
+    console.log(`✅ ${instances.length} instancias sincronizadas.`);
+
+    // 4. Actualizar la secuencia de cambios al último valor absoluto de Orthanc
     // Usamos un since muy alto para forzar a Orthanc a devolvernos el puntero del final (Last)
     const changesRes = await orthancFetch('/changes?since=999999999');
     const changesData = await changesRes.json();
@@ -70,11 +98,10 @@ export async function sincronizarDatos() {
     
     if (lastSeq !== undefined) {
       setSyncMetadata('last_change_seq', lastSeq.toString());
-      console.log(`✅ Sincronización completa finalizada. Secuencia actualizada al máximo: ${lastSeq}`);
-    } else {
-      console.log('✅ Sincronización completa finalizada (no se pudo obtener la secuencia de cambios).');
-    }
+      console.log(`🚀 Secuencia actualizada al máximo: ${lastSeq}`);
+    } 
     
+    console.log('✨ Sincronización manual completada con éxito.');
     return estudios.length;
   } catch (error) {
     console.error('❌ Error en la sincronización:', error);

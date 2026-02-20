@@ -1,11 +1,15 @@
 ---
+import { getStudyCommentEntry } from "@/libs/db";
+
 interface Props {
   studyId: string;
-  initialComment: string;
-  initialUpdatedAt: string | null;
 }
 
-const { studyId, initialComment, initialUpdatedAt } = Astro.props;
+const { studyId } = Astro.props;
+
+const studyCommentEntry = getStudyCommentEntry(studyId);
+const initialComment = studyCommentEntry.comment;
+const initialUpdatedAt = studyCommentEntry.updatedAt;
 ---
 
 <details class="comment-dock" aria-label="Comentario del estudio">

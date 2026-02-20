@@ -1,11 +1,11 @@
 import type { APIRoute } from "astro";
 import { getStudyCommentEntry, getLocalStudyById } from "@/libs/db";
-import { GetDNIbyStudyID, orthancFetch } from "@/libs/orthanc";
-import { verifyToken } from "@/libs/auth";
+import { orthancFetch } from "@/libs/orthanc";
 import type { DicomStudy } from "@/types";
 import {
   createStudyCommentPdf,
   createUnauthorizedTextResponse,
+  validateStudyAccess
 } from "@/utils/server";
 import { getStudyCommentPdfFileName } from "@/utils/client/study-comment";
 import { 
@@ -16,16 +16,14 @@ import {
   formatDicomTime
 } from "@/utils/client";
 
-export const GET: APIRoute = async ({ params, cookies }) => {
+export const GET: APIRoute = async (context) => {
+  const { params } = context;
   const studyId = params.studyId || "";
 
-  const authCookieValue = cookies.get(`auth_lite_${studyId}`)?.value;
-  if (!authCookieValue) {
-    return createUnauthorizedTextResponse();
-  }
+  // 1. Validar Acceso (Admin o Paciente)
+  const { isAuthorized } = await validateStudyAccess(context, studyId);
 
-  const payload = await verifyToken(authCookieValue);
-  if (!payload || payload.studyId !== studyId) {
+  if (!isAuthorized) {
     return createUnauthorizedTextResponse();
   }
 
@@ -50,16 +48,11 @@ export const GET: APIRoute = async ({ params, cookies }) => {
     });
   }
 
-  const dni = studyData.PatientMainDicomTags?.PatientID || "";
-  if (!dni || String(payload.dni).trim() !== dni.trim()) {
-    return createUnauthorizedTextResponse();
-  }
-
   const commentEntry = getStudyCommentEntry(studyId);
   
   const pdfBytes = await createStudyCommentPdf({
     patientName: normalizeDicomText(studyData.PatientMainDicomTags?.PatientName) || "Sin Nombre",
-    patientId: dni,
+    patientId: studyData.PatientMainDicomTags?.PatientID || "N/A",
     patientSex: formatPatientSex(studyData.PatientMainDicomTags?.PatientSex),
     patientAge: calculateAge(studyData.PatientMainDicomTags?.PatientBirthDate),
     studyDate: formatDicomDate(studyData.MainDicomTags?.StudyDate),

@@ -1,0 +1,171 @@
+/* Variables CSS globales para viewer-lite */
+:root {
+  --bg-main: #0a0e10;
+  --bg-surface: #12181b;
+  --bg-elevated: #1a2226;
+  --primary: #0f766e;
+  --primary-hover: #0d615a;
+  --text-main: #e2e8f0;
+  --text-dim: #94a3b8;
+  --border: rgba(255, 255, 255, 0.1);
+  --header-height: 60px;
+
+  /* Variables para compatibilidad con PatientInfo.astro */
+  --viewer-overlay-bg: rgba(13, 17, 19, 0.86);
+  --viewer-backdrop-blur: blur(8px);
+  --viewer-text-primary: #e6eceb;
+  --viewer-text-secondary: #a6b4b2;
+  --viewer-shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.24);
+  --viewer-shadow-md: 0 12px 28px rgba(0, 0, 0, 0.32);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: "Source Sans 3", system-ui, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* VIEWER LAYOUT STYLES */
+.viewer-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.viewer-header {
+  height: var(--header-height);
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  z-index: 100;
+}
+
+.header-left .logo-link {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-info h1 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--primary);
+}
+
+.brand-info span {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.action-btn {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0 1rem;
+  border-radius: 10px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background-color: #242c31;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.pdf-btn {
+  background-color: rgba(15, 118, 110, 0.1);
+  border-color: rgba(15, 118, 110, 0.2);
+  color: #2dd4bf;
+}
+
+.pdf-btn:hover {
+  background-color: rgba(15, 118, 110, 0.2);
+  border-color: rgba(15, 118, 110, 0.3);
+}
+
+.viewer-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.viewport-container {
+  flex: 1;
+  background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.main-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: none;
+}
+
+.viewer-loader {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-dim);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(15, 118, 110, 0.1);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .header-right span {
+    display: none;
+  }
+  .action-btn {
+    padding: 0 0.75rem;
+  }
+  .brand-info h1 {
+    font-size: 0.85rem;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

@@ -4,7 +4,7 @@ import { PROD } from "@/config";
 import { GetDNIbyStudyID } from "@/libs/orthanc";
 import { createToken } from "@/libs/auth";
 import { getStudyCommentEntry, saveStudyComment } from "@/libs/db/studyComments";
-import { isValidStudyId, sanitizeStudyComment } from "@/utils/client";
+import {  sanitizeStudyComment } from "@/utils/client";
 import { consumeRateLimit, getClientIdentifier } from "@/utils/server";
 
 const VIEWER_LITE_RATE_LIMIT = {
@@ -65,8 +65,8 @@ export const studies = {
         type: 'lite_access'
       });
 
-      context.cookies.set(`auth_lite_${normalizedStudyId}`, token, {
-        path: "/",
+      context.cookies.set(`auth_patient_${normalizedStudyId}`, token, {
+        path: `/`,
         maxAge: 60 * 60 * 4,
         httpOnly: true,
         sameSite: "strict",
@@ -91,13 +91,6 @@ export const studies = {
         });
       }
 
-      if (!isValidStudyId(input.studyId)) {
-        throw new ActionError({
-          code: "BAD_REQUEST",
-          message: "ID de estudio inválido",
-        });
-      }
-
       const comment = sanitizeStudyComment(input.comment);
       const saved = saveStudyComment(input.studyId, comment);
 
@@ -108,28 +101,5 @@ export const studies = {
         updatedAt: saved.updatedAt,
       };
     },
-  }),
-
-  getComment: defineAction({
-    input: z.object({
-      studyId: z.string(),
-    }),
-    handler: async (input, context) => {
-      if (!context.locals.user) {
-        throw new ActionError({
-          code: "UNAUTHORIZED",
-          message: "No autorizado",
-        });
-      }
-
-      if (!isValidStudyId(input.studyId)) {
-        throw new ActionError({
-          code: "BAD_REQUEST",
-          message: "ID de estudio inválido",
-        });
-      }
-
-      return getStudyCommentEntry(input.studyId);
-    },
-  }),
+  })
 };

@@ -1,0 +1,152 @@
+---
+/**
+ * src/components/viewer/DeviceSuggestLite.astro
+ * 
+ * Component that detects low-performance devices and suggests 
+ * switching to the Lite Viewer for a better experience.
+ */
+interface Props {
+  studyId: string;
+}
+
+const { studyId } = Astro.props;
+---
+
+<div id="device-suggestion" class="suggestion-banner" style="display: none;">
+  <div class="suggestion-content">
+    <div class="suggestion-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+        <line x1="12" y1="9" x2="12" y2="13"></line>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+    </div>
+    <div class="suggestion-text">
+      <p><strong>Dispositivo o conexión lenta detectada.</strong></p>
+      <p>Para una carga más rápida, prueba el Visor Lite.</p>
+    </div>
+    <div class="suggestion-actions">
+      <a href={`/viewer-lite/${studyId}`} class="btn-lite">Usar Visor Lite</a>
+      <button id="dismiss-suggestion" class="btn-dismiss">Ignorar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { isSlowDeviceOrConnection } from '@/utils/client/device';
+
+  const banner = document.getElementById('device-suggestion');
+  const dismissBtn = document.getElementById('dismiss-suggestion');
+  const studyId = banner?.getAttribute('data-study-id');
+
+  // Only show if it's a slow device and hasn't been dismissed in this session
+  if (banner && isSlowDeviceOrConnection() && !sessionStorage.getItem('lite-suggestion-dismissed')) {
+    banner.style.display = 'block';
+  }
+
+  dismissBtn?.addEventListener('click', () => {
+    if (banner) {
+      banner.style.display = 'none';
+      sessionStorage.setItem('lite-suggestion-dismissed', 'true');
+    }
+  });
+</script>
+
+<style>
+  .suggestion-banner {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: #1a2226;
+    border: 1px solid rgba(15, 118, 110, 0.4);
+    border-radius: 12px;
+    padding: 12px 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    width: 90%;
+    max-width: 450px;
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from { transform: translate(-50%, 100%); opacity: 0; }
+    to { transform: translate(-50%, 0); opacity: 1; }
+  }
+
+  .suggestion-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .suggestion-icon {
+    color: #2dd4bf;
+    flex-shrink: 0;
+  }
+
+  .suggestion-text {
+    flex: 1;
+  }
+
+  .suggestion-text p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #e2e8f0;
+  }
+
+  .suggestion-text p strong {
+    color: #2dd4bf;
+  }
+
+  .suggestion-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .btn-lite {
+    background: #0f766e;
+    color: white;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-align: center;
+    transition: background 0.2s;
+  }
+
+  .btn-lite:hover {
+    background: #0d615a;
+  }
+
+  .btn-dismiss {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 11px;
+    cursor: pointer;
+    padding: 2px;
+  }
+
+  .btn-dismiss:hover {
+    color: #e2e8f0;
+  }
+
+  /* Responsive for very small screens */
+  @media (max-width: 400px) {
+    .suggestion-content {
+      flex-direction: column;
+      text-align: center;
+    }
+    .suggestion-actions {
+      width: 100%;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+</style>

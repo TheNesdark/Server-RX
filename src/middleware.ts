@@ -5,47 +5,42 @@ import { verifyToken } from '@/libs/auth';
 export const onRequest: MiddlewareHandler = async (context, next) => {
     const { url, cookies, redirect } = context;
 
-    // Extensiones de archivos estáticos permitidos sin login
+    // 1. Intentar siempre identificar al usuario Admin si existe la cookie
+    const authToken = cookies.get('auth_token')?.value;
+    if (authToken) {
+        const payload = await verifyToken(authToken);
+        if (payload && payload.type === 'admin_session') {
+            context.locals.user = {
+                username: payload.username as string,
+                exp: payload.exp as number
+            };
+        } else {
+            // Token inválido o de otro tipo (ej: paciente) en la cookie equivocada
+            cookies.delete('auth_token', { path: '/' });
+        }
+    }
+
+    // 2. Definir rutas públicas y el visor (que maneja su propia auth Lite)
     const publicExtensions = ['.svg', '.css', '.js', '.png', '.jpg', '.jpeg', '.ico', '.webmanifest'];
     const isPublicFile = publicExtensions.some(ext => url.pathname.endsWith(ext));
-
-    // Permitir acceso a login, logout y recursos estáticos específicos
     const isPublicAsset = url.pathname.startsWith('/_astro') || isPublicFile;
     const isAuthPage = url.pathname === '/login' || url.pathname === '/logout';
-    
-    // Permitir acceso al viewer lite y sus recursos de imagen sin sesión iniciada (el handler validará el acceso lite)
+    const isViewer = url.pathname.startsWith('/viewer/');
     const isViewerLite = url.pathname.startsWith('/viewer-lite/');
     const isOrthancApi = url.pathname.startsWith('/api/orthanc/');
+    const isReport = url.pathname.startsWith('/reports/');
 
-    if (isPublicAsset || isAuthPage || isViewerLite || isOrthancApi) {
+    if (isPublicAsset || isAuthPage || isViewer || isViewerLite || isOrthancApi || isReport) {
         return next();
     }
 
-    // Verificar JWT para todas las demás rutas, incluyendo /api/orthanc
-    const authToken = cookies.get('auth_token')?.value;
-
-    if (!authToken) {
-        // Si es una petición API, devolver 401 en lugar de redirigir
+    // 3. Para todo lo demás (Admin panel, configuracion, etc), exigir login de admin
+    if (!context.locals.user) {
         if (url.pathname.startsWith('/api/')) {
             return new Response(JSON.stringify({ error: 'No autorizado' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
         }
         return redirect('/login');
     }
-
-    const payload = await verifyToken(authToken);
-
-    if (!payload) {
-        cookies.delete('auth_token', { path: '/' });
-        if (url.pathname.startsWith('/api/')) {
-            return new Response(JSON.stringify({ error: 'Sesión expirada' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
-        }
-        return redirect('/login?error=expired');
-    }
-
-    context.locals.user = {
-        username: payload.username as string,
-        exp: payload.exp as number
-    };
 
     return next();
 };

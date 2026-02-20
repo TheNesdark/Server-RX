@@ -10,7 +10,7 @@ export const GET: APIRoute = async ({ params, cookies }) => {
       return new Response("Se requiere un instanceID", { status: 400 });
     }
   try {
-    const isAuthorized = await checkApiAuth(instanceid, cookies);
+    const isAuthorized = await checkApiAuth(instanceid, cookies, 'instance');
 
     if (!isAuthorized) {
         return new Response("No autorizado", { status: 401 });

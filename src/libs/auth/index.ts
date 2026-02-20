@@ -14,8 +14,7 @@ export async function verifyToken(token: string): Promise<Record<string, unknown
   try {
     const { payload } = await jwtVerify(token, SECRET);
     return payload;
-  } catch (error) {
-    console.log("Error verificando el token JWT:", error);
+  } catch {
     return null;
   }
 }

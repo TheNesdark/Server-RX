@@ -1,29 +1,31 @@
 ---
-interface Props {
-  patientName: string;
-  patientId: string;
-  patientSex: string;
-  patientAge: string;
-  studyDate: string;
-  studyTime: string;
-  studyDescription: string;
-  institutionName: string;
-  referringPhysician?: string;
-  accessionNumber?: string;
-}
+import { 
+  formatDicomDate, 
+  normalizeDicomText, 
+  formatPatientSex,
+  calculateAge,
+  formatDicomTime
+} from "@/utils/client";
 
-const { 
-  patientName, 
-  patientId, 
-  patientSex, 
-  patientAge,
-  studyDate, 
-  studyTime,
-  studyDescription, 
-  institutionName,
-  referringPhysician,
-  accessionNumber
-} = Astro.props;
+import { getLocalStudyById } from "@/libs/db";
+
+const { studyId } = Astro.props;
+// Intentar obtener desde la DB local primero
+let studyData = getLocalStudyById(studyId);
+
+const patientName = normalizeDicomText(studyData?.PatientMainDicomTags?.PatientName) || "No disponible";
+const patientId = normalizeDicomText(studyData?.PatientMainDicomTags?.PatientID) || "No disponible";
+const patientSex = formatPatientSex(studyData?.PatientMainDicomTags?.PatientSex);
+const patientAge = calculateAge(studyData?.PatientMainDicomTags?.PatientBirthDate);
+const studyDate = formatDicomDate(studyData?.MainDicomTags?.StudyDate);
+const studyTime = formatDicomTime(studyData?.MainDicomTags?.StudyTime);
+const studyDescription = 
+  normalizeDicomText(studyData?.MainDicomTags?.StudyDescription) || 
+  normalizeDicomText(studyData?.MainDicomTags?.StudyID) || 
+  "No disponible";
+const institutionName = normalizeDicomText(studyData?.MainDicomTags?.InstitutionName) || "No disponible";
+const referringPhysician = normalizeDicomText(studyData?.MainDicomTags?.ReferringPhysicianName);
+const accessionNumber = normalizeDicomText(studyData?.MainDicomTags?.AccessionNumber);
 ---
 
 <details class="patient-dock" aria-label="Información del paciente">

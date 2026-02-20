@@ -1,506 +1,96 @@
 ---
 // src/pages/viewer-lite/[studyId].astro
-import { actions } from "astro:actions";
+import ViewerLayout from "@/layouts/ViewerLayout.astro";
 import ThumbnailSidebar from "@/components/viewer/ThumbnailSidebar";
 import PatientInfo from "@/components/modals/PatientInfo.astro";
-import { GetDNIbyStudyID } from "@/libs/orthanc"
-import { verifyToken } from "@/libs/auth";
-import { getStudySeriesData } from "@/utils/server";
+import IdentityVerification from "@/components/modals/IdentityVerification.astro";
+import { getStudySeriesData, validateStudyAccess } from "@/utils/server";
 import { getLocalStudyById } from "@/libs/db";
-import { 
-  formatDicomDate, 
-  normalizeDicomText, 
-  formatPatientSex,
-  calculateAge,
-  formatDicomTime
-} from "@/utils/client";
-
-// 1. Obtener el studyId de los parámetros de la URL
+import { actions } from "astro:actions";
+import "@/styles/ViewerLite.global.css";
 const { studyId } = Astro.params;
+
 if (!studyId) {
-  return new Response("No se proporcionó un ID de estudio", { status: 400 });
+  return Astro.redirect("/");
 }
 
-// 2. Obtener la cedula del paciente de ese estudio
-const DNI = await GetDNIbyStudyID(studyId);
-if (!DNI) {
-  return new Response("No existe ese estudio", { status: 404 });
-}
+// 1. Validar Acceso (Admin o Paciente)
+const { isAuthorized, isAdmin } = await validateStudyAccess(Astro, studyId);
+let errorMsg: string | undefined = "";
 
-// 3. Manejar la autenticación mediante cookie JWT y formulario
-const cookieName = `auth_lite_${studyId}`;
+// 2. Obtener el resultado de la acción de verificación (si se envió el formulario)
 const verifyResult = Astro.getActionResult(actions.verifyLiteAccess);
-const verifyData = verifyResult?.data as { success?: boolean; studyId?: string } | undefined;
-const errorMsg = verifyResult?.error?.message || "";
-
-const authCookie = Astro.cookies.get(cookieName);
-let isCookieAuthorized = false;
-
-if (authCookie) {
-  const payload = await verifyToken(authCookie.value);
-  if (payload && payload.studyId === studyId && String(payload.dni).trim() === String(DNI).trim()) {
-    isCookieAuthorized = true;
-  }
-}
-
+const verifyData = verifyResult?.data;
+errorMsg = verifyResult?.error?.message;
 const isActionAuthorized = verifyData?.success === true && verifyData.studyId === studyId;
-const isAuthorized = isCookieAuthorized || isActionAuthorized;
+
+// 3. Si está autorizado por acción, actualizar estado
+const finalIsAuthorized = isAuthorized || isActionAuthorized;
 
 // 4. Si está autorizado, obtener los datos de las series e instancias
-const seriesData = isAuthorized ? await getStudySeriesData(studyId) : [];
-const commentPdfHref = isAuthorized
-  ? `/viewer-lite/${encodeURIComponent(studyId)}/comment.pdf`
+const seriesData = finalIsAuthorized ? await getStudySeriesData(studyId) : [];
+const commentPdfHref = finalIsAuthorized
+  ? `/reports/${encodeURIComponent(studyId)}`
   : "";
-
-// 5. Datos para la tarjeta de información (y para el login)
 const studyData = getLocalStudyById(studyId);
 
-const patientName = studyData ? (normalizeDicomText(studyData.PatientMainDicomTags?.PatientName) || "No disponible") : "";
-const patientId = studyData ? (normalizeDicomText(studyData.PatientMainDicomTags?.PatientID) || "No disponible") : "";
-const patientSex = studyData ? formatPatientSex(studyData.PatientMainDicomTags?.PatientSex) : "";
-const patientAge = studyData ? calculateAge(studyData.PatientMainDicomTags?.PatientBirthDate) : "";
-const studyDate = studyData ? formatDicomDate(studyData.MainDicomTags?.StudyDate) : "";
-const studyTime = studyData ? formatDicomTime(studyData.MainDicomTags?.StudyTime) : "";
-const studyDescription = studyData ? (normalizeDicomText(studyData.MainDicomTags?.StudyDescription) || normalizeDicomText(studyData.MainDicomTags?.StudyID) || "No disponible") : "";
-const institutionName = studyData ? (normalizeDicomText(studyData.MainDicomTags?.InstitutionName) || "HOSPITAL LOCAL") : "HOSPITAL LOCAL";
-const referringPhysician = studyData ? normalizeDicomText(studyData.MainDicomTags?.ReferringPhysicianName) : undefined;
-const accessionNumber = studyData ? normalizeDicomText(studyData.MainDicomTags?.AccessionNumber) : undefined;
 ---
 
-<!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DICOM Viewer Lite - {institutionName}</title>
-    <link rel="icon" type="image/png" href="/assets/logo.png" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" />
-  </head>
-  <body>
-    {!isAuthorized ? (
-      <div class="login-container">
-        <div class="login-card">
-          <div class="login-brand">
-            <img src="/assets/logo.png" alt="Logo" width="64" height="64" />
-            <h1>{institutionName}</h1>
-            <p>Portal de Pacientes</p>
-          </div>
-          
-          <form method="POST" action={actions.verifyLiteAccess} class="login-form">
-            <input type="hidden" name="studyId" value={studyId} />
-            
-            <div class="input-wrapper">
-              <label for="cedula">Documento de Identidad</label>
-              <div class="input-field">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                <input 
-                  type="text" 
-                  id="cedula"
-                  name="cedula" 
-                  placeholder="Ingrese su número" 
-                  required 
-                  autofocus
-                  autocomplete="off"
-                />
-              </div>
+<ViewerLayout title={`DICOM Viewer Lite`}>
+  {!finalIsAuthorized ? (
+    <IdentityVerification 
+      studyId={studyId} 
+      actions={actions} 
+      errorMsg={errorMsg} 
+    />
+  ) : (
+    <div class="viewer-layout">
+      <header class="viewer-header">
+        <div class="header-left">
+          <a href="/" class="logo-link">
+            <img src="/assets/logo.png" alt="Logo" width="32" height="32" />
+            <div class="brand-info">
+              <h1>Hospital Local de Montelibano</h1>
+              <span>Visor de Imágenes Lite</span>
             </div>
-            
-            {errorMsg && (
-              <div class="error-message">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                <span>{errorMsg}</span>
-              </div>
-            )}
-            
-            <button type="submit" class="login-submit">
-              Ver Estudio
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-            </button>
-          </form>
+          </a>
         </div>
-      </div>
-    ) : (
-      <div class="viewer-layout">
-        <header class="viewer-header">
-          <div class="header-left">
-            <a href="/" class="logo-link">
-              <img src="/assets/logo.png" alt="Logo" width="32" height="32" />
-              <div class="brand-info">
-                <h1>{institutionName}</h1>
-                <span>Visor de Imágenes Lite</span>
-              </div>
+        <div class="header-right">
+          {commentPdfHref && (
+            <a href={commentPdfHref} target="_blank" class="action-btn pdf-btn" title="Descargar Informe PDF">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              <span>Informe PDF</span>
             </a>
-          </div>
-          <div class="header-right">
-            {commentPdfHref && (
-              <a href={commentPdfHref} target="_blank" class="action-btn pdf-btn" title="Descargar Comentario PDF">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                  <line x1="16" y1="13" x2="8" y2="13"></line>
-                  <line x1="16" y1="17" x2="8" y2="17"></line>
-                  <polyline points="10 9 9 9 8 9"></polyline>
-                </svg>
-                <span>Informe PDF</span>
-              </a>
-            )}
-          </div>
-        </header>
-
-        <div class="viewer-body">
-          <ThumbnailSidebar client:load series={seriesData} />
-          
-          <main class="viewport-container" id="viewer-viewport">
-            <div id="loader" class="viewer-loader">
-              <div class="spinner"></div>
-              <span>Cargando imagen...</span>
-            </div>
-            
-            <img id="renderedImage" src="" alt="DICOM" class="main-image" />
-
-            <PatientInfo 
-              patientName={patientName}
-              patientId={patientId}
-              patientSex={patientSex}
-              patientAge={patientAge}
-              studyDate={studyDate}
-              studyTime={studyTime}
-              studyDescription={studyDescription}
-              institutionName={institutionName}
-              referringPhysician={referringPhysician}
-              accessionNumber={accessionNumber}
-            />
-          </main>
+          )}
         </div>
+      </header>
+
+      <div class="viewer-body">
+        <ThumbnailSidebar client:load series={seriesData} />
+        
+        <main class="viewport-container" id="viewer-viewport">
+          <div id="loader" class="viewer-loader">
+            <div class="spinner"></div>
+            <span>Cargando imagen...</span>
+          </div>
+          
+          <img id="renderedImage" src="" alt="DICOM" class="main-image" />
+
+          <PatientInfo studyData={studyData} />
+        </main>
       </div>
-    )}
-
-    {isAuthorized && (
-      <>
-        <div id="series-metadata" data-series={JSON.stringify(seriesData)}></div>
-        <script>
-          import { initViewerLite } from '@/utils/client';
-
-          initViewerLite();
-        </script>
-      </>
-    )}
-
-    <style is:global>
-      :root {
-        --bg-main: #0a0e10;
-        --bg-surface: #12181b;
-        --bg-elevated: #1a2226;
-        --primary: #0f766e;
-        --primary-hover: #0d615a;
-        --text-main: #e2e8f0;
-        --text-dim: #94a3b8;
-        --border: rgba(255, 255, 255, 0.1);
-        --header-height: 60px;
-
-        /* Variables para compatibilidad con PatientInfo.astro */
-        --viewer-overlay-bg: rgba(13, 17, 19, 0.86);
-        --viewer-backdrop-blur: blur(8px);
-        --viewer-text-primary: #e6eceb;
-        --viewer-text-secondary: #a6b4b2;
-        --viewer-shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.24);
-        --viewer-shadow-md: 0 12px 28px rgba(0, 0, 0, 0.32);
-      }
-
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      
-      body {
-        font-family: "Source Sans 3", system-ui, sans-serif;
-        background-color: var(--bg-main);
-        color: var(--text-main);
-        height: 100vh;
-        overflow: hidden;
-      }
-
-      /* LOGIN STYLES */
-      .login-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        background-color: var(--bg-main);
-        padding: 1.5rem;
-      }
-
-      .login-card {
-        background: var(--bg-surface);
-        border: 1px solid var(--border);
-        border-radius: 24px;
-        padding: 3rem 2.5rem;
-        width: 100%;
-        max-width: 400px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .login-brand {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        margin-bottom: 2.5rem;
-      }
-
-      .login-brand img {
-        margin-bottom: 1.25rem;
-        filter: drop-shadow(0 0 20px rgba(15, 118, 110, 0.3));
-      }
-
-      .login-brand h1 {
-        font-family: "Space Grotesk", sans-serif;
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--text-main);
-        margin-bottom: 0.25rem;
-      }
-
-      .login-brand p {
-        font-size: 0.875rem;
-        color: var(--text-dim);
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-      }
-
-      .login-form {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-      }
-
-      .input-wrapper label {
-        display: block;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--text-main);
-        margin-bottom: 0.5rem;
-        margin-left: 0.25rem;
-      }
-
-      .input-field {
-        position: relative;
-      }
-
-      .input-field svg {
-        position: absolute;
-        left: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-dim);
-        transition: color 0.2s;
-      }
-
-      .input-field input {
-        width: 100%;
-        height: 50px;
-        background: var(--bg-main);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 0 1rem 0 3rem;
-        color: var(--text-main);
-        font-size: 1rem;
-        transition: all 0.2s ease;
-      }
-
-      .input-field input:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1);
-      }
-
-      .input-field input:focus + svg {
-        color: var(--primary);
-      }
-
-      .error-message {
-        background-color: rgba(239, 68, 68, 0.1);
-        border: 1px solid rgba(239, 68, 68, 0.2);
-        color: #fca5a5;
-        padding: 0.875rem;
-        border-radius: 12px;
-        font-size: 0.875rem;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-      }
-
-      .login-submit {
-        height: 50px;
-        background: var(--primary);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.75rem;
-        transition: all 0.2s;
-        margin-top: 0.5rem;
-      }
-
-      .login-submit:hover {
-        background: var(--primary-hover);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
-      }
-
-      .login-submit:active {
-        transform: translateY(0);
-      }
-
-
-      /* VIEWER LAYOUT STYLES */
-      .viewer-layout {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-      }
-
-      .viewer-header {
-        height: var(--header-height);
-        background-color: var(--bg-surface);
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 1.25rem;
-        z-index: 100;
-      }
-
-      .header-left .logo-link {
-        display: flex;
-        align-items: center;
-        gap: 0.875rem;
-        text-decoration: none;
-        color: inherit;
-      }
-
-      .brand-info h1 {
-        font-family: "Space Grotesk", sans-serif;
-        font-size: 1rem;
-        font-weight: 700;
-        margin: 0;
-        color: var(--primary);
-      }
-
-      .brand-info span {
-        font-size: 0.7rem;
-        color: var(--text-dim);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-      }
-
-      .header-right {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-      }
-
-      .action-btn {
-        height: 38px;
-        display: flex;
-        align-items: center;
-        gap: 0.625rem;
-        padding: 0 1rem;
-        border-radius: 10px;
-        background-color: var(--bg-elevated);
-        border: 1px solid var(--border);
-        color: var(--text-main);
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        text-decoration: none;
-        transition: all 0.2s;
-      }
-
-      .action-btn:hover {
-        background-color: #242c31;
-        border-color: rgba(255, 255, 255, 0.2);
-      }
-
-      .pdf-btn {
-        background-color: rgba(15, 118, 110, 0.1);
-        border-color: rgba(15, 118, 110, 0.2);
-        color: #2dd4bf;
-      }
-
-      .pdf-btn:hover {
-        background-color: rgba(15, 118, 110, 0.2);
-        border-color: rgba(15, 118, 110, 0.3);
-      }
-
-      .viewer-body {
-        display: flex;
-        flex: 1;
-        overflow: hidden;
-      }
-
-      .viewport-container {
-        flex: 1;
-        background-color: #000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .main-image {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
-        display: none;
-      }
-
-      .viewer-loader {
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-        color: var(--text-dim);
-      }
-
-      .spinner {
-        width: 40px;
-        height: 40px;
-        border: 3px solid rgba(15, 118, 110, 0.1);
-        border-top-color: var(--primary);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      }
-
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-
-      /* RESPONSIVE */
-      @media (max-width: 768px) {
-        .header-right span {
-          display: none;
-        }
-        .action-btn {
-          padding: 0 0.75rem;
-        }
-        .brand-info h1 {
-          font-size: 0.85rem;
-          max-width: 140px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-      }
-    </style>
-  </body>
-</html>
+    </div>
+      <div id="series-metadata" data-series={JSON.stringify(seriesData)}></div>
+      <script>
+        import { initViewerLite } from '@/utils/client';
+        initViewerLite();
+      </script>
+  )}
+</ViewerLayout>
 

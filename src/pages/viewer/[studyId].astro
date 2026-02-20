@@ -1,4 +1,5 @@
 ---
+import ViewerLayout from "@/layouts/ViewerLayout.astro";
 import ThumbnailSidebar from "@/components/viewer/ThumbnailSidebar";
 import DicomViewer from "@/components/viewer/DicomViewer";
 import ViewerToolbar from "@/components/viewer/ViewerToolbar.astro";
@@ -6,119 +7,59 @@ import HelpModal from "@/components/modals/HelpModal.astro";
 import ShareModal from "@/components/modals/ShareModal.astro";
 import PatientInfo from "@/components/modals/PatientInfo.astro";
 import StudyComments from "@/components/modals/StudyComments.astro";
-import { orthancFetch } from "@/libs/orthanc";
-import { getStudyCommentEntry, getLocalStudyById } from "@/libs/db";
-import type { ThumbnailInfo, DicomStudy } from "@/types";
-import { 
-  formatDicomDate, 
-  isValidStudyId, 
-  normalizeDicomText, 
-  formatPatientSex,
-  calculateAge,
-  formatDicomTime
-} from "@/utils/client";
-import { getStudySeriesData } from "@/utils/server";
+import IdentityVerification from "@/components/modals/IdentityVerification.astro";
+import { actions } from "astro:actions";
+import { getStudySeriesData, validateStudyAccess } from "@/utils/server";
+import DeviceSuggestLite from "@/components/viewer/DeviceSuggestLite.astro";
 import styles from "@/styles/ViewerPage.module.css";
-import "@/styles/ViewerPage.global.css";
 
 const { studyId } = Astro.params;
-if (!studyId || !isValidStudyId(studyId)) {
+
+if (!studyId) {
   return Astro.redirect("/");
 }
 
-// Intentar obtener desde la DB local primero
-let studyData = getLocalStudyById(studyId);
+// 1. Validar Acceso (Admin o Paciente)
+const { isAuthorized, isAdmin } = await validateStudyAccess(Astro, studyId);
+let errorMsg: string | undefined = "";
 
-if (!studyData) {
-  try {
-    const studyRes = await orthancFetch(`/studies/${studyId}`);
-    studyData = await studyRes.json() as DicomStudy;
-  } catch (e) {
-    console.error(`Error cargando estudio ${studyId}:`, e);
-    return Astro.redirect("/");
-  }
-}
+// 2. Obtener el resultado de la acción de verificación (si se envió el formulario)
+const verifyResult = Astro.getActionResult(actions.verifyLiteAccess);
+const verifyData = verifyResult?.data;
+errorMsg = verifyResult?.error?.message;
+const isActionAuthorized = verifyData?.success === true && verifyData.studyId === studyId;
 
-const patientName = normalizeDicomText(studyData?.PatientMainDicomTags?.PatientName) || "No disponible";
-const patientId = normalizeDicomText(studyData?.PatientMainDicomTags?.PatientID) || "No disponible";
-const patientSex = formatPatientSex(studyData?.PatientMainDicomTags?.PatientSex);
-const patientAge = calculateAge(studyData?.PatientMainDicomTags?.PatientBirthDate);
+// 3. Si está autorizado por acción, actualizar estado
+const finalIsAuthorized = isAuthorized || isActionAuthorized;
 
-const studyDate = formatDicomDate(studyData?.MainDicomTags?.StudyDate);
-const studyTime = formatDicomTime(studyData?.MainDicomTags?.StudyTime);
-const studyDescription = 
-  normalizeDicomText(studyData?.MainDicomTags?.StudyDescription) || 
-  normalizeDicomText(studyData?.MainDicomTags?.StudyID) || 
-  "No disponible";
 
-const institutionName = normalizeDicomText(studyData?.MainDicomTags?.InstitutionName) || "No disponible";
-const referringPhysician = normalizeDicomText(studyData?.MainDicomTags?.ReferringPhysicianName);
-const accessionNumber = normalizeDicomText(studyData?.MainDicomTags?.AccessionNumber);
-
-// Pre-obtener la información para el Sidebar
-const seriesData = await getStudySeriesData(studyId, 256);
-
-const studyCommentEntry = getStudyCommentEntry(studyId);
-const initialComment = studyCommentEntry.comment;
-const initialUpdatedAt = studyCommentEntry.updatedAt;
-
+// 4. Si está autorizado, obtener los datos de las series e instancias (con tamaño reducido para previsualización)
+const seriesData = finalIsAuthorized ? await getStudySeriesData(studyId, 256) : [];
 ---
 
-<!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DICOM Viewer - Visor Médico</title>
-    <link rel="icon" type="image/png" href="/assets/logo.png" />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap"
+<ViewerLayout title="DICOM Viewer - Visor Médico">
+  {!finalIsAuthorized ? (
+    <IdentityVerification 
+      studyId={studyId}
+      actions={actions}
+      errorMsg={errorMsg}
     />
-  </head>
-  <body>
-    <!-- Toolbar Superior -->
-    <ViewerToolbar />
+  ) : (
+    <>
+      <ViewerToolbar studyId={studyId} />
 
-    <!-- Contenedor Principal -->
-    <div class={styles.viewerContainer}>
-      <ThumbnailSidebar client:load series={seriesData} />
-      <div class={styles.mainViewer}>
-        <DicomViewer client:only="preact" />
-
-        <PatientInfo 
-          patientName={patientName}
-          patientId={patientId}
-          patientSex={patientSex}
-          patientAge={patientAge}
-          studyDate={studyDate}
-          studyTime={studyTime}
-          studyDescription={studyDescription}
-          institutionName={institutionName}
-          referringPhysician={referringPhysician}
-          accessionNumber={accessionNumber}
-        />
-
-        <StudyComments 
-          studyId={studyId}
-          initialComment={initialComment}
-          initialUpdatedAt={initialUpdatedAt}
-        />
+      <div class={styles.viewerContainer}>
+        <ThumbnailSidebar client:load series={seriesData} />
+        <div class={styles.mainViewer}>
+          <DicomViewer client:only="preact" />
+          <PatientInfo studyId={studyId} />
+          {isAdmin && <StudyComments studyId={studyId} />}
+        </div>
       </div>
-    </div>
 
-    <!-- Modal de Ayuda -->
-    <HelpModal />
-    <ShareModal />
-
-    <script>
-			if ('serviceWorker' in navigator) {
-				window.addEventListener('load', () => {
-					navigator.serviceWorker.register('/sw.js')
-						.then(reg => console.log('Service Worker registrado con éxito:', reg.scope))
-						.catch(err => console.error('Error al registrar el Service Worker:', err));
-				});
-			}
-		</script>
-  </body>
-</html>
+      <HelpModal />
+      <ShareModal />
+      <DeviceSuggestLite studyId={studyId} />
+    </>
+  )}
+</ViewerLayout>

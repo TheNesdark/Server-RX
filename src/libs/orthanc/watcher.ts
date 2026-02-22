@@ -44,7 +44,9 @@ export async function startOrthancWatcher() {
                 const change = changes[i];
                 lastSeq = change.Seq;
 
-                if (change.ChangeType === 'StableStudy' ) {
+                // Solo sincronizamos cuando el estudio es estable (todas las imágenes llegaron)
+                // para evitar mensajes duplicados (NewStudy + StableStudy) y datos incompletos.
+                if (change.ChangeType === 'StableStudy') {
                     try {
                         const [studyRes, seriesRes, instancesRes] = await Promise.all([
                             orthancFetch(`/studies/${change.ID}`),

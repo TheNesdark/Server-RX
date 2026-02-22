@@ -98,7 +98,7 @@
   const shareCardUrlText = document.getElementById("share-card-url-text");
   const qrCanvas = document.getElementById("qr-canvas") as HTMLCanvasElement;
   
-  const shareurl = window.location.href.replace("viewer", "viewer-lite");
+  const shareurl = window.location.href;
   if (shareCardUrlText) shareCardUrlText.textContent = shareurl;
 
   // Generar QR

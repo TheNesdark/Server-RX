@@ -5,13 +5,7 @@ import { GetDNIbyStudyID } from "@/libs/orthanc";
 import { createToken } from "@/libs/auth";
 import { getStudyCommentEntry, saveStudyComment } from "@/libs/db/studyComments";
 import {  sanitizeStudyComment } from "@/utils/client";
-import { consumeRateLimit, getClientIdentifier } from "@/utils/server";
-
-const VIEWER_LITE_RATE_LIMIT = {
-  windowMs: 10 * 60 * 1000,
-  maxAttempts: 6,
-  blockDurationMs: 20 * 60 * 1000,
-};
+import { checkRateLimit, clearRateLimit, getClientIP } from "@/utils/server";
 
 export const studies = {
   verifyLiteAccess: defineAction({
@@ -32,14 +26,14 @@ export const studies = {
         });
       }
 
-      const clientId = getClientIdentifier(context.request);
-      const rateLimitKey = `viewer-lite:${normalizedStudyId}:${clientId}`;
-      const rateLimit = consumeRateLimit(rateLimitKey, VIEWER_LITE_RATE_LIMIT);
+      const ip = getClientIP(context.request);
+      const rateLimitKey = `verify-lite:${normalizedStudyId}:${ip}`;
+      const rateLimit = await checkRateLimit(rateLimitKey, { points: 6, duration: 60 * 20 });
 
       if (!rateLimit.allowed) {
         throw new ActionError({
-          code: "UNAUTHORIZED",
-          message: `Demasiados intentos. Intenta nuevamente en ${rateLimit.retryAfterSeconds} segundos.`,
+          code: "TOO_MANY_REQUESTS",
+          message: `Demasiados intentos. Intenta nuevamente en ${rateLimit.retryAfter} segundos.`,
         });
       }
 
@@ -57,6 +51,9 @@ export const studies = {
           message: "Cédula incorrecta.",
         });
       }
+
+      // Limpiar rate limit tras éxito
+      await clearRateLimit(rateLimitKey);
 
       // Crear un JWT firmado que vincula la sesión con el estudio y el DNI
       const token = await createToken({

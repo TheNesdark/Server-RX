@@ -2,13 +2,7 @@ import { defineAction, ActionError } from "astro:actions";
 import { z } from "astro:schema";
 import { ADMIN_PASSWORD, ADMIN_USERNAME, PROD } from "@/config";
 import { createToken } from "@/libs/auth";
-import { clearRateLimit, consumeRateLimit, getClientIdentifier } from "@/utils/server";
-
-const ADMIN_LOGIN_RATE_LIMIT = {
-  windowMs: 10 * 60 * 1000,
-  maxAttempts: 5,
-  blockDurationMs: 15 * 60 * 1000,
-};
+import { checkRateLimit, clearRateLimit, getClientIP } from "@/utils/server";
 
 export const auth = {
   login: defineAction({
@@ -20,23 +14,23 @@ export const auth = {
     handler: async (input, context) => {
       const { cookies } = context;
       const { username, password } = input;
-      const clientId = getClientIdentifier(context.request);
-      const normalizedUsername = username.trim().toLowerCase();
-      const rateLimitKey = `admin-login:${clientId}:${normalizedUsername}`;
-      const rateLimit = consumeRateLimit(rateLimitKey, ADMIN_LOGIN_RATE_LIMIT);
+
+      const ip = getClientIP(context.request);
+      const rateLimitKey = `login:${ip}:${username}`;
+      const rateLimit = await checkRateLimit(rateLimitKey, { points: 5, duration: 60 * 15 });
 
       if (!rateLimit.allowed) {
         throw new ActionError({
-          code: "UNAUTHORIZED",
-          message: `Demasiados intentos. Intenta de nuevo en ${rateLimit.retryAfterSeconds} segundos.`,
+          code: "TOO_MANY_REQUESTS",
+          message: `Demasiados intentos. Intenta de nuevo en ${rateLimit.retryAfter} segundos.`,
         });
       }
 
       // Comparación segura: Convertimos el username a minúsculas para coincidir
-      if (normalizedUsername === ADMIN_USERNAME.toLowerCase() && password === ADMIN_PASSWORD) {
-        clearRateLimit(rateLimitKey);
+      if (username === ADMIN_USERNAME.toLowerCase() && password === ADMIN_PASSWORD) {
+        await clearRateLimit(rateLimitKey);
         const token = await createToken({ 
-          username: normalizedUsername,
+          username: username,
           type: 'admin_session'
         });
         

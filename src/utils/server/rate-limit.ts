@@ -1,100 +1,60 @@
-import type { RateLimitEntry, RateLimitOptions, RateLimitResult } from '@/types';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
 
-const rateLimitStore = new Map<string, RateLimitEntry>();
+// Configuración por defecto
+const DEFAULT_POINTS = 5;
+const DEFAULT_DURATION = 60; // 1 minuto
 
-const currentTime = () => Date.now();
+// Almacenamos los limitadores creados para reutilizarlos (persisten en la RAM del proceso)
+const limiters = new Map<string, RateLimiterMemory>();
 
-const getEntry = (key: string): RateLimitEntry => {
-  const existing = rateLimitStore.get(key);
-  if (existing) {
-    return existing;
-  }
-
-  const fresh: RateLimitEntry = {
-    count: 0,
-    windowStartedAt: currentTime(),
-    blockedUntil: 0,
-  };
-  rateLimitStore.set(key, fresh);
-  return fresh;
-};
-
-const cleanupStore = () => {
-  const now = currentTime();
-  for (const [key, value] of rateLimitStore.entries()) {
-    if (value.blockedUntil <= now && value.count === 0) {
-      rateLimitStore.delete(key);
+/**
+ * Obtiene o crea un limitador para una acción específica
+ */
+const getLimiter = (key: string, points = DEFAULT_POINTS, duration = DEFAULT_DURATION) => {
+    if (!limiters.has(key)) {
+        limiters.set(key, new RateLimiterMemory({
+            points,
+            duration,
+        }));
     }
-  }
+    return limiters.get(key)!;
 };
 
-export const consumeRateLimit = (key: string, options: RateLimitOptions): RateLimitResult => {
-  const now = currentTime();
-  const entry = getEntry(key);
-
-  if (entry.blockedUntil > now) {
-    return {
-      allowed: false,
-      remaining: 0,
-      retryAfterSeconds: Math.ceil((entry.blockedUntil - now) / 1000),
-    };
-  }
-
-  if (now - entry.windowStartedAt >= options.windowMs) {
-    entry.count = 0;
-    entry.windowStartedAt = now;
-    entry.blockedUntil = 0;
-  }
-
-  entry.count += 1;
-
-  if (entry.count > options.maxAttempts) {
-    entry.blockedUntil = now + options.blockDurationMs;
-    return {
-      allowed: false,
-      remaining: 0,
-      retryAfterSeconds: Math.ceil(options.blockDurationMs / 1000),
-    };
-  }
-
-  const remaining = Math.max(0, options.maxAttempts - entry.count);
-  if (remaining === 0) {
-    entry.count = options.maxAttempts;
-  }
-
-  if (rateLimitStore.size > 5000) {
-    cleanupStore();
-  }
-
-  return {
-    allowed: true,
-    remaining,
-    retryAfterSeconds: 0,
-  };
-};
-
-export const clearRateLimit = (key: string) => {
-  rateLimitStore.delete(key);
-};
-
-export const getClientIdentifier = (request: Request): string => {
-  const forwardedFor = request.headers.get('x-forwarded-for');
-  if (forwardedFor) {
-    const first = forwardedFor.split(',')[0]?.trim();
-    if (first) {
-      return first;
+/**
+ * Consume un punto del rate limit para una clave dada
+ * @throws ActionError si se supera el límite
+ */
+export const checkRateLimit = async (key: string, options?: { points?: number; duration?: number }) => {
+    const limiter = getLimiter(key, options?.points, options?.duration);
+    try {
+        await limiter.consume(key);
+    } catch (rejRes: any) {
+        const retrySecs = Math.round(rejRes.msBeforeNext / 1000) || 1;
+        return {
+            allowed: false,
+            retryAfter: retrySecs,
+        };
     }
-  }
+    return {
+        allowed: true,
+        retryAfter: 0,
+    };
+};
 
-  const realIp = request.headers.get('x-real-ip')?.trim();
-  if (realIp) {
-    return realIp;
-  }
+/**
+ * Limpia los intentos para una clave dada (ej. tras un login exitoso)
+ */
+export const clearRateLimit = async (key: string) => {
+    const limiter = getLimiter(key);
+    await limiter.delete(key);
+};
 
-  const cfIp = request.headers.get('cf-connecting-ip')?.trim();
-  if (cfIp) {
-    return cfIp;
-  }
-
-  return 'unknown-client';
+/**
+ * Obtiene el identificador del cliente (IP)
+ */
+export const getClientIP = (request: Request): string => {
+    return request.headers.get("cf-connecting-ip") || 
+           request.headers.get("x-real-ip") || 
+           request.headers.get("x-forwarded-for")?.split(',')[0] || 
+           "127.0.0.1";
 };

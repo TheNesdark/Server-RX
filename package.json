@@ -25,7 +25,8 @@
     "pdf-lib": "^1.17.1",
     "preact": "^10.28.0",
     "print-js": "^1.6.0",
-    "qrcode": "^1.5.1"
+    "qrcode": "^1.5.1",
+    "rate-limiter-flexible": "^9.1.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.2",

@@ -1,8 +1,12 @@
 ---
+interface Props {
+  shareUrl?: string;
+}
 
+const { shareUrl } = Astro.props;
 ---
 
-<div id="share-modal" class="modal-overlay">
+<div id="share-modal" class="modal-overlay" data-shareurl={shareUrl}>
   <div class="modal-content">
     <div class="modal-header">
       <div class="header-title">
@@ -98,7 +102,8 @@
   const shareCardUrlText = document.getElementById("share-card-url-text");
   const qrCanvas = document.getElementById("qr-canvas") as HTMLCanvasElement;
   
-  const shareurl = window.location.href;
+  // Usar el URL del servidor si está, sino el del cliente (fallback)
+  const shareurl = shareModal?.getAttribute('data-shareurl') || window.location.href;
   if (shareCardUrlText) shareCardUrlText.textContent = shareurl;
 
   // Generar QR

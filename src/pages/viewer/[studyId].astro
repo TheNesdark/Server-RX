@@ -58,7 +58,7 @@ const seriesData = finalIsAuthorized ? await getStudySeriesData(studyId, 256) : 
       </div>
 
       <HelpModal />
-      <ShareModal />
+      <ShareModal shareUrl={Astro.url.href} />
       <DeviceSuggestLite studyId={studyId} />
     </>
   )}

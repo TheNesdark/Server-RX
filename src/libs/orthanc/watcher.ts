@@ -44,7 +44,7 @@ export async function startOrthancWatcher() {
                 const change = changes[i];
                 lastSeq = change.Seq;
 
-                if (change.ChangeType === 'StableStudy' || change.ChangeType === 'NewStudy') {
+                if (change.ChangeType === 'StableStudy' ) {
                     try {
                         const [studyRes, seriesRes, instancesRes] = await Promise.all([
                             orthancFetch(`/studies/${change.ID}`),

@@ -46,11 +46,44 @@ const DRAW_TOOL_MAP: Record<ViewerDrawShape, string> = {
     Eraser: 'Eraser',
 };
 
+// Número máximo de descargas DICOM simultáneas.
+// Evita saturar la red/servidor en series con muchas instancias (p.ej. TC).
+const MAX_CONCURRENT_FETCHES = 6;
+
+/**
+ * Descarga los archivos DICOM de una lista de instancias con concurrencia
+ * limitada a MAX_CONCURRENT_FETCHES.
+ * Lanza AbortError si la señal se cancela antes de terminar.
+ */
+async function fetchInstanceFiles(
+    instanceIds: string[],
+    signal: AbortSignal,
+): Promise<File[]> {
+    const results = new Array<File>(instanceIds.length);
+    let next = 0;
+
+    const runWorker = async () => {
+        while (next < instanceIds.length) {
+            if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
+            const i = next++;
+            const res = await fetch(`/api/orthanc/instances/${instanceIds[i]}/file`, { signal });
+            if (!res.ok) throw new Error(`Error descargando instancia ${instanceIds[i]}: ${res.status}`);
+            results[i] = new File([await res.blob()], `${i}.dcm`);
+        }
+    };
+
+    await Promise.all(
+        Array.from({ length: Math.min(MAX_CONCURRENT_FETCHES, instanceIds.length) }, runWorker),
+    );
+    return results;
+}
+
 export function useDicomViewer() {
     const loadingSeriesIdRef = useRef<string | null>(null);
     const loadedSeriesIdRef = useRef<string | null>(null);
     const resizeFrameRef = useRef<number | null>(null);
     const loadRequestRef = useRef(0);
+    const abortControllerRef = useRef<AbortController | null>(null);
     const renderedSeriesUidRef = useRef<string | null>(null);
     const toolsInitializedRef = useRef(false);
     const wheelZoomActiveRef = useRef(false);
@@ -188,16 +221,11 @@ export function useDicomViewer() {
         seriesId: string,
         seriesData: OrthancSeriesResponse,
         currentRequestId: number,
+        signal: AbortSignal,
     ) => {
         if (!seriesData.Instances?.length) return false;
 
-        // Descargamos las instancias (Para RX son pocas y asegura metadatos correctos)
-        const files = await Promise.all(
-            seriesData.Instances.map(async (id, i) => {
-                const res = await fetch(`/api/orthanc/instances/${id}/file`);
-                return new File([await res.blob()], `${i}.dcm`);
-            })
-        );
+        const files = await fetchInstanceFiles(seriesData.Instances, signal);
 
         if (currentRequestId !== loadRequestRef.current) return false;
 
@@ -230,18 +258,26 @@ export function useDicomViewer() {
     const loadSeries = async (seriesId: string) => {
         if (loadingSeriesIdRef.current === seriesId || loadedSeriesIdRef.current === seriesId) return;
 
+        // Cancelar cualquier descarga en curso antes de comenzar una nueva.
+        abortControllerRef.current?.abort();
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
         loadRequestRef.current += 1;
         const currentRequest = loadRequestRef.current;
 
         loadingSeriesIdRef.current = seriesId;
         setIsLoaded(false);
+
+
         clearAnnotations();
 
         try {
             const seriesData = await fetchSeriesData(seriesId);
-            const success = await tryRenderSeries(seriesId, seriesData, currentRequest);
+            const success = await tryRenderSeries(seriesId, seriesData, currentRequest, controller.signal);
             if (!success) throw new Error('Serie vacía');
         } catch (error) {
+            if (error instanceof DOMException && error.name === 'AbortError') return;
             console.error('Error cargando serie:', error);
             loadingSeriesIdRef.current = null;
         }
@@ -278,7 +314,10 @@ export function useDicomViewer() {
                 max: viewportData.maxPixelValue ?? 1 
             });
 
-            if (viewportData.ready) setIsLoaded(true);
+            // Solo marcamos como cargado si NO hay una carga en curso.
+            // Si lo permitimos durante la carga, el overlay desaparece antes de que
+            // la nueva imagen ocupe el canvas, dejando visible la anterior por un frame.
+            if (viewportData.ready && loadingSeriesIdRef.current === null) setIsLoaded(true);
             return {};
         };
 
@@ -336,6 +375,7 @@ export function useDicomViewer() {
 
         return () => {
             loadRequestRef.current += 1;
+            abortControllerRef.current?.abort();
             unsubscribe();
             removeToolButtons();
             removeDrawMenu();

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { activeSeriesId } from '@/stores/dicomStore';
 import type { ThumbnailInfo, ThumbnailSidebarProps } from '@/types';
 import styles from '@/styles/ThumbnailSidebar.module.css';
+import { GridIcon } from '@/components/icons';
 
 const NON_RENDERABLE_MODALITIES = new Set([
     'DOC',
@@ -70,19 +71,7 @@ export default function ThumbnailSidebar({ series }: ThumbnailSidebarProps) {
                     onClick={toggleSidebar}
                     aria-label={collapsed ? "Expandir sidebar" : "Contraer sidebar"}
                 >
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                    >
-                        <rect x="3" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="3" width="7" height="7"></rect>
-                        <rect x="3" y="14" width="7" height="7"></rect>
-                        <rect x="14" y="14" width="7" height="7"></rect>
-                    </svg>
+                    <GridIcon size={16} />
                 </button>
             </header>
 

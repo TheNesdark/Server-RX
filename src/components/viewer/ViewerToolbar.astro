@@ -1,4 +1,27 @@
 ---
+import {
+    ZoomIcon,
+    DrawIcon,
+    ChevronDownIcon,
+    ArrowIcon,
+    RulerIcon,
+    CircleIcon,
+    EllipseIcon,
+    RectangleIcon,
+    ProtractorIcon,
+    RoiIcon,
+    EraserIcon,
+    TrashIcon,
+    ScaleIcon,
+    BorderMagnifyIcon,
+    RotateIcon,
+    ResetIcon,
+    HelpIcon,
+    CloseIcon,
+    FileTextIcon,
+    ShareIcon
+} from '@/components/icons';
+
 interface Props {
   studyId?: string;
   isLite?: boolean;
@@ -13,246 +36,69 @@ const commentPdfHref = studyId
 <div class="toolbar">
     <div class="toolbar-left">
         <button class="tool-btn" title="Zoom & Pan">
-            <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.35-4.35"></path>
-                <line x1="11" y1="8" x2="11" y2="14"></line>
-                <line x1="8" y1="11" x2="14" y2="11"></line>
-            </svg>
+            <ZoomIcon size={20} />
             <span>Zoom RX</span>
         </button>
         <div class="draw-tool-container">
             <button class="tool-btn draw-btn" title="Draw" id="draw-dropdown-btn">
-                <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                >
-                    <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
-                    <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
-                    <path d="M2 2l7.586 7.586"></path>
-                    <circle cx="11" cy="11" r="2"></circle>
-                </svg>
+                <DrawIcon size={20} />
                 <span>Draw</span>
-                <svg
-                    class="dropdown-arrow"
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
+                <ChevronDownIcon size={12} class="dropdown-arrow" />
             </button>
             <div class="draw-shapes-menu" id="draw-menu">
                 <button class="shape-option" data-shape="ArrowAnnotate">
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                        <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
+                    <ArrowIcon size={16} />
                     <span>ArrowAnnotate</span>
                 </button>
                 <button class="shape-option" data-shape="Ruler">
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path
-                            d="M21.42 6.11l-3.53-3.53a1 1 0 0 0-1.42 0L2.58 16.47a1 1 0 0 0 0 1.42l3.53 3.53a1 1 0 0 0 1.42 0L21.42 7.53a1 1 0 0 0 0-1.42z"
-                        ></path>
-                        <path d="M10.41 10.59l1.42 1.42"></path>
-                        <path d="M13.41 7.59l1.42 1.42"></path>
-                    </svg>
+                    <RulerIcon size={16} />
                     <span>Ruler</span>
                 </button>
                 <button class="shape-option" data-shape="Circle">
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <circle cx="12" cy="12" r="10"></circle>
-                    </svg>
+                    <CircleIcon size={16} />
                     <span>Circle</span>
                 </button>
                 <button class="shape-option" data-shape="Ellipse">
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <ellipse cx="12" cy="12" rx="10" ry="6"></ellipse>
-                    </svg>
+                    <EllipseIcon size={16} />
                     <span>Ellipse</span>
                 </button>
                 <button class="shape-option" data-shape="Rectangle">
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"
-                        ></rect>
-                    </svg>
+                    <RectangleIcon size={16} />
                     <span>Rectangle</span>
                 </button>
                 <button class="shape-option" data-shape="Protractor">
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path d="M12 2a10 10 0 0 0-10 10h20a10 10 0 0 0-10-10z"
-                        ></path>
-                        <line x1="12" y1="12" x2="18" y2="6"></line>
-                    </svg>
+                    <ProtractorIcon size={16} />
                     <span>Protractor</span>
                 </button>
                 <button class="shape-option" data-shape="Roi">
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                        <polyline points="2 17 12 22 22 17"></polyline>
-                        <polyline points="2 12 12 17 22 12"></polyline>
-                    </svg>
+                    <RoiIcon size={16} />
                     <span>ROI</span>
                 </button>
                 <button class="shape-option" data-shape="Eraser">
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path d="M20 20H7L3 16l9-9a2.8 2.8 0 0 1 4 0l4 4a2.8 2.8 0 0 1 0 4l-5 5"></path>
-                    </svg>
+                    <EraserIcon size={16} />
                     <span>Eraser</span>
                 </button>
                 <div class="menu-separator"></div>
                 <button class="shape-option" data-action="clear">
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path d="M3 6h18"></path>
-                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                        <line x1="10" y1="11" x2="10" y2="17"></line>
-                        <line x1="14" y1="11" x2="14" y2="17"></line>
-                    </svg>
+                    <TrashIcon size={16} />
                     <span>Limpiar todo</span>
                 </button>
             </div>
         </div>
         <button class="tool-btn" title="ScaleOverlay" data-overlay-tool="true">
-            <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-                <line x1="4" y1="19" x2="20" y2="19"></line>
-                <line x1="4" y1="15" x2="4" y2="19"></line>
-                <line x1="8" y1="17" x2="8" y2="19"></line>
-                <line x1="12" y1="15" x2="12" y2="19"></line>
-                <line x1="16" y1="17" x2="16" y2="19"></line>
-                <line x1="20" y1="15" x2="20" y2="19"></line>
-            </svg>
+            <ScaleIcon size={20} />
             <span>Escala</span>
         </button>
         <button class="tool-btn" title="BorderMagnify">
-            <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.35-4.35"></path>
-                <rect x="8" y="8" width="6" height="6"></rect>
-            </svg>
+            <BorderMagnifyIcon size={20} />
             <span>BorderMagnify</span>
         </button>
         <button class="tool-btn" title="Rotate">
-            <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-                <polyline points="23 4 23 10 17 10"></polyline>
-                <path d="M20.49 15a9 9 0 1 1 2.13-9"></path>
-            </svg>
+            <RotateIcon size={20} />
             <span>Rotate</span>
         </button>
         <button class="tool-btn" title="Reset">
-            <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"
-                ></path>
-                <path d="M21 3v5h-5"></path>
-                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"
-                ></path>
-            </svg>
+            <ResetIcon size={20} />
             <span>Reset</span>
         </button>
     </div>
@@ -260,62 +106,23 @@ const commentPdfHref = studyId
     <div class="toolbar-right">
         {commentPdfHref && (
             <a href={commentPdfHref} target="_blank" class="tool-btn report-btn" title="Ver Informe PDF">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                    <polyline points="10 9 9 9 8 9"></polyline>
-                </svg>
+                <FileTextIcon size={20} />
                 <span>Informe</span>
             </a>
         )}
-        <button class="tool-btn" title="Compartir" id="share-btn">
-            <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-            >
-                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-                <polyline points="16 6 12 2 8 6"></polyline>
-                <line x1="12" y1="2" x2="12" y2="15"></line>
-            </svg>
-            <span>Compartir</span>
-        </button>
+        {!isLite && (
+            <button class="tool-btn" title="Compartir" id="share-btn">
+                <ShareIcon size={20} />
+                <span>Compartir</span>
+            </button>
+        )}
         <button class="tool-btn" title="Ayuda" id="modal-open">
-            <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
+            <HelpIcon size={20} />
             <span>Ayuda</span>
         </button>
         <button class="tool-btn" title="Close" onclick="window.location.href='/'">
-            <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
+            <CloseIcon size={20} />
         </button>
-        </div>
     </div>
 </div>
 

@@ -50,7 +50,7 @@ export async function getStudySeriesData(studyId: string, viewport?: number): Pr
     data = await response.json();
   }
 
-  const seriesIds = data.Series || [];
+  const seriesIds: string[] = data?.Series || [];
   
   const allSeries = await Promise.all(seriesIds.map((id: string) => fetchSeriesData(id, viewport)));
   return allSeries.filter((series) => series.instances && series.instances.length > 0);

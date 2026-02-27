@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { ORTHANC_URL, ORTHANC_AUTH } from '@/config';
 import { checkApiAuth } from '@/utils/server';
+import { orthancFetch } from '@/libs/orthanc';
 
 const PREVIEW_FALLBACK_SVG = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Sin vista previa">
@@ -31,14 +31,12 @@ export const GET: APIRoute = async ({ params, cookies, url }) => {
         return new Response("No autorizado", { status: 401 });
     }
 
-    const orthancPreviewUrl = new URL(`${ORTHANC_URL}/instances/${instanceid}/preview`);
-    url.searchParams.forEach((value, key) => {
-      orthancPreviewUrl.searchParams.append(key, value);
-    });
-
-    const response = await fetch(orthancPreviewUrl, {
-      headers: { 'Authorization': ORTHANC_AUTH }
-    });
+    // H7: encodeURIComponent previene path traversal; los query params se reenvían a Orthanc
+    const search = url.searchParams.toString();
+    const response = await orthancFetch(
+      `/instances/${encodeURIComponent(instanceid)}/preview${search ? `?${search}` : ''}`,
+      { allowNonOk: true }
+    );
 
     if (response.status === 415) {
       return new Response(PREVIEW_FALLBACK_SVG, {

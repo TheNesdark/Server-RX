@@ -22,3 +22,7 @@ declare namespace App {
     } | null;
   }
 }
+
+// H11: Tipado de variables globales para eliminar @ts-ignore en orthanc/index.ts y watcher.ts
+declare var _orthancWatcherStarted: boolean | undefined;
+declare var isOrthancSyncing: boolean | undefined;

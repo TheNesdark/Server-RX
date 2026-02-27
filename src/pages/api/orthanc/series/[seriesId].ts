@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
-import { ORTHANC_URL, ORTHANC_AUTH } from '@/config';
 import { checkApiAuth } from '@/utils/server';
 import { getLocalSeriesById } from '@/libs/db';
+import { orthancFetch } from '@/libs/orthanc';
 
 export const GET: APIRoute = async ({ params, cookies }) => {
   const serieID = params.seriesId
@@ -30,9 +30,7 @@ export const GET: APIRoute = async ({ params, cookies }) => {
       });
     }
 
-    const response = await fetch(`${ORTHANC_URL}/series/${serieID}`, {
-      headers: { 'Authorization': ORTHANC_AUTH }
-    });
+    const response = await orthancFetch(`/series/${encodeURIComponent(serieID)}`);
     
     if (!response.ok) {
       throw new Error(response.statusText)

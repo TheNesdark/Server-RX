@@ -15,7 +15,7 @@ export const auth = {
       const { cookies } = context;
       const { username, password } = input;
 
-      const ip = getClientIP(context.request);
+      const ip = getClientIP(context.request, context.clientAddress);
       const rateLimitKey = `login:${ip}:${username}`;
       const rateLimit = await checkRateLimit(rateLimitKey, { points: 5, duration: 60 * 15 });
 
@@ -26,8 +26,8 @@ export const auth = {
         });
       }
 
-      // Comparación segura: Convertimos el username a minúsculas para coincidir
-      if (username === ADMIN_USERNAME.toLowerCase() && password === ADMIN_PASSWORD) {
+      // H4: Normalizar ambos lados del username para evitar lockout por mayúsculas
+      if (username.toLowerCase() === ADMIN_USERNAME.toLowerCase() && password === ADMIN_PASSWORD) {
         await clearRateLimit(rateLimitKey);
         const token = await createToken({ 
           username: username,

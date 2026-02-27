@@ -50,11 +50,14 @@ export const clearRateLimit = async (key: string) => {
 };
 
 /**
- * Obtiene el identificador del cliente (IP)
+ * Obtiene el identificador del cliente (IP).
+ * Prioriza la IP real del socket (proporcionada por Astro) para evitar IP spoofing.
+ * Solo usa cf-connecting-ip como segunda opción (solo fiable si hay Cloudflare).
+ * No confía en x-forwarded-for ni x-real-ip ya que el cliente puede falsificarlos.
  */
-export const getClientIP = (request: Request): string => {
-    return request.headers.get("cf-connecting-ip") || 
-           request.headers.get("x-real-ip") || 
-           request.headers.get("x-forwarded-for")?.split(',')[0] || 
-           "127.0.0.1";
+export const getClientIP = (request: Request, clientAddress?: string): string => {
+    // Opción más segura: IP real del socket entregada por Astro
+    if (clientAddress) return clientAddress;
+    // Solo fiable bajo Cloudflare; cualquier cliente puede enviar este header si no hay CF
+    return request.headers.get("cf-connecting-ip") ?? "unknown";
 };

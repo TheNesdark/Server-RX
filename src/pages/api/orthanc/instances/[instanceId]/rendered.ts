@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { ORTHANC_URL, ORTHANC_AUTH } from '@/config';
 import { checkApiAuth } from '@/utils/server';
+import { orthancFetch } from '@/libs/orthanc';
 
 export const GET: APIRoute = async ({ params, cookies }) => {
     const instanceid = params.instanceId;
@@ -16,9 +16,7 @@ export const GET: APIRoute = async ({ params, cookies }) => {
         return new Response("No autorizado", { status: 401 });
     }
 
-    const response = await fetch(`${ORTHANC_URL}/instances/${instanceid}/rendered?quality=100`, {
-      headers: { 'Authorization': ORTHANC_AUTH }
-    });
+    const response = await orthancFetch(`/instances/${encodeURIComponent(instanceid)}/rendered?quality=100`);
     
     if (!response.ok) {
       throw new Error(response.statusText);

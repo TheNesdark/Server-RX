@@ -20,6 +20,8 @@ const stmtInsertInstance = db.prepare(`
 
 const stmtDeleteStudy = db.prepare('DELETE FROM studies WHERE id = ?');
 const stmtCheckExists = db.prepare('SELECT 1 FROM studies WHERE id = ?');
+// H10: Prepared statement creado una sola vez al nivel de módulo, no dentro de la función
+const stmtCheckSeriesExists = db.prepare('SELECT 1 FROM series WHERE id = ?');
 const stmtUpdateMeta = db.prepare('INSERT OR REPLACE INTO sync_metadata (key, value) VALUES (?, ?)');
 const stmtGetMeta = db.prepare('SELECT value FROM sync_metadata WHERE key = ?');
 
@@ -82,8 +84,7 @@ export function checkStudyExists(studyId: string): boolean {
 }
 
 export function checkSeriesExists(seriesId: string): boolean {
-    const res = db.prepare('SELECT 1 FROM series WHERE id = ?').get(seriesId);
-    return !!res;
+    return !!stmtCheckSeriesExists.get(seriesId);
 }
 
 export function setSyncMetadata(key: string, value: string) {

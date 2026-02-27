@@ -6,32 +6,35 @@ import db, {
   getLocalStudyById
 } from '../db';
 import type { DicomStudy } from '@/types';
-import { ORTHANC_URL, ORTHANC_AUTH } from '@/config';
+import { ORTHANC_URL, getOrthancAuth, readConfig } from '@/config';
 import { startOrthancWatcher } from './watcher';
 
 // Iniciar el observador de cambios automáticamente si estamos en Node
+// H11: Variables globales tipadas en env.d.ts — sin @ts-ignore necesario
 if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
-  // @ts-ignore
   if (!global._orthancWatcherStarted) {
     console.log('🚀 Sistema de sincronización automática activado');
     startOrthancWatcher().catch(err => {
       console.error('❌ Error al iniciar el watcher:', err);
     });
-    // @ts-ignore
     global._orthancWatcherStarted = true;
   }
 }
 
-export async function orthancFetch(path: string, options: RequestInit = {}) {
-  const response = await fetch(`${ORTHANC_URL}${path}`, {
-    ...options,
+// H5: Calcula URL y auth dinámicamente para reflejar cambios de config sin reinicio
+export async function orthancFetch(path: string, options: RequestInit & { allowNonOk?: boolean } = {}) {
+  const { allowNonOk, ...fetchOptions } = options;
+  const cfg = readConfig();
+  const auth = getOrthancAuth();
+  const response = await fetch(`${cfg.ORTHANC_URL}${path}`, {
+    ...fetchOptions,
     headers: {
-      'Authorization': ORTHANC_AUTH,
-      ...options.headers,
+      'Authorization': auth,
+      ...fetchOptions.headers,
     },
   });
 
-  if (!response.ok) {
+  if (!allowNonOk && !response.ok) {
     throw new Error(`Orthanc error: ${response.status} ${response.statusText}`);
   }
 
@@ -51,8 +54,8 @@ export async function GetDNIbyStudyID(studyId: string) {
      return localStudy.PatientMainDicomTags?.PatientID;
    }
 
-   // Si no está en la DB, pedimos a Orthanc
-   const response = await orthancFetch(`/studies/${studyId}`);
+   // H7: encodeURIComponent previene path traversal con IDs maliciosos
+   const response = await orthancFetch(`/studies/${encodeURIComponent(studyId)}`);
    const data: DicomStudy = await response.json();
    return data.PatientMainDicomTags?.PatientID;
  } catch (error) {
@@ -65,7 +68,7 @@ export async function GetDNIbyStudyID(studyId: string) {
  * Función para sincronizar datos desde Orthanc a la DB local
  */
 export async function sincronizarDatos() {
-  // @ts-ignore
+  // H11: Variable global tipada en env.d.ts
   global.isOrthancSyncing = true;
   console.log('🔄 Iniciando sincronización completa...');
   try {

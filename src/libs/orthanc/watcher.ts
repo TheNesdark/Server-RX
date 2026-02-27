@@ -16,7 +16,7 @@ export async function startOrthancWatcher() {
     let lastSeq = -1; // -1 indica que aún no hemos leído la DB al arrancar
 
     setInterval(async function() {
-        // @ts-ignore
+        // H11: Variables globales tipadas en env.d.ts — sin @ts-ignore necesario
         if (isProcessing || global.isOrthancSyncing) return;
         isProcessing = true;
 

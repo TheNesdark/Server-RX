@@ -1,8 +1,7 @@
 import { verifyToken } from '@/libs/auth';
 import type { AstroCookies } from 'astro';
 import { getParentStudyId } from '@/libs/db/studies';
-import { orthancFetch } from '@/libs/orthanc';
-import { GetDNIbyStudyID } from '@/libs/orthanc';
+import { orthancFetch, GetDNIbyStudyID } from '@/libs/orthanc';
 
 export async function checkApiAuth(id: string, cookies: AstroCookies, type: 'instance' | 'series' | 'study' = 'instance'): Promise<boolean> {
     // 1. Verificar autenticación de Admin
@@ -22,7 +21,7 @@ export async function checkApiAuth(id: string, cookies: AstroCookies, type: 'ins
 
             // Si no está en DB local, preguntar a Orthanc
             if (!parentStudyId) {
-                const path = `/${type === 'instance' ? 'instances' : 'series'}/${id}`;
+                const path = `/${type === 'instance' ? 'instances' : 'series'}/${encodeURIComponent(id)}`;
                 const res = await orthancFetch(path);
                 const data = await res.json();
                 parentStudyId = data.ParentStudy;
@@ -70,12 +69,19 @@ export async function validateStudyAccess(context: { cookies: AstroCookies, loca
 
     // 2. Verificar autenticación mediante cookie para pacientes
     const DNI = await GetDNIbyStudyID(studyId);
+
+    // H2: Rechazar inmediatamente si el estudio no tiene PatientID registrado
+    if (!DNI) return { isAuthorized: false, isAdmin: false };
+
     const cookieName = `auth_patient_${studyId}`;
     const authCookie = cookies.get(cookieName);
 
     if (authCookie) {
         const payload = await verifyToken(authCookie.value);
-        if (payload && payload.studyId === studyId && String(payload.dni).trim() === String(DNI).trim()) {
+        // H2: Verificar explícitamente que el token sea de tipo lite_access
+        if (payload && payload.type === 'lite_access' &&
+            payload.studyId === studyId &&
+            String(payload.dni).trim() === String(DNI).trim()) {
             return { isAuthorized: true, isAdmin: false };
         }
     }

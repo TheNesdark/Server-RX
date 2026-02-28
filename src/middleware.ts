@@ -46,7 +46,7 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
     const isReport = url.pathname.startsWith('/reports/');
 
     // Bloquear acceso directo a archivos sensibles de la raíz (defensa en producción)
-    const BLOCKED_FILES = ['/config.json', '/sea-config.json', '/.env'];
+    const BLOCKED_FILES = ['/config.json', '/sea-config.json', '/.env', '/README.md', '/readme.md'];
     if (BLOCKED_FILES.includes(url.pathname)) {
         return new Response(null, { status: 404 });
     }

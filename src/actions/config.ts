@@ -3,26 +3,31 @@ import { z } from "astro:schema";
 import { readConfig, saveConfig, type AppConfig } from "@/config";
 import { sincronizarDatos } from "@/libs/orthanc";
 
-// H3: Bloquea todos los rangos de IP privados/reservados para prevenir SSRF completo
+// H3: Bloquea loopback y endpoints de metadatos cloud para prevenir SSRF hacia el propio servidor.
+// NOTA: Las IPs privadas RFC-1918 (10.x, 172.16.x, 192.168.x) están PERMITIDAS intencionalmente
+// porque el servidor Orthanc reside en la red local del hospital.
 const BLOCKED_PATTERNS = [
-  /^localhost$/i,                                // localhost
-  /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/,         // IPv4 loopback
-  /^0\.0\.0\.0$/,                               // todas las interfaces
-  /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/,          // RFC 1918 clase A
-  /^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/, // RFC 1918 clase B
-  /^192\.168\.\d{1,3}\.\d{1,3}$/,             // RFC 1918 clase C
-  /^169\.254\./,                                // link-local / AWS metadata
-  /^::1$/,                                      // IPv6 loopback
-  /^fc[0-9a-f]{2}:/i,                           // IPv6 ULA
-  /^fe80:/i,                                    // IPv6 link-local
+  /^localhost\.?$/i,                       // localhost y localhost. (trailing dot bypass)
+  /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/,   // IPv4 loopback 127.0.0.0/8
+  /^0\.0\.0\.0$/,                         // INADDR_ANY
+  /^169\.254\./,                           // link-local / AWS EC2 metadata (169.254.169.254)
+  /^::1$/,                                 // IPv6 loopback
+  /^::ffff:7f/i,                           // IPv6 mapped 127.x.x.x (hex: ::ffff:7f00:x)
+  /^::ffff:a9fe/i,                         // IPv6 mapped 169.254.x.x
+  /^fe80:/i,                               // IPv6 link-local
 ];
-const BLOCKED_HOSTS = new Set(['100.100.100.200', 'metadata.google.internal', '[::1]', '::1']);
+const BLOCKED_HOSTS = new Set([
+  'metadata.google.internal',   // GCP metadata
+  '100.100.100.200',            // Alibaba Cloud metadata
+]);
 
 const isBlockedHost = (url: string): boolean => {
   try {
     const { hostname } = new URL(url);
-    if (BLOCKED_HOSTS.has(hostname)) return true;
-    return BLOCKED_PATTERNS.some(re => re.test(hostname));
+    // Node.js devuelve hostnames IPv6 con brackets: [::1] → strip para matching uniforme
+    const host = hostname.replace(/^\[/, '').replace(/\]$/, '');
+    if (BLOCKED_HOSTS.has(host)) return true;
+    return BLOCKED_PATTERNS.some(re => re.test(host));
   } catch {
     return true;
   }

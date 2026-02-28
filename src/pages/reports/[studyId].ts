@@ -32,7 +32,8 @@ export const GET: APIRoute = async (context) => {
 
   if (!studyData) {
     try {
-      const studyRes = await orthancFetch(`/studies/${studyId}`);
+      // encodeURIComponent previene path traversal en el ID de estudio
+      const studyRes = await orthancFetch(`/studies/${encodeURIComponent(studyId)}`);
       studyData = await studyRes.json() as DicomStudy;
     } catch (e) {
       studyData = null as any;

@@ -21,9 +21,19 @@ for (const [name] of allCookies) {
     // Previene que imágenes médicas queden accesibles sin autenticación
     async function logoutAndRedirect() {
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' });
-        // Esperar un tick para que el SW procese el mensaje
-        await new Promise(r => setTimeout(r, 150));
+        const swController = navigator.serviceWorker.controller;
+        // Esperar confirmación del SW en lugar de un timeout fijo arbitrario
+        await new Promise((resolve) => {
+          const timeout = setTimeout(resolve, 500); // fallback si SW no responde
+          navigator.serviceWorker.addEventListener('message', function onMsg(e) {
+            if (e.data?.type === 'CACHE_CLEARED') {
+              clearTimeout(timeout);
+              navigator.serviceWorker.removeEventListener('message', onMsg);
+              resolve(undefined);
+            }
+          });
+          swController.postMessage({ type: 'CLEAR_CACHE' });
+        });
       }
       window.location.replace('/login');
     }

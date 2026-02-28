@@ -31,8 +31,16 @@ export const GET: APIRoute = async ({ params, cookies, url }) => {
         return new Response("No autorizado", { status: 401 });
     }
 
-    // H7: encodeURIComponent previene path traversal; los query params se reenvían a Orthanc
-    const search = url.searchParams.toString();
+    // Whitelist de parámetros permitidos: evita reenvío arbitrario de params a Orthanc
+    // Ref: https://orthanc.uclouvain.be/api/#tag/Instances/paths/~1instances~1{id}~1preview/get
+    const ALLOWED_PREVIEW_PARAMS = new Set(['quality', 'smooth']);
+    const safeParams = new URLSearchParams();
+    for (const [key, value] of url.searchParams.entries()) {
+      if (ALLOWED_PREVIEW_PARAMS.has(key)) {
+        safeParams.set(key, value);
+      }
+    }
+    const search = safeParams.toString();
     const response = await orthancFetch(
       `/instances/${encodeURIComponent(instanceid)}/preview${search ? `?${search}` : ''}`,
       { allowNonOk: true }

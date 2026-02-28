@@ -1,7 +1,16 @@
+import type { APIRoute } from "astro";
 import { getLocalStudies, getLocalStudiesCount } from "@/libs/db";
 import { STUDIES_PAGE_LIMIT } from "@/config/pagination";
 
-export async function GET(request: Request) {
+export const GET: APIRoute = async ({ request, locals }) => {
+  // Defense-in-depth: verificar autenticación explícita además del middleware
+  if (!locals.user) {
+    return new Response(JSON.stringify({ error: 'No autorizado' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     const url = new URL(request.url);
     const searchTerm = url.searchParams.get('q') || '';
@@ -34,4 +43,4 @@ export async function GET(request: Request) {
     console.error('Error en la búsqueda de estudios:', error);
     return new Response("Error en la api", { status: 500});
   }
-}
+};

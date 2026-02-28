@@ -16,7 +16,7 @@ const BLOCKED_PATTERNS = [
   /^fc[0-9a-f]{2}:/i,                           // IPv6 ULA
   /^fe80:/i,                                    // IPv6 link-local
 ];
-const BLOCKED_HOSTS = new Set(['100.100.100.200', 'metadata.google.internal']);
+const BLOCKED_HOSTS = new Set(['100.100.100.200', 'metadata.google.internal', '[::1]', '::1']);
 
 const isBlockedHost = (url: string): boolean => {
   try {

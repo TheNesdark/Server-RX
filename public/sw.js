@@ -9,6 +9,12 @@ const CACHE_NAME = `dicom-cache-${CACHE_VERSION}`;
 // de lo contrario se descarga, se guarda y se retorna.
 const IMMUTABLE_REGEXP = /\/api\/orthanc\/instances\/[^/]+\/(file|preview|rendered)$/;
 
+// TTL de la caché DICOM: debe coincidir con el maxAge del cookie auth_patient_*
+// 4 horas en milisegundos — cuando expira, el SW borra la entrada y vuelve a la red.
+const CACHE_TTL_MS = 4 * 60 * 60 * 1000;
+// Header interno usado para registrar cuándo expira cada entrada cacheada.
+const CACHE_EXPIRES_HEADER = 'x-sw-cache-expires';
+
 // Metadatos de series y estudios: pueden actualizarse (nuevas instancias, etc.).
 // Estrategia: network-first → se intenta la red; si falla se sirve desde caché.
 const METADATA_REGEXP = /\/api\/orthanc\/(series|studies)\/[^/]+$/;
@@ -74,20 +80,43 @@ self.addEventListener('fetch', (event) => {
 // ─── Estrategias de caché ─────────────────────────────────────────────────────
 
 /**
- * Cache-first: devuelve la respuesta cacheada si existe; si no, descarga,
- * guarda en caché y devuelve. Óptimo para recursos inmutables (archivos DICOM).
+ * Cache-first con TTL: devuelve la respuesta cacheada si existe y no ha expirado.
+ * Si expiró o no existe, descarga, guarda con timestamp de expiración y retorna.
+ * Óptimo para archivos DICOM: inmutables en Orthanc pero con acceso temporal.
  */
 async function cacheFirst(request) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(request);
-  if (cached) return cached;
+
+  if (cached) {
+    const expiresAt = parseInt(cached.headers.get(CACHE_EXPIRES_HEADER) || '0', 10);
+    // Si el TTL no ha expirado, servir desde caché directamente
+    if (expiresAt && Date.now() < expiresAt) {
+      return cached;
+    }
+    // TTL expirado: eliminar entrada obsoleta para forzar re-descarga autenticada
+    await cache.delete(request);
+  }
 
   try {
-    // cache: 'no-cache' respeta las cabeceras HTTP y evita desactivar por completo
-    // la caché del navegador, manteniendo la estrategia de cache del SW.
     const response = await fetch(request, { cache: 'no-store' });
     if (response.ok) {
-      cache.put(request, response.clone());
+      // Clonar la respuesta añadiendo el header de expiración antes de cachear
+      const headers = new Headers(response.headers);
+      headers.set(CACHE_EXPIRES_HEADER, String(Date.now() + CACHE_TTL_MS));
+      const bodyBuffer = await response.arrayBuffer();
+      const responseToCache = new Response(bodyBuffer, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+      cache.put(request, responseToCache);
+      // Retornar una segunda copia fresca (la original ya fue consumida)
+      return new Response(bodyBuffer, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+      });
     }
     return response;
   } catch {
@@ -99,20 +128,38 @@ async function cacheFirst(request) {
 }
 
 /**
- * Network-first: intenta la red; si falla devuelve la copia cacheada.
- * Óptimo para metadatos que pueden cambiar pero queremos offline-fallback.
+ * Network-first con TTL: intenta la red; si falla devuelve la copia cacheada
+ * siempre que no haya expirado. Óptimo para metadatos que pueden cambiar pero
+ * queremos offline-fallback. El TTL impide servir datos médicos obsoletos.
  */
 async function networkFirst(request) {
   const cache = await caches.open(CACHE_NAME);
   try {
     const response = await fetch(request);
     if (response.ok) {
-      cache.put(request, response.clone());
+      const headers = new Headers(response.headers);
+      headers.set(CACHE_EXPIRES_HEADER, String(Date.now() + CACHE_TTL_MS));
+      const bodyBuffer = await response.arrayBuffer();
+      cache.put(request, new Response(bodyBuffer, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      }));
+      return new Response(bodyBuffer, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+      });
     }
     return response;
   } catch {
     const cached = await cache.match(request);
-    if (cached) return cached;
+    if (cached) {
+      const expiresAt = parseInt(cached.headers.get(CACHE_EXPIRES_HEADER) || '0', 10);
+      if (expiresAt && Date.now() < expiresAt) return cached;
+      // Caché expirada: no servir datos médicos obsoletos sin autenticación
+      await cache.delete(request);
+    }
     return new Response('Service unavailable', {
       status: 503,
       statusText: 'Service Unavailable',

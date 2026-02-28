@@ -3,6 +3,7 @@ import { z } from "astro:schema";
 import { ADMIN_PASSWORD, ADMIN_USERNAME, PROD } from "@/config";
 import { createToken } from "@/libs/auth";
 import { checkRateLimit, clearRateLimit, getClientIP } from "@/utils/server";
+import crypto from 'node:crypto';
 
 export const auth = {
   login: defineAction({
@@ -26,8 +27,18 @@ export const auth = {
         });
       }
 
-      // H4: Normalizar ambos lados del username para evitar lockout por mayúsculas
-      if (username.toLowerCase() === ADMIN_USERNAME.toLowerCase() && password === ADMIN_PASSWORD) {
+      // H4: Comparación en tiempo constante para prevenir Timing Attacks
+      const normalizedInput = username.toLowerCase();
+      const normalizedAdmin = ADMIN_USERNAME.toLowerCase();
+      const usernameMatch =
+        normalizedInput.length === normalizedAdmin.length &&
+        crypto.timingSafeEqual(Buffer.from(normalizedInput), Buffer.from(normalizedAdmin));
+
+      const passwordMatch =
+        password.length === ADMIN_PASSWORD.length &&
+        crypto.timingSafeEqual(Buffer.from(password), Buffer.from(ADMIN_PASSWORD));
+
+      if (usernameMatch && passwordMatch) {
         await clearRateLimit(rateLimitKey);
         const token = await createToken({ 
           username: username,

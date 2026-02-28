@@ -2,6 +2,7 @@ import { verifyToken } from '@/libs/auth';
 import type { AstroCookies } from 'astro';
 import { getParentStudyId } from '@/libs/db/studies';
 import { orthancFetch, GetDNIbyStudyID } from '@/libs/orthanc';
+import { logOrthancError } from './http-responses';
 
 export async function checkApiAuth(id: string, cookies: AstroCookies, type: 'instance' | 'series' | 'study' = 'instance'): Promise<boolean> {
     // 1. Verificar autenticación de Admin
@@ -44,7 +45,7 @@ export async function checkApiAuth(id: string, cookies: AstroCookies, type: 'ins
             }
         }
     } catch (error) {
-        console.error(`Error verificando auth lite para ${type} ${id}:`, error);
+        logOrthancError(error, `auth lite ${type} ${id}`);
     }
     return false;
 }

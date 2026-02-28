@@ -8,6 +8,21 @@ export default defineConfig({
     mode: 'standalone',
   }),
   vite: {
+    server: {
+      fs: {
+        // Bloquear acceso directo a archivos sensibles de la raíz del proyecto
+        deny: [
+          'config.json',
+          'sea-config.json',
+          'package.json',
+          'package-lock.json',
+          'tsconfig.json',
+          '.env',
+          '.env.*',
+          '*.{pem,key,crt}',
+        ],
+      },
+    },
     build: {
       rollupOptions: {
         output: {

@@ -5,6 +5,7 @@ import {
     getSyncMetadata
 } from '../db';
 import { orthancFetch } from './index';
+import { logOrthancError } from '@/utils/server/http-responses';
 import type { DicomStudy } from '@/types';
 
 const WATCH_INTERVAL = 5000; // 5 segundos
@@ -63,7 +64,7 @@ export async function startOrthancWatcher() {
                         syncFullStudy(study, series, instances);
                         console.log(`[Watcher] ✅ Sincronizado completo: ${study.PatientMainDicomTags?.PatientName || 'S/N'}`);
                     } catch (e) {
-                        console.error(`[Watcher] Error sincronizando estudio ${change.ID}:`, e);
+                        logOrthancError(e, `sincronizando estudio ${change.ID}`);
                     }
                 } 
                 else if (change.ChangeType === 'DeletedStudy') {
@@ -85,10 +86,7 @@ export async function startOrthancWatcher() {
             }
 
         } catch (error) {
-            // Silencio parcial para evitar spam, pero logueamos errores críticos
-            if (error instanceof Error && !error.message.includes('ECONNREFUSED')) {
-                console.error('[Watcher] Error:', error.message);
-            }
+            logOrthancError(error, 'Watcher loop');
         } finally {
             isProcessing = false;
         }

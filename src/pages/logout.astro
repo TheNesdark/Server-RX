@@ -1,6 +1,33 @@
 ---
-Astro.cookies.delete('auth_token', {
-  path: '/',
-});
-return Astro.redirect('/login');
+// Eliminar cookie de sesión admin
+Astro.cookies.delete('auth_token', { path: '/' });
+// Eliminar también cualquier cookie de paciente (auth_patient_*)
+const allCookies = Astro.cookies.headers();
+for (const [name] of allCookies) {
+  if (name.startsWith('auth_patient_')) {
+    Astro.cookies.delete(name, { path: '/' });
+  }
+}
 ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cerrando sesión...</title>
+</head>
+<body>
+  <script>
+    // Limpiar caché del Service Worker antes de redirigir
+    // Previene que imágenes médicas queden accesibles sin autenticación
+    async function logoutAndRedirect() {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' });
+        // Esperar un tick para que el SW procese el mensaje
+        await new Promise(r => setTimeout(r, 150));
+      }
+      window.location.replace('/login');
+    }
+    logoutAndRedirect();
+  </script>
+</body>
+</html>

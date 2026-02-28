@@ -51,13 +51,21 @@ export const clearRateLimit = async (key: string) => {
 
 /**
  * Obtiene el identificador del cliente (IP).
- * Prioriza la IP real del socket (proporcionada por Astro) para evitar IP spoofing.
- * Solo usa cf-connecting-ip como segunda opción (solo fiable si hay Cloudflare).
- * No confía en x-forwarded-for ni x-real-ip ya que el cliente puede falsificarlos.
+ * Detrás de Cloudflare Tunnel, la IP real viene en cf-connecting-ip (inyectada por CF,
+ * no falsificable desde el cliente). clientAddress es la IP del edge de CF, no del usuario.
+ * Sin Cloudflare, usa clientAddress (IP del socket, la más segura).
  */
 export const getClientIP = (request: Request, clientAddress?: string): string => {
-    // Opción más segura: IP real del socket entregada por Astro
+    // Si la conexión viene de un proxy reverso local (ej: cloudflared), podemos confiar en los headers inyectados
+    const isLocal = clientAddress === '127.0.0.1' || clientAddress === '::1' || clientAddress === '::ffff:127.0.0.1';
+    
+    if (isLocal) {
+        const forwardedIp = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for");
+        if (forwardedIp) return forwardedIp.split(',')[0].trim();
+    }
+    
+    // Si la conexión no viene del localhost, los headers HTTP pueden ser falsificados.
+    // Usamos el IP real del socket provisto por Astro.
     if (clientAddress) return clientAddress;
-    // Solo fiable bajo Cloudflare; cualquier cliente puede enviar este header si no hay CF
-    return request.headers.get("cf-connecting-ip") ?? "unknown";
+    return "unknown";
 };

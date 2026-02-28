@@ -8,6 +8,7 @@ import db, {
 import type { DicomStudy } from '@/types';
 import { ORTHANC_URL, getOrthancAuth, readConfig } from '@/config';
 import { startOrthancWatcher } from './watcher';
+import { logOrthancError } from '@/utils/server/http-responses';
 
 // Iniciar el observador de cambios automáticamente si estamos en Node
 // H11: Variables globales tipadas en env.d.ts — sin @ts-ignore necesario
@@ -59,7 +60,7 @@ export async function GetDNIbyStudyID(studyId: string) {
    const data: DicomStudy = await response.json();
    return data.PatientMainDicomTags?.PatientID;
  } catch (error) {
-    console.error("Error al obtener el DNI:", error);
+    logOrthancError(error, 'GetDNIbyStudyID');
     return null;
  }
 }
@@ -107,7 +108,7 @@ export async function sincronizarDatos() {
     console.log('✨ Sincronización manual completada con éxito.');
     return estudios.length;
   } catch (error) {
-    console.error('❌ Error en la sincronización:', error);
+    logOrthancError(error, 'sincronizarDatos');
     throw error;
   } finally {
     // @ts-ignore

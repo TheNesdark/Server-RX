@@ -3,12 +3,26 @@ import { z } from "astro:schema";
 import { readConfig, saveConfig, type AppConfig } from "@/config";
 import { sincronizarDatos } from "@/libs/orthanc";
 
-// H3: Detecta IPs reservadas/link-local peligrosas para prevenir SSRF
+// H3: Bloquea todos los rangos de IP privados/reservados para prevenir SSRF completo
+const BLOCKED_PATTERNS = [
+  /^localhost$/i,                                // localhost
+  /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/,         // IPv4 loopback
+  /^0\.0\.0\.0$/,                               // todas las interfaces
+  /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/,          // RFC 1918 clase A
+  /^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/, // RFC 1918 clase B
+  /^192\.168\.\d{1,3}\.\d{1,3}$/,             // RFC 1918 clase C
+  /^169\.254\./,                                // link-local / AWS metadata
+  /^::1$/,                                      // IPv6 loopback
+  /^fc[0-9a-f]{2}:/i,                           // IPv6 ULA
+  /^fe80:/i,                                    // IPv6 link-local
+];
+const BLOCKED_HOSTS = new Set(['100.100.100.200', 'metadata.google.internal']);
+
 const isBlockedHost = (url: string): boolean => {
   try {
     const { hostname } = new URL(url);
-    // Bloquear link-local (AWS/GCP metadata: 169.254.x.x) y otras IPs de metadata known
-    return /^169\.254\./.test(hostname) || hostname === "100.100.100.200";
+    if (BLOCKED_HOSTS.has(hostname)) return true;
+    return BLOCKED_PATTERNS.some(re => re.test(hostname));
   } catch {
     return true;
   }

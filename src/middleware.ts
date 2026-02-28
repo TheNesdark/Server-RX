@@ -1,6 +1,26 @@
 import type { MiddlewareHandler } from 'astro';
 import { verifyToken } from '@/libs/auth';
 
+/** Añade cabeceras de seguridad HTTP a cualquier respuesta */
+function addSecurityHeaders(response: Response): Response {
+    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    response.headers.set(
+        'Content-Security-Policy',
+        [
+            "default-src 'self'",
+            "script-src 'self'",
+            "style-src 'self' 'unsafe-inline'",
+            "img-src 'self' data: blob:",
+            "connect-src 'self'",
+            "frame-ancestors 'none'",
+            "object-src 'none'",
+        ].join('; ')
+    );
+    return response;
+}
+
 export const onRequest: MiddlewareHandler = async (context, next) => {
     const { url, cookies, redirect } = context;
 
@@ -25,20 +45,30 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
     const isOrthancApi = url.pathname.startsWith('/api/orthanc/');
     const isReport = url.pathname.startsWith('/reports/');
 
-    if (isAuthPage || isViewer || isViewerLite || isOrthancApi || isReport) {
-        return next();
+    // Bloquear acceso directo a archivos sensibles de la raíz (defensa en producción)
+    const BLOCKED_FILES = ['/config.json', '/sea-config.json', '/.env'];
+    if (BLOCKED_FILES.includes(url.pathname)) {
+        return new Response(null, { status: 404 });
     }
 
-    // 3. Exigir login de administrador para el resto de las rutas protegidas
-    if (!context.locals.user) {
+    // P7: Siempre pasamos por una variable para poder añadir headers de seguridad
+    let response: Response;
+
+    if (isAuthPage || isViewer || isViewerLite || isOrthancApi || isReport) {
+        response = await next();
+    } else if (!context.locals.user) {
+        // 3. Exigir login de administrador para el resto de las rutas protegidas
         if (url.pathname.startsWith('/api/')) {
-            return new Response(
-                JSON.stringify({ error: 'No autorizado' }), 
+            response = new Response(
+                JSON.stringify({ error: 'No autorizado' }),
                 { status: 401, headers: { 'Content-Type': 'application/json' } }
             );
+        } else {
+            response = redirect('/login');
         }
-        return redirect('/login');
+    } else {
+        response = await next();
     }
 
-    return next();
+    return addSecurityHeaders(response);
 };

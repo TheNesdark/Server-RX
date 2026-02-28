@@ -1,6 +1,7 @@
 import { orthancFetch } from "@/libs/orthanc";
 import { getLocalStudyById, getLocalSeriesById } from "@/libs/db";
 import type { ThumbnailInfo } from "@/types";
+import { logOrthancError } from "./http-responses";
 
 const createErrorSeries = (id: string): ThumbnailInfo => ({
   id,
@@ -37,7 +38,7 @@ const fetchSeriesData = async (seriesId: string, viewport?: number): Promise<Thu
       bodyPart: mainDicomTags?.BodyPartExamined ?? "N/A",
     };
   } catch (error) {
-    console.error(`[Viewer] Error cargando serie ${seriesId}:`, error);
+    logOrthancError(error, `cargando serie ${seriesId}`);
     return createErrorSeries(seriesId);
   }
 };

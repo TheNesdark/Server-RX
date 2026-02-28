@@ -27,12 +27,17 @@ const DEFAULT_CONFIG: AppConfig = {
   PROD: false
 };
 
+let cachedConfig: AppConfig | null = null;
+
 const getConfig = (): AppConfig => {
+  if (cachedConfig) return cachedConfig;
+
   try {
     if (!fs.existsSync(CONFIG_PATH)) {
       fs.writeFileSync(CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 2), "utf-8");
       console.warn("⚠️  Se creó config.json con valores vacíos. Configura JWT_SECRET, ADMIN_PASSWORD y ORTHANC_PASSWORD antes de usar el sistema.");
-      return DEFAULT_CONFIG;
+      cachedConfig = DEFAULT_CONFIG;
+      return cachedConfig;
     }
     const fileContent = fs.readFileSync(CONFIG_PATH, "utf-8");
     const parsed = JSON.parse(fileContent) as Partial<AppConfig>;
@@ -46,6 +51,7 @@ const getConfig = (): AppConfig => {
       console.error("❌ CRÍTICO: ADMIN_PASSWORD está vacío en config.json.");
     }
 
+    cachedConfig = merged;
     return merged;
   } catch (error) {
     console.error("Error reading/creating config.json:", error);
@@ -74,6 +80,7 @@ export const getOrthancAuth = (): string => {
 export const saveConfig = (newConfig: AppConfig): boolean => {
   try {
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(newConfig, null, 2), "utf-8");
+    cachedConfig = newConfig;
     return true;
   } catch (error) {
     console.error("Error saving config.json:", error);

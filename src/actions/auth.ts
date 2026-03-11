@@ -16,6 +16,14 @@ export const auth = {
       const { cookies } = context;
       const { username, password } = input;
 
+      // Fail-safe: evitar autenticación si la instancia no tiene credenciales configuradas.
+      if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
+        throw new ActionError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Configuración de autenticación incompleta en el servidor.",
+        });
+      }
+
       const ip = getClientIP(context.request, context.clientAddress);
       const rateLimitKey = `login:${ip}:${username}`;
       const rateLimit = await checkRateLimit(rateLimitKey, { points: 5, duration: 60 * 15 });

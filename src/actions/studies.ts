@@ -28,7 +28,7 @@ export const studies = {
         });
       }
 
-      const ip = getClientIP(context.request);
+      const ip = getClientIP(context.request, context.clientAddress);
 
       // Rate limit global por IP: previene bypass rotando entre múltiples studyIds
       const globalRateLimitKey = `verify-lite:global:${ip}`;
